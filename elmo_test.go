@@ -36,6 +36,10 @@ func TestParseSimpleCommandWithWhiteSpace(t *testing.T) {
 	ParseAndTest(t, " chipotle ", expectOneLine(t))
 }
 
+func TestParseSimpleCommandWithNewLines(t *testing.T) {
+	ParseAndTest(t, "\nchipotle ", expectOneLine(t))
+}
+
 func TestParseTwoSimpleCommands(t *testing.T) {
 	ParseAndTest(t, "chipotle;chipotle", expectTwoLines(t))
 }

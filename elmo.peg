@@ -4,7 +4,7 @@ type ElmoGrammar Peg {
 
 }
 
-Script <- Spacing (Line)* EOT
+Script <- Spacing (NewLine)? (Line)* EOT
 
 Line <- Identifier (Argument)* (EndOfLine)?
 

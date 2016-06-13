@@ -26,11 +26,11 @@ func Children(node *node32) []*node32 {
 	}
 
 	return Filter(result, func(child *node32) bool {
-		return child.pegRule != ruleSpacing
+		return (child.pegRule != ruleSpacing && child.pegRule != ruleNewLine)
 	})
 }
 
-// PegRules returns an array of the peg rules of a node withut Spacing
+// PegRules returns an array of the peg rules of a node without Spacing
 //
 func PegRules(nodes []*node32) []pegRule {
 	result := []pegRule{}
