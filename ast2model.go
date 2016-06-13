@@ -24,7 +24,9 @@ func Ast2Call(node *node32, buf string) Call {
 		if idx == 0 {
 			functionName = buf[argument.begin : argument.begin+(argument.end-argument.begin)]
 		} else {
-			arguments = append(arguments, Ast2Argument(argument, buf))
+			if argument.pegRule == ruleArgument {
+				arguments = append(arguments, Ast2Argument(argument, buf))
+			}
 		}
 	}
 

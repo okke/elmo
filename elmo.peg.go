@@ -17,7 +17,7 @@ const (
 	ruleScript
 	ruleLine
 	ruleEndOfLine
-	ruleParameter
+	ruleArgument
 	ruleFunctionCall
 	ruleBlock
 	ruleSpacing
@@ -49,7 +49,7 @@ var rul3s = [...]string{
 	"Script",
 	"Line",
 	"EndOfLine",
-	"Parameter",
+	"Argument",
 	"FunctionCall",
 	"Block",
 	"Spacing",
@@ -558,7 +558,7 @@ func (p *ElmoGrammar) Init() {
 			position, tokenIndex, depth = position0, tokenIndex0, depth0
 			return false
 		},
-		/* 1 Line <- <(Identifier Parameter* EndOfLine?)> */
+		/* 1 Line <- <(Identifier Argument* EndOfLine?)> */
 		func() bool {
 			position4, tokenIndex4, depth4 := position, tokenIndex, depth
 			{
@@ -570,7 +570,7 @@ func (p *ElmoGrammar) Init() {
 			l6:
 				{
 					position7, tokenIndex7, depth7 := position, tokenIndex, depth
-					if !_rules[ruleParameter]() {
+					if !_rules[ruleArgument]() {
 						goto l7
 					}
 					goto l6
@@ -622,7 +622,7 @@ func (p *ElmoGrammar) Init() {
 			position, tokenIndex, depth = position10, tokenIndex10, depth10
 			return false
 		},
-		/* 3 Parameter <- <(Identifier / StringLiteral / DecimalConstant / FunctionCall / Block)> */
+		/* 3 Argument <- <(Identifier / StringLiteral / DecimalConstant / FunctionCall / Block)> */
 		func() bool {
 			position14, tokenIndex14, depth14 := position, tokenIndex, depth
 			{
@@ -660,7 +660,7 @@ func (p *ElmoGrammar) Init() {
 				}
 			l16:
 				depth--
-				add(ruleParameter, position15)
+				add(ruleArgument, position15)
 			}
 			return true
 		l14:

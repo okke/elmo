@@ -6,11 +6,11 @@ type ElmoGrammar Peg {
 
 Script <- Spacing (Line)* EOT
 
-Line <- Identifier (Parameter)* (EndOfLine)?
+Line <- Identifier (Argument)* (EndOfLine)?
 
 EndOfLine <- PCOMMA / NewLine
 
-Parameter <- Identifier
+Argument <- Identifier
            / StringLiteral
            / DecimalConstant
            / FunctionCall

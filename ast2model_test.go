@@ -16,6 +16,10 @@ func TestCreateBlockWithOneCall(t *testing.T) {
 		if block.Calls()[0].Name() != "chipotle" {
 			t.Error("exptected call to chipotle")
 		}
+
+		if len(block.Calls()[0].Arguments()) != 0 {
+			t.Error("call should have no arguments")
+		}
 	})
 }
 
@@ -33,8 +37,16 @@ func TestCreateBlockWithTwoCalls(t *testing.T) {
 				t.Error("exptected call to chipotle")
 			}
 
+			if len(block.Calls()[0].Arguments()) != 0 {
+				t.Error("call should have no arguments")
+			}
+
 			if block.Calls()[1].Name() != "sauce" {
 				t.Error("exptected call to sauce")
+			}
+
+			if len(block.Calls()[1].Arguments()) != 0 {
+				t.Error("call should have no arguments")
 			}
 		}
 
