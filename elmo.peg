@@ -1,0 +1,77 @@
+package elmo
+
+type ElmoGrammar Peg {
+
+}
+
+Script <- Spacing (Line)* EOT
+
+Line <- Identifier (Parameter)* (EndOfLine)?
+
+EndOfLine <- PCOMMA / NewLine
+
+Parameter <- Identifier
+           / StringLiteral
+           / DecimalConstant
+           / FunctionCall
+           / Block
+
+FunctionCall <- LPAR Line RPAR
+
+Block <- LCURLY (Line)* RCURLY
+
+
+# SPACING
+
+Spacing
+   <- ( WhiteSpace
+      / LongComment
+      / LineComment
+      )*
+
+WhiteSpace  <- [ \t]
+LongComment <- '/*' (!'*/'.)* '*/'
+LineComment <- '#' (!'\n' .)*
+
+# NEW LINE
+
+NewLine <- ([\n\r] Spacing)+
+
+#
+# IDENTIFIERS
+#
+
+Identifier <- IdNondigit IdChar* Spacing
+
+IdNondigit <- [a-z] / [A-Z] / [_]
+
+IdChar <- [a-z] / [A-Z] / [0-9] / [_]
+
+
+#
+# STRING LITERALS
+#
+
+StringLiteral <- (["] StringChar* ["] Spacing)+
+
+StringChar <- Escape / ![\"\n\\] .
+
+Escape <- '\\' ['\"?\\abfnrtv]
+
+#
+# NUMBERS
+#
+
+DecimalConstant <- [1-9][0-9]* Spacing
+
+
+#
+# PUNCTUATORS
+#
+
+LPAR      <-  '('         Spacing
+RPAR      <-  ')'         Spacing
+LCURLY    <-  '{'         Spacing
+RCURLY    <-  '}'         Spacing
+PCOMMA    <-  ';'         Spacing
+EOT       <-  !.
