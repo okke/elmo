@@ -1,16 +1,55 @@
 package elmo
 
+// Type represents an internal value type
+//
+type Type uint8
+
+const (
+	typeIdentifier Type = iota
+)
+
+type identifier struct {
+	value string
+}
+
+// Value represents data within elmo
+//
+type Value interface {
+	String() string
+	Type() Type
+}
+
+func (identifier *identifier) String() string {
+	return identifier.value
+}
+
+func (identifier *identifier) Type() Type {
+	return typeIdentifier
+}
+
+// NewIdentifier creates a new identifier value
+//
+func NewIdentifier(value string) Value {
+	return &identifier{value: value}
+}
+
 type argument struct {
+	value Value
 }
 
 // Argument represent a function call parameter
 //
 type Argument interface {
+	String() string
 }
 
 type call struct {
 	functionName string
 	arguments    []Argument
+}
+
+func (argument *argument) String() string {
+	return argument.value.String()
 }
 
 // Call is a function call

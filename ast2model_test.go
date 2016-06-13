@@ -14,7 +14,7 @@ func TestCreateBlockWithOneCall(t *testing.T) {
 		}
 
 		if block.Calls()[0].Name() != "chipotle" {
-			t.Error("exptected call to chipotle")
+			t.Errorf("exptected call to chipotle, got call to %s", block.Calls()[0].Name())
 		}
 
 		if len(block.Calls()[0].Arguments()) != 0 {
@@ -34,7 +34,7 @@ func TestCreateBlockWithTwoCalls(t *testing.T) {
 			t.Error("exptected 2 calls")
 		} else {
 			if block.Calls()[0].Name() != "chipotle" {
-				t.Error("exptected call to chipotle")
+				t.Errorf("exptected call to chipotle, got call to %s", block.Calls()[0].Name())
 			}
 
 			if len(block.Calls()[0].Arguments()) != 0 {
@@ -42,7 +42,7 @@ func TestCreateBlockWithTwoCalls(t *testing.T) {
 			}
 
 			if block.Calls()[1].Name() != "sauce" {
-				t.Error("exptected call to sauce")
+				t.Errorf("exptected call to sauce, got call to %s", block.Calls()[0].Name())
 			}
 
 			if len(block.Calls()[1].Arguments()) != 0 {
@@ -50,5 +50,84 @@ func TestCreateBlockWithTwoCalls(t *testing.T) {
 			}
 		}
 
+	})
+}
+
+func TestCreateBlockWithOneCallWithOneArgument(t *testing.T) {
+	ParseAndTest(t, "chipotle sauce", func(ast *node32, buf string) {
+		block := Ast2Block(ast, buf)
+		if block == nil {
+			t.Error("no block constructed")
+		}
+
+		if len(block.Calls()) != 1 {
+			t.Error("exptected 1 call")
+		}
+
+		if block.Calls()[0].Name() != "chipotle" {
+			t.Errorf("exptected call to chipotle, got call to %s", block.Calls()[0].Name())
+		}
+
+		if len(block.Calls()[0].Arguments()) != 1 {
+			t.Error("call should one argument")
+		}
+	})
+}
+
+func TestCreateBlockWithOneCallWithTwoArguments(t *testing.T) {
+	ParseAndTest(t, "chipotle sauce in_a_jar", func(ast *node32, buf string) {
+		block := Ast2Block(ast, buf)
+		if block == nil {
+			t.Error("no block constructed")
+		}
+
+		if len(block.Calls()) != 1 {
+			t.Error("exptected 1 call")
+		}
+
+		if block.Calls()[0].Name() != "chipotle" {
+			t.Errorf("exptected call to chipotle, got call to %s", block.Calls()[0].Name())
+		}
+
+		if len(block.Calls()[0].Arguments()) != 2 {
+			t.Error("call should have two arguments")
+		}
+
+		if block.Calls()[0].Arguments()[0].String() != "sauce" {
+			t.Errorf("exptected argument (sauce), got (%s)", block.Calls()[0].Arguments()[0].String())
+		}
+
+		if block.Calls()[0].Arguments()[1].String() != "in_a_jar" {
+			t.Errorf("exptected argument (in_a_jar), got (%s)", block.Calls()[0].Arguments()[0].String())
+		}
+	})
+}
+
+func TestCreateBlockWithTwoCallsWithTwoArguments(t *testing.T) {
+	ParseAndTest(t, "chipotle sauce in_a_jar\npimenton powder in_a_can", func(ast *node32, buf string) {
+		block := Ast2Block(ast, buf)
+		if block == nil {
+			t.Error("no block constructed")
+		}
+
+		if len(block.Calls()) != 2 {
+			t.Error("exptected 2 calls")
+		}
+
+		if block.Calls()[1].Name() != "pimenton" {
+			t.Errorf("exptected call to chipotle, got call to %s", block.Calls()[0].Name())
+		}
+
+		if len(block.Calls()[1].Arguments()) != 2 {
+			t.Error("call should have two arguments")
+		}
+
+		if block.Calls()[1].Arguments()[0].String() != "powder" {
+			t.Errorf("exptected argument (powder), got (%s)", block.Calls()[0].Arguments()[0].String())
+		}
+
+		if block.Calls()[1].Arguments()[1].String() != "in_a_can" {
+			t.Errorf("exptected argument (in_a_can), got (%s)", block.Calls()[0].Arguments()[0].String())
+		}
 	})
 }

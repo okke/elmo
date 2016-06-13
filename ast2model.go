@@ -1,5 +1,7 @@
 package elmo
 
+import "fmt"
+
 // Ast2Block converts an ast node to a code block
 //
 func Ast2Block(node *node32, buf string) Block {
@@ -22,10 +24,10 @@ func Ast2Call(node *node32, buf string) Call {
 
 	for idx, argument := range Children(node) {
 		if idx == 0 {
-			functionName = buf[argument.begin : argument.begin+(argument.end-argument.begin)]
+			functionName = Text(argument, buf)
 		} else {
 			if argument.pegRule == ruleArgument {
-				arguments = append(arguments, Ast2Argument(argument, buf))
+				arguments = append(arguments, Ast2Argument(argument.up, buf))
 			}
 		}
 	}
@@ -36,5 +38,10 @@ func Ast2Call(node *node32, buf string) Call {
 // Ast2Argument converts an ast node to a function argument
 //
 func Ast2Argument(node *node32, buf string) Argument {
-	return nil
+	switch node.pegRule {
+	case ruleIdentifier:
+		return NewIdentifier(Text(node, buf))
+	default:
+		panic(fmt.Sprintf("invalid argument node: %v", node))
+	}
 }
