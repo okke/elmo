@@ -41,6 +41,9 @@ func Ast2Argument(node *node32, buf string) Argument {
 	switch node.pegRule {
 	case ruleIdentifier:
 		return NewIdentifier(Text(node, buf))
+	case ruleStringLiteral:
+		txt := Text(node, buf)
+		return NewStringLiteral(txt[1 : len(txt)-1])
 	default:
 		panic(fmt.Sprintf("invalid argument node: %v", node))
 	}

@@ -1,14 +1,21 @@
 package elmo
 
+import "fmt"
+
 // Type represents an internal value type
 //
 type Type uint8
 
 const (
 	typeIdentifier Type = iota
+	typeString
 )
 
 type identifier struct {
+	value string
+}
+
+type stringLiteral struct {
 	value string
 }
 
@@ -27,10 +34,24 @@ func (identifier *identifier) Type() Type {
 	return typeIdentifier
 }
 
+func (stringLiteral *stringLiteral) String() string {
+	return fmt.Sprintf("\"%s\"", stringLiteral.value)
+}
+
+func (stringLiteral *stringLiteral) Type() Type {
+	return typeString
+}
+
 // NewIdentifier creates a new identifier value
 //
 func NewIdentifier(value string) Value {
 	return &identifier{value: value}
+}
+
+// NewStringLiteral creates a new string literal value
+//
+func NewStringLiteral(value string) Value {
+	return &stringLiteral{value: value}
 }
 
 type argument struct {
