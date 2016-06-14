@@ -13,6 +13,8 @@ const (
 	TypeString
 	// TypeInteger represents a type for an integer value
 	TypeInteger
+	// TypeGoFunction represents a type for an internal go function
+	TypeGoFunction
 )
 
 type identifier struct {
@@ -27,11 +29,33 @@ type integerLiteral struct {
 	value int64
 }
 
+// GoFunction is a native go function that takes an array of input values
+// and returns an output value
+//
+type GoFunction func([]Value) Value
+
+type goFunction struct {
+	name  string
+	value GoFunction
+}
+
 // Value represents data within elmo
 //
 type Value interface {
+	Print() string
 	String() string
 	Type() Type
+}
+
+// NamedValue represent data with a name
+//
+type NamedValue interface {
+	Value
+	Name() string
+}
+
+func (identifier *identifier) Print() string {
+	return identifier.value
 }
 
 func (identifier *identifier) String() string {
@@ -42,12 +66,20 @@ func (identifier *identifier) Type() Type {
 	return TypeIdentifier
 }
 
-func (stringLiteral *stringLiteral) String() string {
+func (stringLiteral *stringLiteral) Print() string {
 	return fmt.Sprintf("\"%s\"", stringLiteral.value)
+}
+
+func (stringLiteral *stringLiteral) String() string {
+	return fmt.Sprintf("%s", stringLiteral.value)
 }
 
 func (stringLiteral *stringLiteral) Type() Type {
 	return TypeString
+}
+
+func (integerLiteral *integerLiteral) Print() string {
+	return fmt.Sprintf("%d", integerLiteral.value)
 }
 
 func (integerLiteral *integerLiteral) String() string {
@@ -56,6 +88,22 @@ func (integerLiteral *integerLiteral) String() string {
 
 func (integerLiteral *integerLiteral) Type() Type {
 	return TypeInteger
+}
+
+func (goFunction *goFunction) Print() string {
+	return goFunction.String()
+}
+
+func (goFunction *goFunction) String() string {
+	return fmt.Sprintf("go:%s", goFunction.name)
+}
+
+func (goFunction *goFunction) Type() Type {
+	return TypeGoFunction
+}
+
+func (goFunction *goFunction) Name() string {
+	return goFunction.name
 }
 
 // NewIdentifier creates a new identifier value
@@ -76,6 +124,12 @@ func NewIntegerLiteral(value int64) Value {
 	return &integerLiteral{value: value}
 }
 
+// NewGoFunction creates a new go function
+//
+func NewGoFunction(name string, value GoFunction) NamedValue {
+	return &goFunction{name: name, value: value}
+}
+
 type argument struct {
 	value Value
 }
@@ -87,17 +141,17 @@ type Argument interface {
 	Type() Type
 }
 
-type call struct {
-	functionName string
-	arguments    []Argument
-}
-
 func (argument *argument) String() string {
 	return argument.value.String()
 }
 
 func (argument *argument) Type() Type {
 	return argument.value.Type()
+}
+
+type call struct {
+	functionName string
+	arguments    []Argument
 }
 
 // Call is a function call

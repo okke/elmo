@@ -155,8 +155,8 @@ func TestCreateBlockWithOneCallWithOneStringArgument(t *testing.T) {
 			t.Errorf("exptected a string argument")
 		}
 
-		if block.Calls()[0].Arguments()[0].String() != "\"sauce\"" {
-			t.Errorf("exptected argument (\"sauce\"), got (%s)", block.Calls()[0].Arguments()[0].String())
+		if block.Calls()[0].Arguments()[0].String() != "sauce" {
+			t.Errorf("exptected argument (sauce), got (%s)", block.Calls()[0].Arguments()[0].String())
 		}
 	})
 }
