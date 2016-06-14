@@ -148,11 +148,44 @@ func TestCreateBlockWithOneCallWithOneStringArgument(t *testing.T) {
 		}
 
 		if len(block.Calls()[0].Arguments()) != 1 {
-			t.Error("call should one argument")
+			t.Error("call should have one argument")
+		}
+
+		if block.Calls()[0].Arguments()[0].Type() != TypeString {
+			t.Errorf("exptected a string argument")
 		}
 
 		if block.Calls()[0].Arguments()[0].String() != "\"sauce\"" {
 			t.Errorf("exptected argument (\"sauce\"), got (%s)", block.Calls()[0].Arguments()[0].String())
+		}
+	})
+}
+
+func TestCreateBlockWithOneCallWithOneIntegerArgument(t *testing.T) {
+	ParseAndTest(t, "chipotle 36", func(ast *node32, buf string) {
+		block := Ast2Block(ast, buf)
+		if block == nil {
+			t.Error("no block constructed")
+		}
+
+		if len(block.Calls()) != 1 {
+			t.Error("exptected 1 call")
+		}
+
+		if block.Calls()[0].Name() != "chipotle" {
+			t.Errorf("exptected call to chipotle, got call to %s", block.Calls()[0].Name())
+		}
+
+		if len(block.Calls()[0].Arguments()) != 1 {
+			t.Error("call should have one argument")
+		}
+
+		if block.Calls()[0].Arguments()[0].Type() != TypeInteger {
+			t.Errorf("exptected an integer argument")
+		}
+
+		if block.Calls()[0].Arguments()[0].String() != "36" {
+			t.Errorf("exptected argument (36), got (%s)", block.Calls()[0].Arguments()[0].String())
 		}
 	})
 }

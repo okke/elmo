@@ -7,8 +7,12 @@ import "fmt"
 type Type uint8
 
 const (
-	typeIdentifier Type = iota
-	typeString
+	// TypeIdentifier represents a type for an identifier value
+	TypeIdentifier Type = iota
+	// TypeString represents a type for a string value
+	TypeString
+	// TypeInteger represents a type for an integer value
+	TypeInteger
 )
 
 type identifier struct {
@@ -17,6 +21,10 @@ type identifier struct {
 
 type stringLiteral struct {
 	value string
+}
+
+type integerLiteral struct {
+	value int64
 }
 
 // Value represents data within elmo
@@ -31,7 +39,7 @@ func (identifier *identifier) String() string {
 }
 
 func (identifier *identifier) Type() Type {
-	return typeIdentifier
+	return TypeIdentifier
 }
 
 func (stringLiteral *stringLiteral) String() string {
@@ -39,7 +47,15 @@ func (stringLiteral *stringLiteral) String() string {
 }
 
 func (stringLiteral *stringLiteral) Type() Type {
-	return typeString
+	return TypeString
+}
+
+func (integerLiteral *integerLiteral) String() string {
+	return fmt.Sprintf("%d", integerLiteral.value)
+}
+
+func (integerLiteral *integerLiteral) Type() Type {
+	return TypeInteger
 }
 
 // NewIdentifier creates a new identifier value
@@ -54,6 +70,12 @@ func NewStringLiteral(value string) Value {
 	return &stringLiteral{value: value}
 }
 
+// NewIntegerLiteral creates a new integer value
+//
+func NewIntegerLiteral(value int64) Value {
+	return &integerLiteral{value: value}
+}
+
 type argument struct {
 	value Value
 }
@@ -62,6 +84,7 @@ type argument struct {
 //
 type Argument interface {
 	String() string
+	Type() Type
 }
 
 type call struct {
@@ -71,6 +94,10 @@ type call struct {
 
 func (argument *argument) String() string {
 	return argument.value.String()
+}
+
+func (argument *argument) Type() Type {
+	return argument.value.Type()
 }
 
 // Call is a function call
