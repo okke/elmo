@@ -178,6 +178,7 @@ type argument struct {
 type Argument interface {
 	String() string
 	Type() Type
+	Value() Value
 }
 
 func (argument *argument) String() string {
@@ -186,6 +187,16 @@ func (argument *argument) String() string {
 
 func (argument *argument) Type() Type {
 	return argument.value.Type()
+}
+
+func (argument *argument) Value() Value {
+	return argument.value
+}
+
+// NewArgument constructs a new function argument
+//
+func NewArgument(value Value) Argument {
+	return &argument{value: value}
 }
 
 //

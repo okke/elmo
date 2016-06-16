@@ -52,7 +52,7 @@ func TestBlockCallToNativeFunctionShouldExecuteFunction(t *testing.T) {
 
 	context := NewRunContext(nil)
 
-	context.SetNamed(NewGoFunction("sauce", func(functionContext RunContext, values []Argument) Value {
+	context.SetNamed(NewGoFunction("sauce", func(functionContext RunContext, arguments []Argument) Value {
 		return NewStringLiteral("chipotle")
 	}))
 
@@ -65,4 +65,45 @@ func TestBlockCallToNativeFunctionShouldExecuteFunction(t *testing.T) {
 			t.Errorf("block should return (chipotle) instead of %s", result.String())
 		}
 	}
+}
+
+func TestGoFunctionWithOneArgumentCanReturnArgumentValue(t *testing.T) {
+
+	context := NewRunContext(nil)
+
+	context.SetNamed(NewGoFunction("echo", func(functionContext RunContext, arguments []Argument) Value {
+		return arguments[0].Value()
+	}))
+
+	result := NewBlock([]Call{NewCall("echo", []Argument{NewArgument(NewStringLiteral("chipotle"))})}).Run(context)
+
+	if result.String() != "chipotle" {
+		t.Errorf("function should return (chipotle) instead of %s", result.String())
+	}
+
+}
+
+func TestGoFunctionCanAlterContext(t *testing.T) {
+
+	context := NewRunContext(nil)
+
+	context.SetNamed(NewGoFunction("alter", func(functionContext RunContext, arguments []Argument) Value {
+		context.Set(arguments[0].Value().String(), arguments[1].Value())
+		return Nothing
+	}))
+
+	NewBlock([]Call{NewCall("alter", []Argument{
+		NewArgument(NewStringLiteral("chipotle")),
+		NewArgument(NewStringLiteral("sauce"))})}).Run(context)
+
+	result, found := context.Get("chipotle")
+
+	if !found {
+		t.Error("function should manipulate context")
+	} else {
+		if result.String() != "sauce" {
+			t.Errorf("function should return (sauce) instead of %s", result.String())
+		}
+	}
+
 }

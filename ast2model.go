@@ -43,17 +43,17 @@ func Ast2Call(node *node32, buf string) Call {
 func Ast2Argument(node *node32, buf string) Argument {
 	switch node.pegRule {
 	case ruleIdentifier:
-		return NewIdentifier(Text(node, buf))
+		return NewArgument(NewIdentifier(Text(node, buf)))
 	case ruleStringLiteral:
 		txt := Text(node, buf)
-		return NewStringLiteral(txt[1 : len(txt)-1])
+		return NewArgument(NewStringLiteral(txt[1 : len(txt)-1]))
 	case ruleDecimalConstant:
 		txt := Text(node, buf)
 		i, err := strconv.ParseInt(txt, 10, 64)
 		if err != nil {
 			panic(err)
 		}
-		return NewIntegerLiteral(i)
+		return NewArgument(NewIntegerLiteral(i))
 	default:
 		panic(fmt.Sprintf("invalid argument node: %v", node))
 	}
