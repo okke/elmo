@@ -66,7 +66,7 @@ func TestSetAndGetNamedValue(t *testing.T) {
 
 	context := NewRunContext(nil)
 
-	context.SetNamed(NewGoFunction("sauce", func(values []Value) Value {
+	context.SetNamed(NewGoFunction("sauce", func(functionContext RunContext, values []Argument) Value {
 		return NewStringLiteral("chipotle")
 	}))
 
