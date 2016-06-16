@@ -16,3 +16,16 @@ func ParseAndTest(t *testing.T, s string, testfunc func(*node32, string)) {
 	}
 
 }
+
+// ParseAndTestBlock will parse given script to block and execute test function on its result
+//
+func ParseAndTestBlock(t *testing.T, s string, testfunc func(Block)) {
+	ParseAndTest(t, s, func(ast *node32, buf string) {
+		block := Ast2Block(ast, buf)
+		if block == nil {
+			t.Error("no block constructed")
+		} else {
+			testfunc(block)
+		}
+	})
+}

@@ -3,11 +3,7 @@ package elmo
 import "testing"
 
 func TestCreateBlockWithOneCall(t *testing.T) {
-	ParseAndTest(t, "chipotle", func(ast *node32, buf string) {
-		block := Ast2Block(ast, buf)
-		if block == nil {
-			t.Error("no block constructed")
-		}
+	ParseAndTestBlock(t, "chipotle", func(block Block) {
 
 		if len(block.Calls()) != 1 {
 			t.Error("exptected 1 call")
@@ -24,11 +20,7 @@ func TestCreateBlockWithOneCall(t *testing.T) {
 }
 
 func TestCreateBlockWithTwoCalls(t *testing.T) {
-	ParseAndTest(t, "chipotle; sauce", func(ast *node32, buf string) {
-		block := Ast2Block(ast, buf)
-		if block == nil {
-			t.Error("no block constructed")
-		}
+	ParseAndTestBlock(t, "chipotle; sauce", func(block Block) {
 
 		if len(block.Calls()) != 2 {
 			t.Error("exptected 2 calls")
@@ -54,11 +46,7 @@ func TestCreateBlockWithTwoCalls(t *testing.T) {
 }
 
 func TestCreateBlockWithOneCallWithOneArgument(t *testing.T) {
-	ParseAndTest(t, "chipotle sauce", func(ast *node32, buf string) {
-		block := Ast2Block(ast, buf)
-		if block == nil {
-			t.Error("no block constructed")
-		}
+	ParseAndTestBlock(t, "chipotle sauce", func(block Block) {
 
 		if len(block.Calls()) != 1 {
 			t.Error("exptected 1 call")
@@ -75,11 +63,7 @@ func TestCreateBlockWithOneCallWithOneArgument(t *testing.T) {
 }
 
 func TestCreateBlockWithOneCallWithTwoArguments(t *testing.T) {
-	ParseAndTest(t, "chipotle sauce in_a_jar", func(ast *node32, buf string) {
-		block := Ast2Block(ast, buf)
-		if block == nil {
-			t.Error("no block constructed")
-		}
+	ParseAndTestBlock(t, "chipotle sauce in_a_jar", func(block Block) {
 
 		if len(block.Calls()) != 1 {
 			t.Error("exptected 1 call")
@@ -104,11 +88,7 @@ func TestCreateBlockWithOneCallWithTwoArguments(t *testing.T) {
 }
 
 func TestCreateBlockWithTwoCallsWithTwoArguments(t *testing.T) {
-	ParseAndTest(t, "chipotle sauce in_a_jar\npimenton powder in_a_can", func(ast *node32, buf string) {
-		block := Ast2Block(ast, buf)
-		if block == nil {
-			t.Error("no block constructed")
-		}
+	ParseAndTestBlock(t, "chipotle sauce in_a_jar\npimenton powder in_a_can", func(block Block) {
 
 		if len(block.Calls()) != 2 {
 			t.Error("exptected 2 calls")
@@ -133,11 +113,7 @@ func TestCreateBlockWithTwoCallsWithTwoArguments(t *testing.T) {
 }
 
 func TestCreateBlockWithOneCallWithOneStringArgument(t *testing.T) {
-	ParseAndTest(t, "chipotle \"sauce\"", func(ast *node32, buf string) {
-		block := Ast2Block(ast, buf)
-		if block == nil {
-			t.Error("no block constructed")
-		}
+	ParseAndTestBlock(t, "chipotle \"sauce\"", func(block Block) {
 
 		if len(block.Calls()) != 1 {
 			t.Error("exptected 1 call")
@@ -162,11 +138,7 @@ func TestCreateBlockWithOneCallWithOneStringArgument(t *testing.T) {
 }
 
 func TestCreateBlockWithOneCallWithOneIntegerArgument(t *testing.T) {
-	ParseAndTest(t, "chipotle 36", func(ast *node32, buf string) {
-		block := Ast2Block(ast, buf)
-		if block == nil {
-			t.Error("no block constructed")
-		}
+	ParseAndTestBlock(t, "chipotle 36", func(block Block) {
 
 		if len(block.Calls()) != 1 {
 			t.Error("exptected 1 call")
