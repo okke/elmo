@@ -2,16 +2,16 @@ package elmo
 
 import "testing"
 
-func expectOneLine(t *testing.T) func(*node32, string) {
-	return func(ast *node32, buf string) {
+func expectOneLine(t *testing.T) func(*node32) {
+	return func(ast *node32) {
 		if !TestEqRules(ChildrenRules(ast), []pegRule{ruleLine}) {
 			t.Errorf("does not contain one line, found %v", Children(ast))
 		}
 	}
 }
 
-func expectOneLineContaining(t *testing.T, testChildren func([]*node32)) func(*node32, string) {
-	return func(ast *node32, buf string) {
+func expectOneLineContaining(t *testing.T, testChildren func([]*node32)) func(*node32) {
+	return func(ast *node32) {
 
 		if !TestEqRules(ChildrenRules(ast), []pegRule{ruleLine}) {
 			t.Error("does not contain one line")
@@ -21,8 +21,8 @@ func expectOneLineContaining(t *testing.T, testChildren func([]*node32)) func(*n
 	}
 }
 
-func expectTwoLines(t *testing.T) func(*node32, string) {
-	return func(ast *node32, buf string) {
+func expectTwoLines(t *testing.T) func(*node32) {
+	return func(ast *node32) {
 		if !TestEqRules(ChildrenRules(ast), []pegRule{ruleLine, ruleLine}) {
 			t.Error("does not contain two lines")
 		}
@@ -53,14 +53,14 @@ func IdentifierFollowedByMultipleArguments(t *testing.T, ruleTypes []pegRule) fu
 	}
 }
 
-func IdentifierFollowedByBlock(t *testing.T, blockTestFunc func(*node32, string)) func([]*node32) {
+func IdentifierFollowedByBlock(t *testing.T, blockTestFunc func(*node32)) func([]*node32) {
 	return func(children []*node32) {
 
 		if !TestEqRules(PegRules(children), []pegRule{ruleIdentifier, ruleArgument}) {
 			t.Errorf("expected <identifier> <block>, found %v", children)
 		}
 
-		blockTestFunc(children[1].up, "")
+		blockTestFunc(children[1].up)
 	}
 }
 
