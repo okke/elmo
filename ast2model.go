@@ -54,6 +54,8 @@ func Ast2Argument(node *node32, buf string) Argument {
 			panic(err)
 		}
 		return NewArgument(NewIntegerLiteral(i))
+	case ruleBlock:
+		return NewArgument(Ast2Block(node, buf))
 	default:
 		panic(fmt.Sprintf("invalid argument node: %v", node))
 	}

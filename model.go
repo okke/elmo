@@ -23,6 +23,8 @@ const (
 	TypeString
 	// TypeInteger represents a type for an integer value
 	TypeInteger
+	// TypeBlock represents a type for a code block
+	TypeBlock
 	// TypeGoFunction represents a type for an internal go function
 	TypeGoFunction
 	// TypeNil represents the type of a nil value
@@ -256,6 +258,8 @@ type block struct {
 // Block is a list of function calls
 //
 type Block interface {
+	// Block can be used as a value
+	Value
 	Calls() []Call
 	Run(context RunContext) Value
 }
@@ -272,6 +276,18 @@ func (block *block) Run(context RunContext) Value {
 	}
 
 	return result
+}
+
+func (block *block) Print() string {
+	return block.String()
+}
+
+func (block *block) String() string {
+	return fmt.Sprintf("{...}")
+}
+
+func (block *block) Type() Type {
+	return TypeBlock
 }
 
 // NewBlock contsruct a new block of function calls
