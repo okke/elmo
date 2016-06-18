@@ -28,7 +28,7 @@ func expectTwoLines(t *testing.T) func(*node32, string) {
 	}
 }
 
-func IdentifierFollowedByArgument(t *testing.T, ruleType pegRule) func([]*node32) {
+func IdentifierFollowedByOneArgument(t *testing.T, ruleType pegRule) func([]*node32) {
 	return func(children []*node32) {
 		if !TestEqRules(PegRules(children), []pegRule{ruleIdentifier, ruleArgument}) {
 			t.Errorf("expected <identifier> <argument>, found %v", children)
@@ -39,7 +39,7 @@ func IdentifierFollowedByArgument(t *testing.T, ruleType pegRule) func([]*node32
 	}
 }
 
-func IdentifierFollowedByArguments(t *testing.T, ruleTypes []pegRule) func([]*node32) {
+func IdentifierFollowedByMultipleArguments(t *testing.T, ruleTypes []pegRule) func([]*node32) {
 	return func(children []*node32) {
 
 		if children[0].pegRule != ruleIdentifier {
@@ -89,38 +89,38 @@ func TestParseTwoSimpleCommandsOnNewLinesWithMoreNewLinesAndSpacing(t *testing.T
 }
 
 func TestParseCommandWithIdentifierAsParameter(t *testing.T) {
-	ParseAndTest(t, "chipotle sauce", expectOneLineContaining(t, IdentifierFollowedByArgument(t, ruleIdentifier)))
+	ParseAndTest(t, "chipotle sauce", expectOneLineContaining(t, IdentifierFollowedByOneArgument(t, ruleIdentifier)))
 }
 
 func TestParseCommandWithStringAsParameter(t *testing.T) {
-	ParseAndTest(t, "chipotle \"sauce\"", expectOneLineContaining(t, IdentifierFollowedByArgument(t, ruleStringLiteral)))
+	ParseAndTest(t, "chipotle \"sauce\"", expectOneLineContaining(t, IdentifierFollowedByOneArgument(t, ruleStringLiteral)))
 }
 
 func TestParseCommandWithIntegerAsParameter(t *testing.T) {
-	ParseAndTest(t, "chipotle 138", expectOneLineContaining(t, IdentifierFollowedByArgument(t, ruleDecimalConstant)))
+	ParseAndTest(t, "chipotle 138", expectOneLineContaining(t, IdentifierFollowedByOneArgument(t, ruleDecimalConstant)))
 }
 
 func TestParseCommandWithFunctionCallAsParameter(t *testing.T) {
-	ParseAndTest(t, "chipotle (sauce)", expectOneLineContaining(t, IdentifierFollowedByArgument(t, ruleFunctionCall)))
+	ParseAndTest(t, "chipotle (sauce)", expectOneLineContaining(t, IdentifierFollowedByOneArgument(t, ruleFunctionCall)))
 }
 
 func TestParseCommandWithEmptyBlockAsParameter(t *testing.T) {
-	ParseAndTest(t, "chipotle {}", expectOneLineContaining(t, IdentifierFollowedByArgument(t, ruleBlock)))
+	ParseAndTest(t, "chipotle {}", expectOneLineContaining(t, IdentifierFollowedByOneArgument(t, ruleBlock)))
 }
 
 func TestParseCommandWithMultipleParameters(t *testing.T) {
-	ParseAndTest(t, "chipotle sauce in_a_jar", expectOneLineContaining(t, IdentifierFollowedByArguments(t,
+	ParseAndTest(t, "chipotle sauce in_a_jar", expectOneLineContaining(t, IdentifierFollowedByMultipleArguments(t,
 		[]pegRule{ruleIdentifier, ruleIdentifier})))
 
-	ParseAndTest(t, "chipotle sauce 128", expectOneLineContaining(t, IdentifierFollowedByArguments(t,
+	ParseAndTest(t, "chipotle sauce 128", expectOneLineContaining(t, IdentifierFollowedByMultipleArguments(t,
 		[]pegRule{ruleIdentifier, ruleDecimalConstant})))
 
-	ParseAndTest(t, "chipotle (sauce 128) (jar 136)", expectOneLineContaining(t, IdentifierFollowedByArguments(t,
+	ParseAndTest(t, "chipotle (sauce 128) (jar 136)", expectOneLineContaining(t, IdentifierFollowedByMultipleArguments(t,
 		[]pegRule{ruleFunctionCall, ruleFunctionCall})))
 
-	ParseAndTest(t, "chipotle \"sauce\" {}", expectOneLineContaining(t, IdentifierFollowedByArguments(t,
+	ParseAndTest(t, "chipotle \"sauce\" {}", expectOneLineContaining(t, IdentifierFollowedByMultipleArguments(t,
 		[]pegRule{ruleStringLiteral, ruleBlock})))
 
-	ParseAndTest(t, "chipotle {} jar {}", expectOneLineContaining(t, IdentifierFollowedByArguments(t,
+	ParseAndTest(t, "chipotle {} jar {}", expectOneLineContaining(t, IdentifierFollowedByMultipleArguments(t,
 		[]pegRule{ruleBlock, ruleIdentifier, ruleBlock})))
 }
