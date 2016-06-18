@@ -5,7 +5,7 @@ import "testing"
 func expectOneLine(t *testing.T) func(*node32, string) {
 	return func(ast *node32, buf string) {
 		if !TestEqRules(ChildrenRules(ast), []pegRule{ruleLine}) {
-			t.Error("does not contain one line")
+			t.Errorf("does not contain one line, found %v", Children(ast))
 		}
 	}
 }
@@ -50,6 +50,17 @@ func IdentifierFollowedByMultipleArguments(t *testing.T, ruleTypes []pegRule) fu
 		if !TestEqRules(PegRulesFirstChild(children[1:]), ruleTypes) {
 			t.Errorf("expected %v, found %v", ruleTypes, PegRulesFirstChild(children[1:]))
 		}
+	}
+}
+
+func IdentifierFollowedByBlock(t *testing.T, blockTestFunc func(*node32, string)) func([]*node32) {
+	return func(children []*node32) {
+
+		if !TestEqRules(PegRules(children), []pegRule{ruleIdentifier, ruleArgument}) {
+			t.Errorf("expected <identifier> <block>, found %v", children)
+		}
+
+		blockTestFunc(children[1].up, "")
 	}
 }
 
@@ -136,4 +147,12 @@ func TestParseCommandWithBlockContainingNewlinesAsArguments(t *testing.T) {
 func TestParseCommandWithLeadingNewlines(t *testing.T) {
 	ParseAndTest(t, "\nchipotle {\n \n}", expectOneLineContaining(t, IdentifierFollowedByOneArgument(t, ruleBlock)))
 	ParseAndTest(t, "\n\nchipotle {\n \n}", expectOneLineContaining(t, IdentifierFollowedByOneArgument(t, ruleBlock)))
+}
+
+func TestParseCommandWithBlockWithCalls(t *testing.T) {
+	ParseAndTest(t, "\nchipotle {sauce 33}", expectOneLineContaining(t, IdentifierFollowedByBlock(t, expectOneLine(t))))
+	ParseAndTest(t, "\nchipotle {sauce 33; sauce 34}", expectOneLineContaining(t, IdentifierFollowedByBlock(t, expectTwoLines(t))))
+	ParseAndTest(t, "\nchipotle {sauce 33\n sauce 34}", expectOneLineContaining(t, IdentifierFollowedByBlock(t, expectTwoLines(t))))
+	ParseAndTest(t, "\nchipotle {sauce {}}", expectOneLineContaining(t, IdentifierFollowedByBlock(t, expectOneLine(t))))
+	ParseAndTest(t, "\nchipotle {sauce {\n}}", expectOneLineContaining(t, IdentifierFollowedByBlock(t, expectOneLine(t))))
 }

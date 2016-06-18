@@ -14,7 +14,8 @@ func Filter(nodes []*node32, f func(*node32) bool) []*node32 {
 	return result
 }
 
-// Children returns an array of children of a node in the parsetree without Spacing
+// Children returns an array of children of a node in the parsetree without
+// spacing, newlines other non-semantic tokens
 //
 func Children(node *node32) []*node32 {
 	result := []*node32{}
@@ -26,7 +27,12 @@ func Children(node *node32) []*node32 {
 	}
 
 	return Filter(result, func(child *node32) bool {
-		return (child.pegRule != ruleSpacing && child.pegRule != ruleNewLine)
+		return (child.pegRule != ruleSpacing &&
+			child.pegRule != ruleNewLine &&
+			child.pegRule != ruleLCURLY &&
+			child.pegRule != ruleRCURLY &&
+			child.pegRule != ruleLPAR &&
+			child.pegRule != ruleRPAR)
 	})
 }
 
