@@ -42,6 +42,18 @@ func PegRules(nodes []*node32) []pegRule {
 	return result
 }
 
+// PegRulesFirstChild returns an array of the peg rules of a nodes first child
+//
+func PegRulesFirstChild(nodes []*node32) []pegRule {
+	result := []pegRule{}
+
+	for _, v := range nodes {
+		result = append(result, v.up.pegRule)
+	}
+
+	return result
+}
+
 // TestEqRules will test if two array of rules are the same
 //
 func TestEqRules(a, b []pegRule) bool {
