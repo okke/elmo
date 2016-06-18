@@ -12,6 +12,7 @@ func expectOneLine(t *testing.T) func(*node32, string) {
 
 func expectOneLineContaining(t *testing.T, testChildren func([]*node32)) func(*node32, string) {
 	return func(ast *node32, buf string) {
+
 		if !TestEqRules(ChildrenRules(ast), []pegRule{ruleLine}) {
 			t.Error("does not contain one line")
 		}
@@ -123,4 +124,16 @@ func TestParseCommandWithMultipleParameters(t *testing.T) {
 
 	ParseAndTest(t, "chipotle {} jar {}", expectOneLineContaining(t, IdentifierFollowedByMultipleArguments(t,
 		[]pegRule{ruleBlock, ruleIdentifier, ruleBlock})))
+}
+
+func TestParseCommandWithBlockContainingNewlinesAsArguments(t *testing.T) {
+	ParseAndTest(t, "chipotle {\n}", expectOneLineContaining(t, IdentifierFollowedByOneArgument(t, ruleBlock)))
+	ParseAndTest(t, "chipotle {\n\n}", expectOneLineContaining(t, IdentifierFollowedByOneArgument(t, ruleBlock)))
+	ParseAndTest(t, "chipotle {\n \n}", expectOneLineContaining(t, IdentifierFollowedByOneArgument(t, ruleBlock)))
+
+}
+
+func TestParseCommandWithLeadingNewlines(t *testing.T) {
+	ParseAndTest(t, "\nchipotle {\n \n}", expectOneLineContaining(t, IdentifierFollowedByOneArgument(t, ruleBlock)))
+	ParseAndTest(t, "\n\nchipotle {\n \n}", expectOneLineContaining(t, IdentifierFollowedByOneArgument(t, ruleBlock)))
 }

@@ -4,9 +4,9 @@ type ElmoGrammar Peg {
 
 }
 
-Script <- Spacing (NewLine)? (Line)* EOT
+Script <- Spacing (Line)* EOT
 
-Line <- Identifier (Argument)* (EndOfLine)?
+Line <- (NewLine)? Identifier (Argument)* (EndOfLine)?
 
 EndOfLine <- PCOMMA / NewLine
 
@@ -18,7 +18,7 @@ Argument <- Identifier
 
 FunctionCall <- LPAR Line RPAR
 
-Block <- LCURLY (Line)* RCURLY
+Block <- LCURLY (NewLine)* (Line)* RCURLY
 
 
 # SPACING
