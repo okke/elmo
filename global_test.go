@@ -72,7 +72,10 @@ func TestDynamicSetValueIntoGlobalContext(t *testing.T) {
 func TestUserDefinedFunctionWithoutArguments(t *testing.T) {
 
 	ParseAndTestBlock(t,
-		`set fsauce (func { return "chipotle" }); set sauce (fsauce)`, func(block Block) {
+		`set fsauce (func {
+       return "chipotle"
+     })
+     set sauce (fsauce)`, func(block Block) {
 
 			global := NewGlobalContext()
 
@@ -94,7 +97,10 @@ func TestUserDefinedFunctionWithoutArguments(t *testing.T) {
 func TestUserDefinedFunctionWithOneArgument(t *testing.T) {
 
 	ParseAndTestBlock(t,
-		`set fsauce (func pepper { return (pepper) }); set sauce (fsauce "chipotle")`, func(block Block) {
+		`set fsauce (func pepper {
+       return (pepper)
+     })
+     set sauce (fsauce "chipotle")`, func(block Block) {
 
 			global := NewGlobalContext()
 
