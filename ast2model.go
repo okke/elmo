@@ -22,10 +22,15 @@ func Ast2Block(node *node32, buf string) Block {
 //
 func Ast2Call(node *node32, buf string) Call {
 
+	children := Children(node)
+	if len(children) == 1 && children[0].pegRule == ruleLine {
+		return Ast2Call(children[0], buf)
+	}
+
 	functionName := ""
 	arguments := []Argument{}
 
-	for idx, argument := range Children(node) {
+	for idx, argument := range children {
 		if idx == 0 {
 			functionName = Text(argument, buf)
 		} else {

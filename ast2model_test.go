@@ -203,5 +203,18 @@ func TestCreateBlockWithOneCallWithOneCallArgument(t *testing.T) {
 			t.Errorf("exptected a call argument")
 		}
 
+		call := block.Calls()[0].Arguments()[0].Value().(Call)
+		if call.Name() != "sauce" {
+			t.Errorf("exptected a call to (sauce) instead of %v", call.Name())
+		}
+
+		if len(call.Arguments()) != 1 {
+			t.Errorf("exptected 1 argument for call to (sauce) instead of %d", len(call.Arguments()))
+		}
+
+		if call.Arguments()[0].Type() != TypeInteger {
+			t.Errorf("exptected an integer argument for call to (sauce) instead of %d", call.Arguments()[0].Type())
+		}
+
 	})
 }

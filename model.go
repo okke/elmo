@@ -244,7 +244,8 @@ func (call *call) Run(context RunContext, arguments []Argument) Value {
 		return value
 	}
 
-	return Nothing
+	panic(fmt.Sprintf("call to undefined \"%s\"", call.functionName))
+	// return Nothing
 }
 
 func (call *call) Print() string {

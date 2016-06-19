@@ -68,3 +68,47 @@ func TestDynamicSetValueIntoGlobalContext(t *testing.T) {
 
 		})
 }
+
+func TestUserDefinedFunctionWithoutArguments(t *testing.T) {
+
+	ParseAndTestBlock(t,
+		`set fsauce (func { return "chipotle" }); set sauce (fsauce)`, func(block Block) {
+
+			global := NewGlobalContext()
+
+			block.Run(global, []Argument{})
+
+			result, found := global.Get("sauce")
+
+			if !found {
+				t.Error("expected sauce to be set")
+			} else {
+				if result.String() != "chipotle" {
+					t.Errorf("expected sauce to be set to (chipotle), found %v", result.String())
+				}
+			}
+
+		})
+}
+
+func TestUserDefinedFunctionWithOneArgument(t *testing.T) {
+
+	ParseAndTestBlock(t,
+		`set fsauce (func pepper { return (pepper) }); set sauce (fsauce "chipotle")`, func(block Block) {
+
+			global := NewGlobalContext()
+
+			block.Run(global, []Argument{})
+
+			result, found := global.Get("sauce")
+
+			if !found {
+				t.Error("expected sauce to be set")
+			} else {
+				if result.String() != "chipotle" {
+					t.Errorf("expected sauce to be set to (chipotle), found %v", result.String())
+				}
+			}
+
+		})
+}
