@@ -54,6 +54,8 @@ func Ast2Argument(node *node32, buf string) Argument {
 			panic(err)
 		}
 		return NewArgument(NewIntegerLiteral(i))
+	case ruleFunctionCall:
+		return NewArgument(Ast2Call(node, buf))
 	case ruleBlock:
 		return NewArgument(Ast2Block(node, buf))
 	default:
