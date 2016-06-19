@@ -1,5 +1,7 @@
 package elmo
 
+var noArguments = []Argument{}
+
 // NewGlobalContext constructs a new context and initializes it with
 // all default global values
 //
@@ -25,21 +27,16 @@ func set() NamedValue {
 
 		name := ""
 
-		// first argument should be an identifier or a call
-		// that will result in an identifier
-		//
-		if arguments[0].Type() == TypeIdentifier {
-			name = arguments[0].String()
-		} else if arguments[0].Type() == TypeCall {
+		if arguments[0].Type() == TypeCall {
 			value := arguments[0].Value().(Runnable).Run(context, []Argument{})
 			name = value.String()
 		} else {
-			panic("first parameter of set must be an identifier or a function call that will evaluate to an identifier")
+			name = arguments[0].String()
 		}
 
 		value := arguments[1].Value()
 		if arguments[1].Type() == TypeCall {
-			value = arguments[1].Value().(Runnable).Run(context, []Argument{})
+			value = arguments[1].Value().(Runnable).Run(context, noArguments)
 		}
 
 		context.Set(name, value)
@@ -59,16 +56,11 @@ func get() NamedValue {
 
 		name := ""
 
-		// first argument should be an identifier or a call
-		// that will result in an identifier
-		//
-		if arguments[0].Type() == TypeIdentifier {
-			name = arguments[0].String()
-		} else if arguments[0].Type() == TypeCall {
-			value := arguments[0].Value().(Runnable).Run(context, []Argument{})
+		if arguments[0].Type() == TypeCall {
+			value := arguments[0].Value().(Runnable).Run(context, noArguments)
 			name = value.String()
 		} else {
-			panic("first parameter of set must be an identifier or a function call that will evaluate to an identifier")
+			name = arguments[0].String()
 		}
 
 		result, found := context.Get(name)
