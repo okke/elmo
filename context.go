@@ -12,6 +12,7 @@ type RunContext interface {
 	SetNamed(value NamedValue)
 	Get(key string) (Value, bool)
 	CreateSubContext() RunContext
+	Parent() RunContext
 }
 
 func (runContext *runContext) Set(key string, value Value) {
@@ -35,6 +36,10 @@ func (runContext *runContext) Get(key string) (Value, bool) {
 	}
 
 	return nil, false
+}
+
+func (runContext *runContext) Parent() RunContext {
+	return runContext.parent
 }
 
 func (runContext *runContext) CreateSubContext() RunContext {

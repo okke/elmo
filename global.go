@@ -25,14 +25,7 @@ func set() NamedValue {
 			panic("invalid call to set, expected 2 parameters")
 		}
 
-		name := ""
-
-		if arguments[0].Type() == TypeCall {
-			value := arguments[0].Value().(Runnable).Run(context, []Argument{})
-			name = value.String()
-		} else {
-			name = arguments[0].String()
-		}
+		name := evalArgument2String(context, arguments[0])
 
 		value := arguments[1].Value()
 		if arguments[1].Type() == TypeCall {
@@ -54,16 +47,7 @@ func get() NamedValue {
 			panic("invalid call to get, expected 1 parameter")
 		}
 
-		name := ""
-
-		if arguments[0].Type() == TypeCall {
-			value := arguments[0].Value().(Runnable).Run(context, noArguments)
-			name = value.String()
-		} else {
-			name = arguments[0].String()
-		}
-
-		result, found := context.Get(name)
+		result, found := context.Get(evalArgument2String(context, arguments[0]))
 		if found {
 			return result
 		}
@@ -71,4 +55,20 @@ func get() NamedValue {
 		return Nothing
 
 	})
+}
+
+func evalArgument(context RunContext, argument Argument) Value {
+
+	if argument.Type() == TypeCall {
+		return argument.Value().(Runnable).Run(context, noArguments)
+	}
+
+	return argument.Value()
+
+}
+
+func evalArgument2String(context RunContext, argument Argument) string {
+
+	return evalArgument(context, argument).String()
+
 }
