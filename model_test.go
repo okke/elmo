@@ -4,7 +4,7 @@ import "testing"
 
 func TestBlockWithoutCallsShouldReturnNothing(t *testing.T) {
 
-	result := NewBlock([]Call{}).Run(NewRunContext(nil))
+	result := NewBlock([]Call{}).Run(NewRunContext(nil), []Argument{})
 
 	if result != Nothing {
 		t.Error("empty block should return nothing")
@@ -17,7 +17,7 @@ func TestBlockWithOneCallsShouldReturnCallResult(t *testing.T) {
 
 	context.Set("chipotle", NewStringLiteral("sauce"))
 
-	result := NewBlock([]Call{NewCall("chipotle", []Argument{})}).Run(context)
+	result := NewBlock([]Call{NewCall("chipotle", []Argument{})}).Run(context, []Argument{})
 
 	if result == Nothing {
 		t.Error("block with statement should return something")
@@ -37,7 +37,7 @@ func TestBlockWithTwoCallsShouldReturnLastCallResult(t *testing.T) {
 
 	result := NewBlock([]Call{
 		NewCall("chipotle", []Argument{}),
-		NewCall("blackbeans", []Argument{})}).Run(context)
+		NewCall("blackbeans", []Argument{})}).Run(context, []Argument{})
 
 	if result == Nothing {
 		t.Error("block with statement should return something")
@@ -56,7 +56,7 @@ func TestBlockCallToNativeFunctionShouldExecuteFunction(t *testing.T) {
 		return NewStringLiteral("chipotle")
 	}))
 
-	result := NewBlock([]Call{NewCall("sauce", []Argument{})}).Run(context)
+	result := NewBlock([]Call{NewCall("sauce", []Argument{})}).Run(context, []Argument{})
 
 	if result == Nothing {
 		t.Error("block with statement should return something")
@@ -75,7 +75,7 @@ func TestGoFunctionWithOneArgumentCanReturnArgumentValue(t *testing.T) {
 		return arguments[0].Value()
 	}))
 
-	result := NewBlock([]Call{NewCall("echo", []Argument{NewArgument(NewStringLiteral("chipotle"))})}).Run(context)
+	result := NewBlock([]Call{NewCall("echo", []Argument{NewArgument(NewStringLiteral("chipotle"))})}).Run(context, []Argument{})
 
 	if result.String() != "chipotle" {
 		t.Errorf("function should return (chipotle) instead of %s", result.String())
@@ -94,7 +94,7 @@ func TestGoFunctionCanAlterContext(t *testing.T) {
 
 	NewBlock([]Call{NewCall("alter", []Argument{
 		NewArgument(NewStringLiteral("chipotle")),
-		NewArgument(NewStringLiteral("sauce"))})}).Run(context)
+		NewArgument(NewStringLiteral("sauce"))})}).Run(context, []Argument{})
 
 	result, found := context.Get("chipotle")
 

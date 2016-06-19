@@ -215,10 +215,13 @@ type call struct {
 // Call is a function call
 //
 type Call interface {
+	// Call can be used
 	Value
+	// Call can be executed
+	Runnable
+
 	Name() string
 	Arguments() []Argument
-	Run(context RunContext) Value
 }
 
 func (call *call) Name() string {
@@ -229,7 +232,7 @@ func (call *call) Arguments() []Argument {
 	return call.arguments
 }
 
-func (call *call) Run(context RunContext) Value {
+func (call *call) Run(context RunContext, arguments []Argument) Value {
 	value, found := context.Get(call.functionName)
 
 	if found {
@@ -275,19 +278,20 @@ type block struct {
 type Block interface {
 	// Block can be used as a value
 	Value
+	// Block can be executed
+	Runnable
 	Calls() []Call
-	Run(context RunContext) Value
 }
 
 func (block *block) Calls() []Call {
 	return block.calls
 }
 
-func (block *block) Run(context RunContext) Value {
+func (block *block) Run(context RunContext, arguments []Argument) Value {
 	var result Value = Nothing
 
 	for _, call := range block.calls {
-		result = call.Run(context)
+		result = call.Run(context, []Argument{})
 	}
 
 	return result
