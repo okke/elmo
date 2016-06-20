@@ -2,121 +2,57 @@ package elmo
 
 import "testing"
 
-func TestSetValueIntoGlobalContext(t *testing.T) {
+func expectValueSetTo(t *testing.T, key string, value string) func(RunContext, Value) {
 
-	ParseAndTestBlock(t, "set chipotle \"sauce\"", func(block Block) {
+	return func(context RunContext, blockResult Value) {
 
-		global := NewGlobalContext()
-
-		block.Run(global, []Argument{})
-
-		result, found := global.Get("chipotle")
+		result, found := context.Get(key)
 
 		if !found {
-			t.Error("expected chipotle to be set")
+			t.Errorf("expected %s to be set", key)
 		} else {
-			if result.String() != "sauce" {
-				t.Errorf("expected chipotle to be set to (sauce), found %v", result.String())
+			if result.String() != value {
+				t.Errorf("expected %s to be set to (%s), found %s", key, value, result.String())
 			}
 		}
+	}
+}
 
-	})
+func TestSetValueIntoGlobalContext(t *testing.T) {
+
+	ParseTestAndRunBlock(t, "set chipotle \"sauce\"", expectValueSetTo(t, "chipotle", "sauce"))
 }
 
 func TestSetValueIntoGlobalContextAndGetIt(t *testing.T) {
 
-	ParseAndTestBlock(t,
+	ParseTestAndRunBlock(t,
 		`set chipotle "sauce"
-     set sauce (chipotle)`, func(block Block) {
-
-			global := NewGlobalContext()
-
-			block.Run(global, []Argument{})
-
-			result, found := global.Get("sauce")
-
-			if !found {
-				t.Error("expected sauce to be set")
-			} else {
-				if result.String() != "sauce" {
-					t.Errorf("expected sauce to be set to (sauce), found %v", result.String())
-				}
-			}
-
-		})
+     set sauce (chipotle)`, expectValueSetTo(t, "sauce", "sauce"))
 }
 
 func TestDynamicSetValueIntoGlobalContext(t *testing.T) {
 
-	ParseAndTestBlock(t,
+	ParseTestAndRunBlock(t,
 		`set chipotle "sauce"
-     set (chipotle) 147`, func(block Block) {
-
-			global := NewGlobalContext()
-
-			block.Run(global, []Argument{})
-
-			result, found := global.Get("sauce")
-
-			if !found {
-				t.Error("expected sauce to be set")
-			} else {
-				if result.String() != "147" {
-					t.Errorf("expected sauce to be set to (147), found %v", result.String())
-				}
-			}
-
-		})
+     set (chipotle) 147`, expectValueSetTo(t, "sauce", "147"))
 }
 
 func TestUserDefinedFunctionWithoutArguments(t *testing.T) {
 
-	ParseAndTestBlock(t,
+	ParseTestAndRunBlock(t,
 		`set fsauce (func {
        return "chipotle"
      })
-     set sauce (fsauce)`, func(block Block) {
-
-			global := NewGlobalContext()
-
-			block.Run(global, []Argument{})
-
-			result, found := global.Get("sauce")
-
-			if !found {
-				t.Error("expected sauce to be set")
-			} else {
-				if result.String() != "chipotle" {
-					t.Errorf("expected sauce to be set to (chipotle), found %v", result.String())
-				}
-			}
-
-		})
+     set sauce (fsauce)`, expectValueSetTo(t, "sauce", "chipotle"))
 }
 
 func TestUserDefinedFunctionWithOneArgument(t *testing.T) {
 
-	ParseAndTestBlock(t,
+	ParseTestAndRunBlock(t,
 		`set fsauce (func pepper {
        return (pepper)
      })
-     set sauce (fsauce "chipotle")`, func(block Block) {
-
-			global := NewGlobalContext()
-
-			block.Run(global, []Argument{})
-
-			result, found := global.Get("sauce")
-
-			if !found {
-				t.Error("expected sauce to be set")
-			} else {
-				if result.String() != "chipotle" {
-					t.Errorf("expected sauce to be set to (chipotle), found %v", result.String())
-				}
-			}
-
-		})
+     set sauce (fsauce "chipotle")`, expectValueSetTo(t, "sauce", "chipotle"))
 }
 
 func TestIfWithoutElse(t *testing.T) {
@@ -125,37 +61,13 @@ func TestIfWithoutElse(t *testing.T) {
 		`set pepper "galapeno"
      if (true) {
       set pepper "chipotle"
-     }`, func(context RunContext, blockResult Value) {
-
-			result, found := context.Get("pepper")
-
-			if !found {
-				t.Error("expected pepper to be set")
-			} else {
-				if result.String() != "chipotle" {
-					t.Errorf("expected pepper to be set to (chipotle), found %v", result.String())
-				}
-			}
-
-		})
+     }`, expectValueSetTo(t, "pepper", "chipotle"))
 
 	ParseTestAndRunBlock(t,
 		`set pepper "galapeno"
      if (false) {
       set pepper "chipotle"
-     }`, func(context RunContext, blockResult Value) {
-
-			result, found := context.Get("pepper")
-
-			if !found {
-				t.Error("expected pepper to be set")
-			} else {
-				if result.String() != "galapeno" {
-					t.Errorf("expected pepper to be set to (galapeno), found %v", result.String())
-				}
-			}
-
-		})
+     }`, expectValueSetTo(t, "pepper", "galapeno"))
 }
 
 func TestIfWithElse(t *testing.T) {
@@ -166,19 +78,7 @@ func TestIfWithElse(t *testing.T) {
       set pepper "chipotle"
      } else {
       set pepper "chilli"
-     }`, func(context RunContext, blockResult Value) {
-
-			result, found := context.Get("pepper")
-
-			if !found {
-				t.Error("expected pepper to be set")
-			} else {
-				if result.String() != "chipotle" {
-					t.Errorf("expected pepper to be set to (chipotle), found %v", result.String())
-				}
-			}
-
-		})
+     }`, expectValueSetTo(t, "pepper", "chipotle"))
 
 	ParseTestAndRunBlock(t,
 		`set pepper "galapeno"
@@ -186,19 +86,7 @@ func TestIfWithElse(t *testing.T) {
       set pepper "chipotle"
      } else {
       set pepper "chilli"
-     }`, func(context RunContext, blockResult Value) {
-
-			result, found := context.Get("pepper")
-
-			if !found {
-				t.Error("expected pepper to be set")
-			} else {
-				if result.String() != "chilli" {
-					t.Errorf("expected pepper to be set to (chilli), found %v", result.String())
-				}
-			}
-
-		})
+     }`, expectValueSetTo(t, "pepper", "chilli"))
 
 	ParseTestAndRunBlock(t,
 		`set pepper "galapeno"
@@ -206,18 +94,6 @@ func TestIfWithElse(t *testing.T) {
       set pepper "chilli"
      } {
       set pepper "chipotle"
-     }`, func(context RunContext, blockResult Value) {
-
-			result, found := context.Get("pepper")
-
-			if !found {
-				t.Error("expected pepper to be set")
-			} else {
-				if result.String() != "chipotle" {
-					t.Errorf("expected pepper to be set to (chipotle), found %v", result.String())
-				}
-			}
-
-		})
+     }`, expectValueSetTo(t, "pepper", "chipotle"))
 
 }
