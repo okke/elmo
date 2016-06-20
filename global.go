@@ -27,7 +27,7 @@ func set() NamedValue {
 		// set expects exactly 2 arguments
 		//
 		if len(arguments) != 2 {
-			panic("invalid call to set, expected 2 parameters: usage set <identifier> <value>")
+			return NewErrorValue("invalid call to set, expected 2 parameters: usage set <identifier> <value>")
 		}
 
 		name := evalArgument2String(context, arguments[0])
@@ -44,7 +44,7 @@ func get() NamedValue {
 		// get expects exactly 1 argument
 		//
 		if len(arguments) != 1 {
-			panic("invalid call to get, expected 1 parameter: usage get <identifier>")
+			return NewErrorValue("invalid call to get, expected 1 parameter: usage get <identifier>")
 		}
 
 		result, found := context.Get(evalArgument2String(context, arguments[0]))
@@ -62,7 +62,7 @@ func _return() NamedValue {
 		// return expects exactly 1 argument
 		//
 		if len(arguments) != 1 {
-			panic("invalid call to return, expected 1 parameter: usage return <value>")
+			return NewErrorValue("invalid call to return, expected 1 parameter: usage return <value>")
 		}
 
 		return evalArgument(context, arguments[0])
@@ -75,7 +75,7 @@ func _func() NamedValue {
 		// get expects at least 1 argument
 		//
 		if len(arguments) < 1 {
-			panic("invalid call to func, expect at least 1 parameter: usage func <identifier>* {...}")
+			return NewErrorValue("invalid call to func, expect at least 1 parameter: usage func <identifier>* {...}")
 		}
 
 		argNamesAsArgument := arguments[0 : len(arguments)-1]
@@ -87,7 +87,7 @@ func _func() NamedValue {
 		}
 
 		if block.Type() != TypeBlock {
-			panic("invalid call to func, last parameter must be a block: usage func <identifier> <identifier>* {...}")
+			return NewErrorValue("invalid call to func, last parameter must be a block: usage func <identifier> <identifier>* {...}")
 		}
 
 		return NewGoFunction("user_defined_function", func(innerContext RunContext, innerArguments []Argument) Value {
@@ -119,12 +119,12 @@ func _if() NamedValue {
 		//
 		arglen := len(arguments)
 		if arglen < 2 {
-			panic("invalid call to if, expect at least 2 parameters: usage if <condition> {...}")
+			return NewErrorValue("invalid call to if, expect at least 2 parameters: usage if <condition> {...}")
 		}
 
 		condition := evalArgument(context, arguments[0])
 		if condition.Type() != TypeBoolean {
-			panic("if condition does not evaluate to a boolean value")
+			return NewErrorValue("if condition does not evaluate to a boolean value")
 		}
 
 		if condition.(*booleanLiteral).value {
@@ -142,9 +142,9 @@ func _if() NamedValue {
 			if arguments[2].Value().String() == "else" {
 				return evalArgumentWithBlock(context, arguments[3])
 			}
-			panic("invalid call to if, expected else as 3rd argument")
+			return NewErrorValue("invalid call to if, expected else as 3rd argument")
 		default:
-			panic("invalid call to if, too many arguments")
+			return NewErrorValue("invalid call to if, too many arguments")
 		}
 
 	})

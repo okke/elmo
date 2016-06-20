@@ -25,6 +25,8 @@ const (
 	TypeInteger
 	// TypeBoolean represents a type for a boolean value
 	TypeBoolean
+	// TypeError represents a type for an error value
+	TypeError
 	// TypeBlock represents a type for a code block
 	TypeBlock
 	// TypeCall represent the type for a function call
@@ -58,6 +60,10 @@ type booleanLiteral struct {
 	value bool
 }
 
+type errorValue struct {
+	msg string
+}
+
 // GoFunction is a native go function that takes an array of input values
 // and returns an output value
 //
@@ -74,6 +80,13 @@ type Value interface {
 	Print() string
 	String() string
 	Type() Type
+}
+
+// ErrorValue represents an Error
+//
+type ErrorValue interface {
+	Value
+	Error() string
 }
 
 // NamedValue represent data with a name
@@ -143,6 +156,22 @@ func (booleanLiteral *booleanLiteral) Type() Type {
 	return TypeBoolean
 }
 
+func (errorValue *errorValue) Print() string {
+	return errorValue.String()
+}
+
+func (errorValue *errorValue) String() string {
+	return fmt.Sprintf("error: %s", errorValue.msg)
+}
+
+func (errorValue *errorValue) Type() Type {
+	return TypeError
+}
+
+func (errorValue *errorValue) Error() string {
+	return errorValue.String()
+}
+
 func (goFunction *goFunction) Print() string {
 	return goFunction.String()
 }
@@ -185,6 +214,12 @@ func NewIntegerLiteral(value int64) Value {
 //
 func NewBooleanLiteral(value bool) Value {
 	return &booleanLiteral{value: value}
+}
+
+// NewErrorValue creates a new Error
+//
+func NewErrorValue(msg string) ErrorValue {
+	return &errorValue{msg: msg}
 }
 
 // NewGoFunction creates a new go function

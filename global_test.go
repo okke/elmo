@@ -6,6 +6,11 @@ func expectValueSetTo(t *testing.T, key string, value string) func(RunContext, V
 
 	return func(context RunContext, blockResult Value) {
 
+		if blockResult.Type() == TypeError {
+			t.Error(blockResult.(ErrorValue).Error())
+			return
+		}
+
 		result, found := context.Get(key)
 
 		if !found {
@@ -18,16 +23,37 @@ func expectValueSetTo(t *testing.T, key string, value string) func(RunContext, V
 	}
 }
 
+func expectErrorValue(t *testing.T) func(RunContext, Value) {
+
+	return func(context RunContext, blockResult Value) {
+
+		if blockResult.Type() != TypeError {
+			t.Errorf("expected error but found %v", blockResult)
+		}
+
+	}
+}
+
 func TestSetValueIntoGlobalContext(t *testing.T) {
 
 	ParseTestAndRunBlock(t, "set chipotle \"sauce\"", expectValueSetTo(t, "chipotle", "sauce"))
+	ParseTestAndRunBlock(t, "set to_many_arguments chipotle \"sauce\"", expectErrorValue(t))
 }
 
 func TestSetValueIntoGlobalContextAndGetIt(t *testing.T) {
 
 	ParseTestAndRunBlock(t,
 		`set chipotle "sauce"
+     set sauce (get chipotle)`, expectValueSetTo(t, "sauce", "sauce"))
+
+	ParseTestAndRunBlock(t,
+		`set chipotle "sauce"
      set sauce (chipotle)`, expectValueSetTo(t, "sauce", "sauce"))
+
+	ParseTestAndRunBlock(t,
+		`set chipotle "sauce"
+     set sauce (get)`, expectErrorValue(t))
+
 }
 
 func TestDynamicSetValueIntoGlobalContext(t *testing.T) {
@@ -40,10 +66,19 @@ func TestDynamicSetValueIntoGlobalContext(t *testing.T) {
 func TestUserDefinedFunctionWithoutArguments(t *testing.T) {
 
 	ParseTestAndRunBlock(t,
+		`set fsauce (func)`, expectErrorValue(t))
+
+	ParseTestAndRunBlock(t,
 		`set fsauce (func {
        return "chipotle"
      })
      set sauce (fsauce)`, expectValueSetTo(t, "sauce", "chipotle"))
+
+	ParseTestAndRunBlock(t,
+		`set fsauce (func {
+        return
+      })
+      set sauce (fsauce)`, expectErrorValue(t))
 }
 
 func TestUserDefinedFunctionWithOneArgument(t *testing.T) {
@@ -56,6 +91,15 @@ func TestUserDefinedFunctionWithOneArgument(t *testing.T) {
 }
 
 func TestIfWithoutElse(t *testing.T) {
+
+	ParseTestAndRunBlock(t,
+		`if`, expectErrorValue(t))
+
+	ParseTestAndRunBlock(t,
+		`if {}`, expectErrorValue(t))
+
+	ParseTestAndRunBlock(t,
+		`if 33 {}`, expectErrorValue(t))
 
 	ParseTestAndRunBlock(t,
 		`set pepper "galapeno"
@@ -71,6 +115,12 @@ func TestIfWithoutElse(t *testing.T) {
 }
 
 func TestIfWithElse(t *testing.T) {
+
+	ParseTestAndRunBlock(t,
+		`if (false) {} else {} soep`, expectErrorValue(t))
+
+	ParseTestAndRunBlock(t,
+		`if (false) {} ilse {}`, expectErrorValue(t))
 
 	ParseTestAndRunBlock(t,
 		`set pepper "galapeno"
