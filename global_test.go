@@ -200,4 +200,24 @@ func TestIfWithElse(t *testing.T) {
 
 		})
 
+	ParseTestAndRunBlock(t,
+		`set pepper "galapeno"
+     if (false) {
+      set pepper "chilli"
+     } {
+      set pepper "chipotle"
+     }`, func(context RunContext, blockResult Value) {
+
+			result, found := context.Get("pepper")
+
+			if !found {
+				t.Error("expected pepper to be set")
+			} else {
+				if result.String() != "chipotle" {
+					t.Errorf("expected pepper to be set to (chipotle), found %v", result.String())
+				}
+			}
+
+		})
+
 }
