@@ -9,11 +9,14 @@ func NewGlobalContext() RunContext {
 	context := NewRunContext(nil)
 
 	context.Set("nil", Nothing)
+	context.Set("true", NewBooleanLiteral(true))
+	context.Set("false", NewBooleanLiteral(false))
 
 	context.SetNamed(set())
 	context.SetNamed(get())
 	context.SetNamed(_return())
 	context.SetNamed(_func())
+	context.SetNamed(_if())
 
 	return context
 }
@@ -72,7 +75,7 @@ func _func() NamedValue {
 		// get expects at least 1 argument
 		//
 		if len(arguments) < 1 {
-			panic("invalid call to func, expect at least 2 parameters: usage func <identifier> <identifier>* {...}")
+			panic("invalid call to func, expect at least 1 parameter: usage func <identifier>* {...}")
 		}
 
 		argNamesAsArgument := arguments[0 : len(arguments)-1]
@@ -110,9 +113,56 @@ func _func() NamedValue {
 	})
 }
 
+func _if() NamedValue {
+	return NewGoFunction("if", func(context RunContext, arguments []Argument) Value {
+		// if expects at least 2 arguments
+		//
+		arglen := len(arguments)
+		if arglen < 2 {
+			panic("invalid call to if, expect at least 2 parameters: usage if <condition> {...}")
+		}
+
+		condition := evalArgument(context, arguments[0])
+		if condition.Type() != TypeBoolean {
+			panic("if condition does not evaluate to a boolean value")
+		}
+
+		if condition.(*booleanLiteral).value {
+			return evalArgumentWithBlock(context, arguments[1])
+		}
+
+		// condition not true, check else part
+		//
+		switch arglen {
+		case 2:
+			return Nothing
+		case 3:
+			return evalArgumentWithBlock(context, arguments[2])
+		case 4:
+			if arguments[2].Value().String() == "else" {
+				return evalArgumentWithBlock(context, arguments[3])
+			}
+			panic("invalid call to if, expected else as 3rd argument")
+		default:
+			panic("invalid call to if, too many arguments")
+		}
+
+	})
+}
+
 func evalArgument(context RunContext, argument Argument) Value {
 
 	if argument.Type() == TypeCall {
+		return argument.Value().(Runnable).Run(context, noArguments)
+	}
+
+	return argument.Value()
+
+}
+
+func evalArgumentWithBlock(context RunContext, argument Argument) Value {
+
+	if argument.Type() == TypeCall || argument.Type() == TypeBlock {
 		return argument.Value().(Runnable).Run(context, noArguments)
 	}
 

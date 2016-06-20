@@ -23,6 +23,8 @@ const (
 	TypeString
 	// TypeInteger represents a type for an integer value
 	TypeInteger
+	// TypeBoolean represents a type for a boolean value
+	TypeBoolean
 	// TypeBlock represents a type for a code block
 	TypeBlock
 	// TypeCall represent the type for a function call
@@ -50,6 +52,10 @@ type stringLiteral struct {
 
 type integerLiteral struct {
 	value int64
+}
+
+type booleanLiteral struct {
+	value bool
 }
 
 // GoFunction is a native go function that takes an array of input values
@@ -125,6 +131,18 @@ func (integerLiteral *integerLiteral) Type() Type {
 	return TypeInteger
 }
 
+func (booleanLiteral *booleanLiteral) Print() string {
+	return booleanLiteral.String()
+}
+
+func (booleanLiteral *booleanLiteral) String() string {
+	return fmt.Sprintf("%v", booleanLiteral.value)
+}
+
+func (booleanLiteral *booleanLiteral) Type() Type {
+	return TypeBoolean
+}
+
 func (goFunction *goFunction) Print() string {
 	return goFunction.String()
 }
@@ -161,6 +179,12 @@ func NewStringLiteral(value string) Value {
 //
 func NewIntegerLiteral(value int64) Value {
 	return &integerLiteral{value: value}
+}
+
+// NewBooleanLiteral creates a new integer value
+//
+func NewBooleanLiteral(value bool) Value {
+	return &booleanLiteral{value: value}
 }
 
 // NewGoFunction creates a new go function

@@ -118,3 +118,86 @@ func TestUserDefinedFunctionWithOneArgument(t *testing.T) {
 
 		})
 }
+
+func TestIfWithoutElse(t *testing.T) {
+
+	ParseTestAndRunBlock(t,
+		`set pepper "galapeno"
+     if (true) {
+      set pepper "chipotle"
+     }`, func(context RunContext, blockResult Value) {
+
+			result, found := context.Get("pepper")
+
+			if !found {
+				t.Error("expected pepper to be set")
+			} else {
+				if result.String() != "chipotle" {
+					t.Errorf("expected pepper to be set to (chipotle), found %v", result.String())
+				}
+			}
+
+		})
+
+	ParseTestAndRunBlock(t,
+		`set pepper "galapeno"
+     if (false) {
+      set pepper "chipotle"
+     }`, func(context RunContext, blockResult Value) {
+
+			result, found := context.Get("pepper")
+
+			if !found {
+				t.Error("expected pepper to be set")
+			} else {
+				if result.String() != "galapeno" {
+					t.Errorf("expected pepper to be set to (galapeno), found %v", result.String())
+				}
+			}
+
+		})
+}
+
+func TestIfWithElse(t *testing.T) {
+
+	ParseTestAndRunBlock(t,
+		`set pepper "galapeno"
+     if (true) {
+      set pepper "chipotle"
+     } else {
+      set pepper "chilli"
+     }`, func(context RunContext, blockResult Value) {
+
+			result, found := context.Get("pepper")
+
+			if !found {
+				t.Error("expected pepper to be set")
+			} else {
+				if result.String() != "chipotle" {
+					t.Errorf("expected pepper to be set to (chipotle), found %v", result.String())
+				}
+			}
+
+		})
+
+	ParseTestAndRunBlock(t,
+		`set pepper "galapeno"
+     if (false) {
+      set pepper "chipotle"
+     } else {
+      set pepper "chilli"
+     }`, func(context RunContext, blockResult Value) {
+
+			result, found := context.Get("pepper")
+
+			if !found {
+				t.Error("expected pepper to be set")
+			} else {
+				if result.String() != "chilli" {
+					t.Errorf("expected pepper to be set to (chilli), found %v", result.String())
+				}
+			}
+
+		})
+
+}
