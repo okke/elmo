@@ -21,7 +21,7 @@ func ParseAndTest(t *testing.T, s string, testfunc func(*node32)) {
 //
 func ParseAndTestBlock(t *testing.T, s string, testfunc func(Block)) {
 	ParseAndTest(t, s, func(ast *node32) {
-		block := Ast2Block(ast, s)
+		block := Ast2Block(ast, NewScriptMetaData("test", s))
 		if block == nil {
 			t.Error("no block constructed")
 		} else {

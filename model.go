@@ -61,7 +61,9 @@ type booleanLiteral struct {
 }
 
 type errorValue struct {
-	msg string
+	meta   ScriptMetaData
+	lineno int
+	msg    string
 }
 
 // GoFunction is a native go function that takes an array of input values
@@ -87,6 +89,9 @@ type Value interface {
 type ErrorValue interface {
 	Value
 	Error() string
+	SetAt(meta ScriptMetaData, lineno int)
+	At() (ScriptMetaData, int)
+	IsTraced() bool
 }
 
 // NamedValue represent data with a name
@@ -161,6 +166,10 @@ func (errorValue *errorValue) Print() string {
 }
 
 func (errorValue *errorValue) String() string {
+	if errorValue.meta != nil {
+		meta, lineno := errorValue.At()
+		return fmt.Sprintf("error at %s at line %d: %s", meta.Name(), lineno, errorValue.msg)
+	}
 	return fmt.Sprintf("error: %s", errorValue.msg)
 }
 
@@ -170,6 +179,20 @@ func (errorValue *errorValue) Type() Type {
 
 func (errorValue *errorValue) Error() string {
 	return errorValue.String()
+}
+
+func (errorValue *errorValue) SetAt(meta ScriptMetaData, lineno int) {
+	errorValue.meta = meta
+	errorValue.lineno = lineno
+}
+
+func (errorValue *errorValue) At() (meta ScriptMetaData, lineno int) {
+	return errorValue.meta, errorValue.lineno
+}
+
+func (errorValue *errorValue) IsTraced() bool {
+	meta, lineno := errorValue.At()
+	return meta != nil && lineno > 0
 }
 
 func (goFunction *goFunction) Print() string {
@@ -229,10 +252,20 @@ func NewGoFunction(name string, value GoFunction) NamedValue {
 }
 
 //
+// ---[ASTNode]---------------------------------------------------------------
+//
+type astNode struct {
+	meta  ScriptMetaData
+	begin uint32
+	end   uint32
+}
+
+//
 // ---[ARGUMENT]---------------------------------------------------------------
 //
 
 type argument struct {
+	astNode
 	value Value
 }
 
@@ -258,8 +291,8 @@ func (argument *argument) Value() Value {
 
 // NewArgument constructs a new function argument
 //
-func NewArgument(value Value) Argument {
-	return &argument{value: value}
+func NewArgument(meta ScriptMetaData, begin uint32, end uint32, value Value) Argument {
+	return &argument{astNode: astNode{meta: meta, begin: begin, end: end}, value: value}
 }
 
 //
@@ -267,6 +300,7 @@ func NewArgument(value Value) Argument {
 //
 
 type call struct {
+	astNode
 	functionName string
 	arguments    []Argument
 }
@@ -291,6 +325,20 @@ func (call *call) Arguments() []Argument {
 	return call.arguments
 }
 
+func (call *call) addInfoWhenError(value Value) Value {
+	if value.Type() == TypeError {
+		if value.(ErrorValue).IsTraced() {
+			// TODO: add trace??
+			//
+			return value
+		}
+
+		lineno, _ := call.meta.PositionOf(int(call.begin))
+		value.(ErrorValue).SetAt(call.meta, lineno)
+	}
+	return value
+}
+
 func (call *call) Run(context RunContext, arguments []Argument) Value {
 	value, found := context.Get(call.functionName)
 
@@ -298,9 +346,9 @@ func (call *call) Run(context RunContext, arguments []Argument) Value {
 		if value.Type() == TypeGoFunction {
 			// TODO How to handle arguments
 			//
-			return value.(Runnable).Run(context, call.arguments)
+			return call.addInfoWhenError(value.(Runnable).Run(context, call.arguments))
 		}
-		return value
+		return call.addInfoWhenError(value)
 	}
 
 	panic(fmt.Sprintf("call to undefined \"%s\"", call.functionName))
@@ -321,8 +369,8 @@ func (call *call) Type() Type {
 
 // NewCall contstructs a new function call
 //
-func NewCall(name string, arguments []Argument) Call {
-	return &call{functionName: name, arguments: arguments}
+func NewCall(meta ScriptMetaData, begin uint32, end uint32, name string, arguments []Argument) Call {
+	return &call{astNode: astNode{meta: meta, begin: begin, end: end}, functionName: name, arguments: arguments}
 }
 
 //
@@ -330,6 +378,7 @@ func NewCall(name string, arguments []Argument) Call {
 //
 
 type block struct {
+	astNode
 	calls []Call
 }
 
@@ -371,6 +420,6 @@ func (block *block) Type() Type {
 
 // NewBlock contsruct a new block of function calls
 //
-func NewBlock(calls []Call) Block {
-	return &block{calls: calls}
+func NewBlock(meta ScriptMetaData, begin uint32, end uint32, calls []Call) Block {
+	return &block{astNode: astNode{meta: meta, begin: begin, end: end}, calls: calls}
 }

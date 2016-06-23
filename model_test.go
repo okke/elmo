@@ -4,7 +4,7 @@ import "testing"
 
 func TestBlockWithoutCallsShouldReturnNothing(t *testing.T) {
 
-	result := NewBlock([]Call{}).Run(NewRunContext(nil), []Argument{})
+	result := NewBlock(nil, 0, 0, []Call{}).Run(NewRunContext(nil), []Argument{})
 
 	if result != Nothing {
 		t.Error("empty block should return nothing")
@@ -17,7 +17,7 @@ func TestBlockWithOneCallsShouldReturnCallResult(t *testing.T) {
 
 	context.Set("chipotle", NewStringLiteral("sauce"))
 
-	result := NewBlock([]Call{NewCall("chipotle", []Argument{})}).Run(context, []Argument{})
+	result := NewBlock(nil, 0, 0, []Call{NewCall(nil, 0, 0, "chipotle", []Argument{})}).Run(context, []Argument{})
 
 	if result == Nothing {
 		t.Error("block with statement should return something")
@@ -35,9 +35,9 @@ func TestBlockWithTwoCallsShouldReturnLastCallResult(t *testing.T) {
 	context.Set("chipotle", NewStringLiteral("sauce"))
 	context.Set("blackbeans", NewStringLiteral("soup"))
 
-	result := NewBlock([]Call{
-		NewCall("chipotle", []Argument{}),
-		NewCall("blackbeans", []Argument{})}).Run(context, []Argument{})
+	result := NewBlock(nil, 0, 0, []Call{
+		NewCall(nil, 0, 0, "chipotle", []Argument{}),
+		NewCall(nil, 0, 0, "blackbeans", []Argument{})}).Run(context, []Argument{})
 
 	if result == Nothing {
 		t.Error("block with statement should return something")
@@ -56,7 +56,7 @@ func TestBlockCallToNativeFunctionShouldExecuteFunction(t *testing.T) {
 		return NewStringLiteral("chipotle")
 	}))
 
-	result := NewBlock([]Call{NewCall("sauce", []Argument{})}).Run(context, []Argument{})
+	result := NewBlock(nil, 0, 0, []Call{NewCall(nil, 0, 0, "sauce", []Argument{})}).Run(context, []Argument{})
 
 	if result == Nothing {
 		t.Error("block with statement should return something")
@@ -75,7 +75,7 @@ func TestGoFunctionWithOneArgumentCanReturnArgumentValue(t *testing.T) {
 		return arguments[0].Value()
 	}))
 
-	result := NewBlock([]Call{NewCall("echo", []Argument{NewArgument(NewStringLiteral("chipotle"))})}).Run(context, []Argument{})
+	result := NewBlock(nil, 0, 0, []Call{NewCall(nil, 0, 0, "echo", []Argument{NewArgument(nil, 0, 0, NewStringLiteral("chipotle"))})}).Run(context, []Argument{})
 
 	if result.String() != "chipotle" {
 		t.Errorf("function should return (chipotle) instead of %s", result.String())
@@ -92,9 +92,9 @@ func TestGoFunctionCanAlterContext(t *testing.T) {
 		return Nothing
 	}))
 
-	NewBlock([]Call{NewCall("alter", []Argument{
-		NewArgument(NewStringLiteral("chipotle")),
-		NewArgument(NewStringLiteral("sauce"))})}).Run(context, []Argument{})
+	NewBlock(nil, 0, 0, []Call{NewCall(nil, 0, 0, "alter", []Argument{
+		NewArgument(nil, 0, 0, NewStringLiteral("chipotle")),
+		NewArgument(nil, 0, 0, NewStringLiteral("sauce"))})}).Run(context, []Argument{})
 
 	result, found := context.Get("chipotle")
 

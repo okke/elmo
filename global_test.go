@@ -1,6 +1,9 @@
 package elmo
 
-import "testing"
+import (
+	"fmt"
+	"testing"
+)
 
 func expectValueSetTo(t *testing.T, key string, value string) func(RunContext, Value) {
 
@@ -23,12 +26,19 @@ func expectValueSetTo(t *testing.T, key string, value string) func(RunContext, V
 	}
 }
 
-func expectErrorValue(t *testing.T) func(RunContext, Value) {
+func expectErrorValueAt(t *testing.T, lineno int) func(RunContext, Value) {
 
 	return func(context RunContext, blockResult Value) {
 
 		if blockResult.Type() != TypeError {
 			t.Errorf("expected error but found %v", blockResult)
+		}
+
+		_, l := blockResult.(ErrorValue).At()
+
+		if l != lineno {
+			fmt.Printf("%s\n", blockResult.String())
+			t.Errorf("expected error at line %d but found it on line %d", lineno, l)
 		}
 
 	}
@@ -37,7 +47,7 @@ func expectErrorValue(t *testing.T) func(RunContext, Value) {
 func TestSetValueIntoGlobalContext(t *testing.T) {
 
 	ParseTestAndRunBlock(t, "set chipotle \"sauce\"", expectValueSetTo(t, "chipotle", "sauce"))
-	ParseTestAndRunBlock(t, "set to_many_arguments chipotle \"sauce\"", expectErrorValue(t))
+	ParseTestAndRunBlock(t, "set to_many_arguments chipotle \"sauce\"", expectErrorValueAt(t, 1))
 }
 
 func TestSetValueIntoGlobalContextAndGetIt(t *testing.T) {
@@ -52,7 +62,7 @@ func TestSetValueIntoGlobalContextAndGetIt(t *testing.T) {
 
 	ParseTestAndRunBlock(t,
 		`set chipotle "sauce"
-     set sauce (get)`, expectErrorValue(t))
+     set sauce (get)`, expectErrorValueAt(t, 2))
 
 }
 
@@ -66,7 +76,7 @@ func TestDynamicSetValueIntoGlobalContext(t *testing.T) {
 func TestUserDefinedFunctionWithoutArguments(t *testing.T) {
 
 	ParseTestAndRunBlock(t,
-		`set fsauce (func)`, expectErrorValue(t))
+		`set fsauce (func)`, expectErrorValueAt(t, 1))
 
 	ParseTestAndRunBlock(t,
 		`set fsauce (func {
@@ -78,7 +88,7 @@ func TestUserDefinedFunctionWithoutArguments(t *testing.T) {
 		`set fsauce (func {
         return
       })
-      set sauce (fsauce)`, expectErrorValue(t))
+      set sauce (fsauce)`, expectErrorValueAt(t, 2))
 }
 
 func TestUserDefinedFunctionWithOneArgument(t *testing.T) {
@@ -93,13 +103,13 @@ func TestUserDefinedFunctionWithOneArgument(t *testing.T) {
 func TestIfWithoutElse(t *testing.T) {
 
 	ParseTestAndRunBlock(t,
-		`if`, expectErrorValue(t))
+		`if`, expectErrorValueAt(t, 1))
 
 	ParseTestAndRunBlock(t,
-		`if {}`, expectErrorValue(t))
+		`if {}`, expectErrorValueAt(t, 1))
 
 	ParseTestAndRunBlock(t,
-		`if 33 {}`, expectErrorValue(t))
+		`if 33 {}`, expectErrorValueAt(t, 1))
 
 	ParseTestAndRunBlock(t,
 		`set pepper "galapeno"
@@ -117,10 +127,10 @@ func TestIfWithoutElse(t *testing.T) {
 func TestIfWithElse(t *testing.T) {
 
 	ParseTestAndRunBlock(t,
-		`if (false) {} else {} soep`, expectErrorValue(t))
+		`if (false) {} else {} soep`, expectErrorValueAt(t, 1))
 
 	ParseTestAndRunBlock(t,
-		`if (false) {} ilse {}`, expectErrorValue(t))
+		`if (false) {} ilse {}`, expectErrorValueAt(t, 1))
 
 	ParseTestAndRunBlock(t,
 		`set pepper "galapeno"
