@@ -2,6 +2,7 @@ package elmo
 
 import (
 	"fmt"
+	"reflect"
 	"testing"
 )
 
@@ -41,6 +42,24 @@ func expectErrorValueAt(t *testing.T, lineno int) func(RunContext, Value) {
 			t.Errorf("expected error at line %d but found it on line %d", lineno, l)
 		}
 
+	}
+}
+
+func expectNothing(t *testing.T) func(RunContext, Value) {
+
+	return func(context RunContext, blockResult Value) {
+		if blockResult != Nothing {
+			t.Errorf("expected nothing but found %v", blockResult)
+		}
+	}
+}
+
+func expectValue(t *testing.T, value Value) func(RunContext, Value) {
+
+	return func(context RunContext, blockResult Value) {
+		if !reflect.DeepEqual(blockResult, value) {
+			t.Errorf("expected (%v) but found (%v)", value, blockResult)
+		}
 	}
 }
 
@@ -156,4 +175,34 @@ func TestIfWithElse(t *testing.T) {
       set pepper "chipotle"
      }`, expectValueSetTo(t, "pepper", "chipotle"))
 
+}
+
+func TestListCreation(t *testing.T) {
+
+	ParseTestAndRunBlock(t,
+		`list 3`, expectValue(t, NewListValue([]Value{NewIntegerLiteral(3)})))
+
+	ParseTestAndRunBlock(t,
+		`list 3 4`, expectValue(t, NewListValue([]Value{NewIntegerLiteral(3), NewIntegerLiteral(4)})))
+
+	ParseTestAndRunBlock(t,
+		`list 3 "chipotle"`, expectValue(t, NewListValue([]Value{NewIntegerLiteral(3), NewStringLiteral("chipotle")})))
+
+	ParseTestAndRunBlock(t,
+		`list (list 3 "chipotle")`, expectValue(t, NewListValue([]Value{NewListValue([]Value{NewIntegerLiteral(3), NewStringLiteral("chipotle")})})))
+}
+
+func TestPuts(t *testing.T) {
+
+	ParseTestAndRunBlock(t,
+		`puts 3`, expectNothing(t))
+
+	ParseTestAndRunBlock(t,
+		`puts "3 4 5"`, expectNothing(t))
+
+	ParseTestAndRunBlock(t,
+		`puts 3 4 5`, expectNothing(t))
+
+	ParseTestAndRunBlock(t,
+		`puts (list 3 4 5)`, expectNothing(t))
 }

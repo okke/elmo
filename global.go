@@ -1,5 +1,7 @@
 package elmo
 
+import "fmt"
+
 var noArguments = []Argument{}
 
 // NewGlobalContext constructs a new context and initializes it with
@@ -17,6 +19,8 @@ func NewGlobalContext() RunContext {
 	context.SetNamed(_return())
 	context.SetNamed(_func())
 	context.SetNamed(_if())
+	context.SetNamed(list())
+	context.SetNamed(puts())
 
 	return context
 }
@@ -147,6 +151,26 @@ func _if() NamedValue {
 			return NewErrorValue("invalid call to if, too many arguments")
 		}
 
+	})
+}
+
+func list() NamedValue {
+	return NewGoFunction("list", func(context RunContext, arguments []Argument) Value {
+		values := make([]Value, len(arguments))
+		for i, arg := range arguments {
+			values[i] = evalArgument(context, arg)
+		}
+		return NewListValue(values)
+	})
+}
+
+func puts() NamedValue {
+	return NewGoFunction("puts", func(context RunContext, arguments []Argument) Value {
+		for _, arg := range arguments {
+			fmt.Printf("%s", evalArgument(context, arg))
+		}
+		fmt.Printf("\n")
+		return Nothing
 	})
 }
 

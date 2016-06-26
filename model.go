@@ -1,6 +1,9 @@
 package elmo
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+)
 
 // Runnable is a type that can be interpreted
 //
@@ -25,6 +28,8 @@ const (
 	TypeInteger
 	// TypeBoolean represents a type for a boolean value
 	TypeBoolean
+	// TypeList represents a type for an array value
+	TypeList
 	// TypeError represents a type for an error value
 	TypeError
 	// TypeBlock represents a type for a code block
@@ -60,6 +65,10 @@ type booleanLiteral struct {
 	value bool
 }
 
+type listValue struct {
+	values []Value
+}
+
 type errorValue struct {
 	meta   ScriptMetaData
 	lineno int
@@ -82,6 +91,7 @@ type Value interface {
 	Print() string
 	String() string
 	Type() Type
+	Internal() interface{}
 }
 
 // ErrorValue represents an Error
@@ -113,6 +123,10 @@ func (nothing *nothing) Type() Type {
 	return TypeNil
 }
 
+func (nothing *nothing) Internal() interface{} {
+	return nil
+}
+
 func (identifier *identifier) Print() string {
 	return identifier.value
 }
@@ -123,6 +137,10 @@ func (identifier *identifier) String() string {
 
 func (identifier *identifier) Type() Type {
 	return TypeIdentifier
+}
+
+func (identifier *identifier) Internal() interface{} {
+	return identifier.value
 }
 
 func (stringLiteral *stringLiteral) Print() string {
@@ -137,6 +155,10 @@ func (stringLiteral *stringLiteral) Type() Type {
 	return TypeString
 }
 
+func (stringLiteral *stringLiteral) Internal() interface{} {
+	return stringLiteral.value
+}
+
 func (integerLiteral *integerLiteral) Print() string {
 	return fmt.Sprintf("%d", integerLiteral.value)
 }
@@ -149,6 +171,10 @@ func (integerLiteral *integerLiteral) Type() Type {
 	return TypeInteger
 }
 
+func (integerLiteral *integerLiteral) Internal() interface{} {
+	return integerLiteral.value
+}
+
 func (booleanLiteral *booleanLiteral) Print() string {
 	return booleanLiteral.String()
 }
@@ -159,6 +185,26 @@ func (booleanLiteral *booleanLiteral) String() string {
 
 func (booleanLiteral *booleanLiteral) Type() Type {
 	return TypeBoolean
+}
+
+func (booleanLiteral *booleanLiteral) Internal() interface{} {
+	return booleanLiteral.value
+}
+
+func (listValue *listValue) Print() string {
+	return listValue.String()
+}
+
+func (listValue *listValue) String() string {
+	return fmt.Sprintf("%v", listValue.values)
+}
+
+func (listValue *listValue) Type() Type {
+	return TypeList
+}
+
+func (listValue *listValue) Internal() interface{} {
+	return listValue.values
 }
 
 func (errorValue *errorValue) Print() string {
@@ -175,6 +221,10 @@ func (errorValue *errorValue) String() string {
 
 func (errorValue *errorValue) Type() Type {
 	return TypeError
+}
+
+func (errorValue *errorValue) Internal() interface{} {
+	return errorValue.msg
 }
 
 func (errorValue *errorValue) Error() string {
@@ -207,6 +257,10 @@ func (goFunction *goFunction) Type() Type {
 	return TypeGoFunction
 }
 
+func (goFunction *goFunction) Internal() interface{} {
+	return goFunction.value
+}
+
 func (goFunction *goFunction) Name() string {
 	return goFunction.name
 }
@@ -237,6 +291,12 @@ func NewIntegerLiteral(value int64) Value {
 //
 func NewBooleanLiteral(value bool) Value {
 	return &booleanLiteral{value: value}
+}
+
+// NewListValue creates a new list of values
+//
+func NewListValue(values []Value) Value {
+	return &listValue{values: values}
 }
 
 // NewErrorValue creates a new Error
@@ -344,15 +404,12 @@ func (call *call) Run(context RunContext, arguments []Argument) Value {
 
 	if found {
 		if value.Type() == TypeGoFunction {
-			// TODO How to handle arguments
-			//
 			return call.addInfoWhenError(value.(Runnable).Run(context, call.arguments))
 		}
 		return call.addInfoWhenError(value)
 	}
 
-	panic(fmt.Sprintf("call to undefined \"%s\"", call.functionName))
-	// return Nothing
+	return NewErrorValue(fmt.Sprintf("call to undefined \"%s\"", call.functionName))
 }
 
 func (call *call) Print() string {
@@ -365,6 +422,10 @@ func (call *call) String() string {
 
 func (call *call) Type() Type {
 	return TypeCall
+}
+
+func (call *call) Internal() interface{} {
+	return errors.New("Internal() not implemented on call")
 }
 
 // NewCall contstructs a new function call
@@ -416,6 +477,10 @@ func (block *block) String() string {
 
 func (block *block) Type() Type {
 	return TypeBlock
+}
+
+func (block *block) Internal() interface{} {
+	return errors.New("Internal() not implemented on block")
 }
 
 // NewBlock contsruct a new block of function calls
