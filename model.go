@@ -224,6 +224,12 @@ func (listValue *listValue) Run(context RunContext, arguments []Argument) Value 
 
 		i := (int)(indexValue.Internal().(int64))
 
+		// negative index will be used to get elemnts from the end of the list
+		//
+		if i < 0 {
+			i = len(listValue.values) + i
+		}
+
 		if i < 0 || i >= len(listValue.values) {
 			return NewErrorValue("list accessor out of bounds")
 		}

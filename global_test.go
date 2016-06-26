@@ -33,6 +33,7 @@ func expectErrorValueAt(t *testing.T, lineno int) func(RunContext, Value) {
 
 		if blockResult.Type() != TypeError {
 			t.Errorf("expected error but found %v", blockResult)
+			return
 		}
 
 		_, l := blockResult.(ErrorValue).At()
@@ -207,6 +208,14 @@ func TestListAccess(t *testing.T) {
 		 set idx 2
  	 	 ll (idx)`, expectValue(t, NewIntegerLiteral(3)))
 
+	ParseTestAndRunBlock(t,
+		`set ll (list 1 2 3)
+ 	 	 ll -1`, expectValue(t, NewIntegerLiteral(3)))
+
+	ParseTestAndRunBlock(t,
+		`set ll (list 1 2 3)
+	 	 ll -2`, expectValue(t, NewIntegerLiteral(2)))
+
 	// index must be integer
 	//
 	ParseTestAndRunBlock(t,
@@ -218,6 +227,12 @@ func TestListAccess(t *testing.T) {
 	ParseTestAndRunBlock(t,
 		`set ll (list 1 2 3)
   	 ll 3`, expectErrorValueAt(t, 2))
+
+	// index out of bounds
+	//
+	ParseTestAndRunBlock(t,
+		`set ll (list 1 2 3)
+   	 ll -4`, expectErrorValueAt(t, 2))
 }
 
 func TestPuts(t *testing.T) {

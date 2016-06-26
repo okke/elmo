@@ -111,6 +111,7 @@ func TestParseCommandWithStringAsParameter(t *testing.T) {
 func TestParseCommandWithIntegerAsParameter(t *testing.T) {
 	ParseAndTest(t, "chipotle 138", expectOneLineContaining(t, IdentifierFollowedByOneArgument(t, ruleDecimalConstant)))
 	ParseAndTest(t, "chipotle 0", expectOneLineContaining(t, IdentifierFollowedByOneArgument(t, ruleDecimalConstant)))
+	ParseAndTest(t, "chipotle -6", expectOneLineContaining(t, IdentifierFollowedByOneArgument(t, ruleDecimalConstant)))
 }
 
 func TestParseCommandWithFunctionCallAsParameter(t *testing.T) {
