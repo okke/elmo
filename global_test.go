@@ -192,6 +192,34 @@ func TestListCreation(t *testing.T) {
 		`list (list 3 "chipotle")`, expectValue(t, NewListValue([]Value{NewListValue([]Value{NewIntegerLiteral(3), NewStringLiteral("chipotle")})})))
 }
 
+func TestListAccess(t *testing.T) {
+
+	ParseTestAndRunBlock(t,
+		`set ll (list 1 2 3)
+		 ll 0`, expectValue(t, NewIntegerLiteral(1)))
+
+	ParseTestAndRunBlock(t,
+		`set ll (list 1 2 3)
+	 	 ll 1`, expectValue(t, NewIntegerLiteral(2)))
+
+	ParseTestAndRunBlock(t,
+		`set ll (list 1 2 3)
+		 set idx 2
+ 	 	 ll (idx)`, expectValue(t, NewIntegerLiteral(3)))
+
+	// index must be integer
+	//
+	ParseTestAndRunBlock(t,
+		`set ll (list 1 2 3)
+ 		 ll "chipotle"`, expectErrorValueAt(t, 2))
+
+	// index out of bounds
+	//
+	ParseTestAndRunBlock(t,
+		`set ll (list 1 2 3)
+  	 ll 3`, expectErrorValueAt(t, 2))
+}
+
 func TestPuts(t *testing.T) {
 
 	ParseTestAndRunBlock(t,
@@ -205,4 +233,8 @@ func TestPuts(t *testing.T) {
 
 	ParseTestAndRunBlock(t,
 		`puts (list 3 4 5)`, expectNothing(t))
+
+	ParseTestAndRunBlock(t,
+		`set ll (list 3 4 5)
+		 puts (ll 1)`, expectNothing(t))
 }

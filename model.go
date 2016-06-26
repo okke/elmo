@@ -104,6 +104,13 @@ type ErrorValue interface {
 	IsTraced() bool
 }
 
+// RunnableValue represents a value that can evaluated to another value
+//
+type RunnableValue interface {
+	Value
+	Runnable
+}
+
 // NamedValue represent data with a name
 //
 type NamedValue interface {
@@ -205,6 +212,25 @@ func (listValue *listValue) Type() Type {
 
 func (listValue *listValue) Internal() interface{} {
 	return listValue.values
+}
+
+func (listValue *listValue) Run(context RunContext, arguments []Argument) Value {
+	if len(arguments) == 1 {
+		indexValue := evalArgument(context, arguments[0])
+
+		if indexValue.Type() != TypeInteger {
+			return NewErrorValue("list accessor must be an integer")
+		}
+
+		i := (int)(indexValue.Internal().(int64))
+
+		if i < 0 || i >= len(listValue.values) {
+			return NewErrorValue("list accessor out of bounds")
+		}
+
+		return listValue.values[i]
+	}
+	return Nothing
 }
 
 func (errorValue *errorValue) Print() string {
@@ -368,10 +394,7 @@ type call struct {
 // Call is a function call
 //
 type Call interface {
-	// Call can be used
-	Value
-	// Call can be executed
-	Runnable
+	RunnableValue
 
 	Name() string
 	Arguments() []Argument
@@ -406,6 +429,13 @@ func (call *call) Run(context RunContext, arguments []Argument) Value {
 		if value.Type() == TypeGoFunction {
 			return call.addInfoWhenError(value.(Runnable).Run(context, call.arguments))
 		}
+
+		// list values can be used as functions to access list content
+		//
+		if (value.Type() == TypeList) && (len(call.arguments) > 0) {
+			return call.addInfoWhenError(value.(Runnable).Run(context, call.arguments))
+		}
+
 		return call.addInfoWhenError(value)
 	}
 
@@ -487,4 +517,30 @@ func (block *block) Internal() interface{} {
 //
 func NewBlock(meta ScriptMetaData, begin uint32, end uint32, calls []Call) Block {
 	return &block{astNode: astNode{meta: meta, begin: begin, end: end}, calls: calls}
+}
+
+func evalArgument(context RunContext, argument Argument) Value {
+
+	if argument.Type() == TypeCall {
+		return argument.Value().(Runnable).Run(context, noArguments)
+	}
+
+	return argument.Value()
+
+}
+
+func evalArgumentWithBlock(context RunContext, argument Argument) Value {
+
+	if argument.Type() == TypeCall || argument.Type() == TypeBlock {
+		return argument.Value().(Runnable).Run(context, noArguments)
+	}
+
+	return argument.Value()
+
+}
+
+func evalArgument2String(context RunContext, argument Argument) string {
+
+	return evalArgument(context, argument).String()
+
 }

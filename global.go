@@ -173,29 +173,3 @@ func puts() NamedValue {
 		return Nothing
 	})
 }
-
-func evalArgument(context RunContext, argument Argument) Value {
-
-	if argument.Type() == TypeCall {
-		return argument.Value().(Runnable).Run(context, noArguments)
-	}
-
-	return argument.Value()
-
-}
-
-func evalArgumentWithBlock(context RunContext, argument Argument) Value {
-
-	if argument.Type() == TypeCall || argument.Type() == TypeBlock {
-		return argument.Value().(Runnable).Run(context, noArguments)
-	}
-
-	return argument.Value()
-
-}
-
-func evalArgument2String(context RunContext, argument Argument) string {
-
-	return evalArgument(context, argument).String()
-
-}
