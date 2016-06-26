@@ -216,6 +216,21 @@ func TestListAccess(t *testing.T) {
 		`set ll (list 1 2 3)
 	 	 ll -2`, expectValue(t, NewIntegerLiteral(2)))
 
+	ParseTestAndRunBlock(t,
+		`set ll (list 1 2 3 4 5 6)
+ 	 	 ll 0 2`, expectValue(t, NewListValue([]Value{NewIntegerLiteral(1), NewIntegerLiteral(2), NewIntegerLiteral(3)})))
+
+	ParseTestAndRunBlock(t,
+		`set ll (list 1 2 3)
+		 ll 0 -1`, expectValue(t, NewListValue([]Value{NewIntegerLiteral(1), NewIntegerLiteral(2), NewIntegerLiteral(3)})))
+
+	ParseTestAndRunBlock(t,
+		`set ll (list 1 2 3 4 5 6)
+		 ll 3 -1`, expectValue(t, NewListValue([]Value{NewIntegerLiteral(4), NewIntegerLiteral(5), NewIntegerLiteral(6)})))
+
+	ParseTestAndRunBlock(t,
+		`set ll (list 1 2 3)
+		 ll 0 -2`, expectValue(t, NewListValue([]Value{NewIntegerLiteral(1), NewIntegerLiteral(2)})))
 	// index must be integer
 	//
 	ParseTestAndRunBlock(t,

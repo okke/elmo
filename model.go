@@ -214,29 +214,56 @@ func (listValue *listValue) Internal() interface{} {
 	return listValue.values
 }
 
+func (listValue *listValue) index(context RunContext, argument Argument) (int, ErrorValue) {
+	indexValue := evalArgument(context, argument)
+
+	if indexValue.Type() != TypeInteger {
+		return 0, NewErrorValue("list accessor must be an integer")
+	}
+
+	i := (int)(indexValue.Internal().(int64))
+
+	// negative index will be used to get elemnts from the end of the list
+	//
+	if i < 0 {
+		i = len(listValue.values) + i
+	}
+
+	if i < 0 || i >= len(listValue.values) {
+		return 0, NewErrorValue("list accessor out of bounds")
+	}
+
+	return i, nil
+}
+
 func (listValue *listValue) Run(context RunContext, arguments []Argument) Value {
-	if len(arguments) == 1 {
-		indexValue := evalArgument(context, arguments[0])
+	arglen := len(arguments)
 
-		if indexValue.Type() != TypeInteger {
-			return NewErrorValue("list accessor must be an integer")
-		}
+	if arglen == 1 {
+		i, err := listValue.index(context, arguments[0])
 
-		i := (int)(indexValue.Internal().(int64))
-
-		// negative index will be used to get elemnts from the end of the list
-		//
-		if i < 0 {
-			i = len(listValue.values) + i
-		}
-
-		if i < 0 || i >= len(listValue.values) {
-			return NewErrorValue("list accessor out of bounds")
+		if err != nil {
+			return err
 		}
 
 		return listValue.values[i]
 	}
-	return Nothing
+
+	if arglen == 2 {
+		i1, err := listValue.index(context, arguments[0])
+		if err != nil {
+			return err
+		}
+		i2, err := listValue.index(context, arguments[1])
+		if err != nil {
+			return err
+		}
+
+		return NewListValue(listValue.values[i1 : i2+1])
+
+	}
+
+	return NewErrorValue("too many arguments for list access")
 }
 
 func (errorValue *errorValue) Print() string {
