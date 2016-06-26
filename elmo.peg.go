@@ -1277,13 +1277,13 @@ func (p *ElmoGrammar) Init() {
 			position, tokenIndex, depth = position91, tokenIndex91, depth91
 			return false
 		},
-		/* 17 DecimalConstant <- <([1-9] [0-9]* Spacing)> */
+		/* 17 DecimalConstant <- <([0-9] [0-9]* Spacing)> */
 		func() bool {
 			position104, tokenIndex104, depth104 := position, tokenIndex, depth
 			{
 				position105 := position
 				depth++
-				if c := buffer[position]; c < rune('1') || c > rune('9') {
+				if c := buffer[position]; c < rune('0') || c > rune('9') {
 					goto l104
 				}
 				position++
