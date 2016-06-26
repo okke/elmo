@@ -20,6 +20,7 @@ func NewGlobalContext() RunContext {
 	context.SetNamed(_func())
 	context.SetNamed(_if())
 	context.SetNamed(list())
+	context.SetNamed(dict())
 	context.SetNamed(puts())
 
 	return context
@@ -161,6 +162,39 @@ func list() NamedValue {
 			values[i] = evalArgument(context, arg)
 		}
 		return NewListValue(values)
+	})
+}
+
+func dict() NamedValue {
+	return NewGoFunction("dict", func(context RunContext, arguments []Argument) Value {
+		if len(arguments) == 1 {
+			evaluated := evalArgument(context, arguments[0])
+			if evaluated.Type() != TypeList {
+				return NewErrorValue(fmt.Sprintf("dict needs a list as argument. Can not create dictionary from %v", evaluated))
+			}
+
+			return NewErrorValue("not implemented dict from list yet")
+		}
+
+		if (len(arguments) % 2) != 0 {
+			return NewErrorValue("dict can not create a dictionary from an odd number of elements")
+		}
+
+		var key Value
+		var value Value
+
+		mapping := make(map[string]Value)
+
+		for i, arg := range arguments {
+			if i%2 == 0 {
+				key = evalArgument(context, arg)
+			} else {
+				value = evalArgument(context, arg)
+				mapping[key.String()] = value
+			}
+		}
+
+		return NewDictionaryValue(mapping)
 	})
 }
 

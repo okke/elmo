@@ -30,6 +30,8 @@ const (
 	TypeBoolean
 	// TypeList represents a type for an array value
 	TypeList
+	// TypeDictionary represents a type for a map value
+	TypeDictionary
 	// TypeError represents a type for an error value
 	TypeError
 	// TypeBlock represents a type for a code block
@@ -67,6 +69,10 @@ type booleanLiteral struct {
 
 type listValue struct {
 	values []Value
+}
+
+type dictValue struct {
+	values map[string]Value
 }
 
 type errorValue struct {
@@ -266,6 +272,34 @@ func (listValue *listValue) Run(context RunContext, arguments []Argument) Value 
 	return NewErrorValue("too many arguments for list access")
 }
 
+func (dictValue *dictValue) Print() string {
+	return dictValue.String()
+}
+
+func (dictValue *dictValue) String() string {
+	return fmt.Sprintf("%v", dictValue.values)
+}
+
+func (dictValue *dictValue) Type() Type {
+	return TypeDictionary
+}
+
+func (dictValue *dictValue) Internal() interface{} {
+	return dictValue.values
+}
+
+func (dictValue *dictValue) Run(context RunContext, arguments []Argument) Value {
+
+	key := evalArgument(context, arguments[0])
+	value, found := dictValue.values[key.String()]
+
+	if found {
+		return value
+	}
+
+	return Nothing
+}
+
 func (errorValue *errorValue) Print() string {
 	return errorValue.String()
 }
@@ -356,6 +390,12 @@ func NewBooleanLiteral(value bool) Value {
 //
 func NewListValue(values []Value) Value {
 	return &listValue{values: values}
+}
+
+// NewDictionaryValue creates a new map of values
+//
+func NewDictionaryValue(values map[string]Value) Value {
+	return &dictValue{values: values}
 }
 
 // NewErrorValue creates a new Error
@@ -463,9 +503,9 @@ func (call *call) Run(context RunContext, arguments []Argument) Value {
 			return call.addInfoWhenError(value.(Runnable).Run(context, call.arguments))
 		}
 
-		// list values can be used as functions to access list content
+		// list and map values can be used as functions to access list content
 		//
-		if (value.Type() == TypeList) && (len(call.arguments) > 0) {
+		if (value.Type() == TypeList || value.Type() == TypeDictionary) && (len(call.arguments) > 0) {
 			return call.addInfoWhenError(value.(Runnable).Run(context, call.arguments))
 		}
 

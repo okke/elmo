@@ -250,6 +250,29 @@ func TestListAccess(t *testing.T) {
    	 ll -4`, expectErrorValueAt(t, 2))
 }
 
+func TestDictionary(t *testing.T) {
+
+	ParseTestAndRunBlock(t,
+		`set d (dict 1 2 3 4)
+		 d 1`, expectValue(t, NewIntegerLiteral(2)))
+
+	ParseTestAndRunBlock(t,
+		`set d (dict 1 2 3 4)
+ 		 d 3`, expectValue(t, NewIntegerLiteral(4)))
+
+	ParseTestAndRunBlock(t,
+		`set d (dict 1 2 3 4)
+  	 d 5`, expectNothing(t))
+
+	ParseTestAndRunBlock(t,
+		`set d (dict "1" 2 3 4)
+	   d 1`, expectValue(t, NewIntegerLiteral(2)))
+
+	ParseTestAndRunBlock(t,
+		`set d (dict a 2 b 4)
+	 	 d b`, expectValue(t, NewIntegerLiteral(4)))
+}
+
 func TestPuts(t *testing.T) {
 
 	ParseTestAndRunBlock(t,
