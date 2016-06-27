@@ -167,30 +167,44 @@ func list() NamedValue {
 
 func dict() NamedValue {
 	return NewGoFunction("dict", func(context RunContext, arguments []Argument) Value {
+		mapping := make(map[string]Value)
+
 		if len(arguments) == 1 {
 			evaluated := evalArgument(context, arguments[0])
 			if evaluated.Type() != TypeList {
 				return NewErrorValue(fmt.Sprintf("dict needs a list as argument. Can not create dictionary from %v", evaluated))
 			}
 
-			return NewErrorValue("not implemented dict from list yet")
-		}
+			values := evaluated.Internal().([]Value)
 
-		if (len(arguments) % 2) != 0 {
-			return NewErrorValue("dict can not create a dictionary from an odd number of elements")
-		}
+			if (len(values) % 2) != 0 {
+				return NewErrorValue("dict can not create a dictionary from an odd number of elements")
+			}
 
-		var key Value
-		var value Value
+			var key Value
 
-		mapping := make(map[string]Value)
+			for i, val := range values {
+				if i%2 == 0 {
+					key = val
+				} else {
+					mapping[key.String()] = val
+				}
+			}
 
-		for i, arg := range arguments {
-			if i%2 == 0 {
-				key = evalArgument(context, arg)
-			} else {
-				value = evalArgument(context, arg)
-				mapping[key.String()] = value
+		} else {
+
+			if (len(arguments) % 2) != 0 {
+				return NewErrorValue("dict can not create a dictionary from an odd number of elements")
+			}
+
+			var key Value
+
+			for i, arg := range arguments {
+				if i%2 == 0 {
+					key = evalArgument(context, arg)
+				} else {
+					mapping[key.String()] = evalArgument(context, arg)
+				}
 			}
 		}
 
