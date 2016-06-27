@@ -310,6 +310,28 @@ func TestDictionaryWithBlock(t *testing.T) {
    	 d b`, expectValue(t, NewStringLiteral("galapeno")))
 }
 
+func TestMixin(t *testing.T) {
+	ParseTestAndRunBlock(t,
+		`mixin (dict a 2 b 4)
+	 	 b`, expectValue(t, NewIntegerLiteral(4)))
+
+	ParseTestAndRunBlock(t,
+		`mixin (dict {
+			set b "chipotle"
+		 })
+ 	 	 b`, expectValue(t, NewStringLiteral("chipotle")))
+
+	ParseTestAndRunBlock(t,
+		`set hot_or_not (dict {
+			set chipotle (false)
+			set galapeno (true)
+		 })
+		 mixin (dict {
+ 			mixin (hot_or_not)
+ 		 })
+  	 chipotle`, expectValue(t, NewBooleanLiteral(false)))
+}
+
 func TestPuts(t *testing.T) {
 
 	ParseTestAndRunBlock(t,

@@ -499,6 +499,11 @@ func (call *call) Run(context RunContext, arguments []Argument) Value {
 	value, found := context.Get(call.functionName)
 
 	if found {
+
+		if value == nil {
+			return NewErrorValue(fmt.Sprintf("call to %s results in invalid nil value", call.Name()))
+		}
+
 		if value.Type() == TypeGoFunction {
 			return call.addInfoWhenError(value.(Runnable).Run(context, call.arguments))
 		}

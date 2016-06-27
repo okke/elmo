@@ -21,6 +21,7 @@ func NewGlobalContext() RunContext {
 	context.SetNamed(_if())
 	context.SetNamed(list())
 	context.SetNamed(dict())
+	context.SetNamed(mixin())
 	context.SetNamed(puts())
 
 	return context
@@ -225,6 +226,36 @@ func dict() NamedValue {
 		}
 
 		return NewDictionaryValue(mapping)
+	})
+}
+
+func mixin() NamedValue {
+	return NewGoFunction("mixin", func(context RunContext, arguments []Argument) Value {
+
+		arglen := len(arguments)
+
+		if arglen == 0 {
+			return NewErrorValue("mixin expects something to mix in")
+		}
+
+		var dict Value
+		for _, arg := range arguments {
+			dict = evalArgument(context, arg)
+			if dict.Type() != TypeDictionary {
+				return NewErrorValue(fmt.Sprintf("mixin can only mix in dictionaries, not %s", dict.String()))
+			}
+
+			for k, v := range dict.Internal().(map[string]Value) {
+				context.Set(k, v)
+			}
+		}
+
+		if arglen == 1 {
+			return dict
+		}
+
+		return Nothing
+
 	})
 }
 
