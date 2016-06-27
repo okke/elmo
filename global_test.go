@@ -286,6 +286,30 @@ func TestDictionary(t *testing.T) {
  	 	 d b`, expectValue(t, NewIntegerLiteral(4)))
 }
 
+func TestDictionaryWithBlock(t *testing.T) {
+
+	ParseTestAndRunBlock(t,
+		`set d (dict {
+			set b 4
+		 })
+ 	 	 d b`, expectValue(t, NewIntegerLiteral(4)))
+
+	ParseTestAndRunBlock(t,
+		`set val "chipotle"
+		 set d (dict {
+ 			set b (val)
+ 		 })
+  	 d b`, expectValue(t, NewStringLiteral("chipotle")))
+
+	ParseTestAndRunBlock(t,
+		`set val "chipotle"
+ 		 set d (dict {
+  		set val "galapeno"
+			set b (val)
+  	 })
+   	 d b`, expectValue(t, NewStringLiteral("galapeno")))
+}
+
 func TestPuts(t *testing.T) {
 
 	ParseTestAndRunBlock(t,

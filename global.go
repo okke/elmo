@@ -165,12 +165,28 @@ func list() NamedValue {
 	})
 }
 
+func dictWithBlock(context RunContext, arguments []Argument) Value {
+	block := arguments[0]
+
+	// use NewRunContext so block will be evaluated within same scope
+	//
+	subContext := NewRunContext(context)
+
+	block.Value().(Block).Run(subContext, noArguments)
+
+	return NewDictionaryValue(subContext.Mapping())
+}
+
 func dict() NamedValue {
 	return NewGoFunction("dict", func(context RunContext, arguments []Argument) Value {
 		mapping := make(map[string]Value)
 
 		if len(arguments) == 1 {
 			evaluated := evalArgument(context, arguments[0])
+			if evaluated.Type() == TypeBlock {
+				return dictWithBlock(context, arguments)
+			}
+
 			if evaluated.Type() != TypeList {
 				return NewErrorValue(fmt.Sprintf("dict needs a list as argument. Can not create dictionary from %v", evaluated))
 			}

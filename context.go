@@ -13,6 +13,7 @@ type RunContext interface {
 	Get(key string) (Value, bool)
 	CreateSubContext() RunContext
 	Parent() RunContext
+	Mapping() map[string]Value
 }
 
 func (runContext *runContext) Set(key string, value Value) {
@@ -44,6 +45,10 @@ func (runContext *runContext) Parent() RunContext {
 
 func (runContext *runContext) CreateSubContext() RunContext {
 	return NewRunContext(runContext)
+}
+
+func (runContext *runContext) Mapping() map[string]Value {
+	return runContext.properties
 }
 
 // NewRunContext constructs a new run context
