@@ -70,6 +70,12 @@ func TestSetValueIntoGlobalContext(t *testing.T) {
 	ParseTestAndRunBlock(t, "set to_many_arguments chipotle \"sauce\"", expectErrorValueAt(t, 1))
 }
 
+func TestSetValueIntoGlobalContextUsingShortcut(t *testing.T) {
+
+	ParseTestAndRunBlock(t, "chipotle: \"sauce\"", expectValueSetTo(t, "chipotle", "sauce"))
+
+}
+
 func TestSetValueIntoGlobalContextAndGetIt(t *testing.T) {
 
 	ParseTestAndRunBlock(t,

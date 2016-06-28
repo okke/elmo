@@ -29,6 +29,20 @@ func expectTwoLines(t *testing.T) func(*node32) {
 	}
 }
 
+func IdentifierFollowedByShortcutAndArgument(t *testing.T, cut pegRule, ruleType pegRule) func([]*node32) {
+	return func(children []*node32) {
+		if !TestEqRules(PegRules(children), []pegRule{ruleIdentifier, ruleShortcut, ruleArgument}) {
+			t.Errorf("expected <identifier> <argument>, found %v", children)
+		}
+		if children[1].up.pegRule != cut {
+			t.Errorf("unexpected ruletype of argument, found %v", children[1].up)
+		}
+		if children[2].up.pegRule != ruleType {
+			t.Errorf("unexpected ruletype of argument, found %v", children[1].up)
+		}
+	}
+}
+
 func IdentifierFollowedByOneArgument(t *testing.T, ruleType pegRule) func([]*node32) {
 	return func(children []*node32) {
 		if !TestEqRules(PegRules(children), []pegRule{ruleIdentifier, ruleArgument}) {
@@ -157,4 +171,11 @@ func TestParseCommandWithBlockWithCalls(t *testing.T) {
 	ParseAndTest(t, "\nchipotle {sauce 33\n sauce 34}", expectOneLineContaining(t, IdentifierFollowedByBlock(t, expectTwoLines(t))))
 	ParseAndTest(t, "\nchipotle {sauce {}}", expectOneLineContaining(t, IdentifierFollowedByBlock(t, expectOneLine(t))))
 	ParseAndTest(t, "\nchipotle {sauce {\n}}", expectOneLineContaining(t, IdentifierFollowedByBlock(t, expectOneLine(t))))
+}
+
+func TestParseCommandWithShortcutAsParameter(t *testing.T) {
+	ParseAndTest(t, "chipotle : sauce", expectOneLineContaining(t, IdentifierFollowedByShortcutAndArgument(t, ruleCOLON, ruleIdentifier)))
+	ParseAndTest(t, "chipotle: sauce", expectOneLineContaining(t, IdentifierFollowedByShortcutAndArgument(t, ruleCOLON, ruleIdentifier)))
+	ParseAndTest(t, "chipotle . sauce", expectOneLineContaining(t, IdentifierFollowedByShortcutAndArgument(t, ruleDOT, ruleIdentifier)))
+	ParseAndTest(t, "chipotle.sauce", expectOneLineContaining(t, IdentifierFollowedByShortcutAndArgument(t, ruleDOT, ruleIdentifier)))
 }

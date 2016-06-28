@@ -87,6 +87,31 @@ func TestCreateBlockWithOneCallWithTwoArguments(t *testing.T) {
 	})
 }
 
+func TestCreateBlockWithOneShortcutSet(t *testing.T) {
+	ParseAndTestBlock(t, "chipotle : sauce ", func(block Block) {
+
+		if len(block.Calls()) != 1 {
+			t.Error("exptected 1 call")
+		}
+
+		if block.Calls()[0].Name() != "set" {
+			t.Errorf("exptected call to set, got call to %s", block.Calls()[0].Name())
+		}
+
+		if len(block.Calls()[0].Arguments()) != 2 {
+			t.Error("call should have one arguments")
+		}
+
+		if block.Calls()[0].Arguments()[0].String() != "chipotle" {
+			t.Errorf("exptected argument (chipotle), got (%s)", block.Calls()[0].Arguments()[0].String())
+		}
+
+		if block.Calls()[0].Arguments()[1].String() != "sauce" {
+			t.Errorf("exptected argument (sauce), got (%s)", block.Calls()[0].Arguments()[1].String())
+		}
+	})
+}
+
 func TestCreateBlockWithTwoCallsWithTwoArguments(t *testing.T) {
 	ParseAndTestBlock(t, "chipotle sauce in_a_jar\npimenton powder in_a_can", func(block Block) {
 

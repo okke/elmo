@@ -28,14 +28,31 @@ func Ast2Call(node *node32, meta ScriptMetaData) Call {
 	}
 
 	functionName := ""
+	var functionArg *node32
 	arguments := []Argument{}
 
 	for idx, argument := range children {
 		if idx == 0 {
+			functionArg = argument
 			functionName = Text(argument, meta.Content())
 		} else {
 			if argument.pegRule == ruleArgument {
 				arguments = append(arguments, Ast2Argument(argument.up, meta))
+			} else if argument.pegRule == ruleShortcut {
+
+				cut := argument.up
+
+				if cut.pegRule == ruleCOLON {
+					// convert identifier : value => set identifier value
+					//
+					functionName = "set"
+					arguments = append(arguments, Ast2Argument(functionArg, meta))
+				} else if cut.pegRule == ruleDOT {
+					panic("dot shortcut not implemted yet")
+				} else {
+					panic(fmt.Sprintf("could not create shortcut call for %v", cut))
+				}
+
 			}
 		}
 	}

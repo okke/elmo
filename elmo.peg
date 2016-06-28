@@ -6,9 +6,11 @@ type ElmoGrammar Peg {
 
 Script <- Spacing (Line)* EOT
 
-Line <- (NewLine)? Identifier (Argument)* (EndOfLine)?
+Line <- (NewLine)? Identifier (Shortcut)? (Argument)* (EndOfLine)?
 
 EndOfLine <- PCOMMA / NewLine
+
+Shortcut <- COLON / DOT
 
 Argument <- Identifier
            / StringLiteral
@@ -74,4 +76,6 @@ RPAR      <-  ')'         Spacing
 LCURLY    <-  '{'         Spacing
 RCURLY    <-  '}'         Spacing
 PCOMMA    <-  ';'         Spacing
+COLON     <-  ':'         Spacing
+DOT       <-  '.'         Spacing
 EOT       <-  !.
