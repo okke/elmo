@@ -3,6 +3,7 @@ package elmo
 import (
 	"errors"
 	"fmt"
+	"strings"
 )
 
 // Runnable is a type that can be interpreted
@@ -460,7 +461,7 @@ func NewArgument(meta ScriptMetaData, begin uint32, end uint32, value Value) Arg
 
 type call struct {
 	astNode
-	functionName string
+	functionName []string
 	arguments    []Argument
 }
 
@@ -474,7 +475,7 @@ type Call interface {
 }
 
 func (call *call) Name() string {
-	return call.functionName
+	return strings.Join(call.functionName, ".")
 }
 
 func (call *call) Arguments() []Argument {
@@ -496,12 +497,31 @@ func (call *call) addInfoWhenError(value Value) Value {
 }
 
 func (call *call) Run(context RunContext, arguments []Argument) Value {
-	value, found := context.Get(call.functionName)
+
+	value, found := context.Get(call.functionName[0])
 
 	if found {
 
 		if value == nil {
-			return NewErrorValue(fmt.Sprintf("call to %s results in invalid nil value", call.Name()))
+			return call.addInfoWhenError(NewErrorValue(fmt.Sprintf("call to %s results in invalid nil value", call.Name())))
+		}
+
+		if len(call.functionName) > 1 {
+
+			// call to a.b style of function name. a should be resolvable to a dictionary and b
+			// can be something in that dictionary
+
+			if value.Type() != TypeDictionary {
+				return call.addInfoWhenError(NewErrorValue(fmt.Sprintf("%s does not resolve to dictionary", call.Name())))
+			}
+
+			inDictValue := value.Internal().(map[string]Value)[call.functionName[1]]
+
+			if inDictValue.Type() == TypeGoFunction {
+				return call.addInfoWhenError(inDictValue.(Runnable).Run(context, call.arguments))
+			}
+
+			return call.addInfoWhenError(inDictValue)
 		}
 
 		if value.Type() == TypeGoFunction {
@@ -517,7 +537,7 @@ func (call *call) Run(context RunContext, arguments []Argument) Value {
 		return call.addInfoWhenError(value)
 	}
 
-	return NewErrorValue(fmt.Sprintf("call to undefined \"%s\"", call.functionName))
+	return call.addInfoWhenError(NewErrorValue(fmt.Sprintf("call to undefined \"%s\"", call.functionName)))
 }
 
 func (call *call) Print() string {
@@ -525,7 +545,7 @@ func (call *call) Print() string {
 }
 
 func (call *call) String() string {
-	return fmt.Sprintf("(%s ...)", call.functionName)
+	return fmt.Sprintf("(%s ...)", call.Name())
 }
 
 func (call *call) Type() Type {
@@ -538,7 +558,7 @@ func (call *call) Internal() interface{} {
 
 // NewCall contstructs a new function call
 //
-func NewCall(meta ScriptMetaData, begin uint32, end uint32, name string, arguments []Argument) Call {
+func NewCall(meta ScriptMetaData, begin uint32, end uint32, name []string, arguments []Argument) Call {
 	return &call{astNode: astNode{meta: meta, begin: begin, end: end}, functionName: name, arguments: arguments}
 }
 

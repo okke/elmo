@@ -1,7 +1,6 @@
 package elmo
 
 import (
-	"fmt"
 	"reflect"
 	"testing"
 )
@@ -39,8 +38,7 @@ func expectErrorValueAt(t *testing.T, lineno int) func(RunContext, Value) {
 		_, l := blockResult.(ErrorValue).At()
 
 		if l != lineno {
-			fmt.Printf("%s\n", blockResult.String())
-			t.Errorf("expected error at line %d but found it on line %d", lineno, l)
+			t.Errorf("expected error at line %d but found (%v) on line %d", lineno, blockResult.String(), l)
 		}
 
 	}
@@ -336,6 +334,30 @@ func TestMixin(t *testing.T) {
  			mixin (hot_or_not)
  		 })
   	 chipotle`, expectValue(t, NewBooleanLiteral(false)))
+}
+
+func TestDictionaryAccessShortcut(t *testing.T) {
+	ParseTestAndRunBlock(t,
+		`io: (dict {
+		  read: (func {
+		  	return "chipotle"
+		  })
+		})
+		io.read`, expectValue(t, NewStringLiteral("chipotle")))
+
+	ParseTestAndRunBlock(t,
+		`io: (dict {
+			read: (func name {
+				return (name)
+			})
+		})
+		io.read "chipotle"`, expectValue(t, NewStringLiteral("chipotle")))
+
+	// Access shortcut can be on dictionaries only
+	//
+	ParseTestAndRunBlock(t,
+		`io: (list 1 2 3)
+		io.read`, expectErrorValueAt(t, 2))
 }
 
 func TestPuts(t *testing.T) {
