@@ -360,6 +360,28 @@ func TestDictionaryAccessShortcut(t *testing.T) {
 		io.read`, expectErrorValueAt(t, 2))
 }
 
+func TestLoad(t *testing.T) {
+
+	context := NewGlobalContext()
+
+	context.RegisterModule(NewModule("yippie", func(context RunContext) Value {
+
+		mapping := make(map[string]Value)
+
+		mapping["nop"] = NewGoFunction("nop", func(context RunContext, arguments []Argument) Value {
+			return Nothing
+		})
+
+		return NewDictionaryValue(mapping)
+
+	}))
+
+	ParseTestAndRunBlockWithinContext(t, context,
+		`yy: (load "yippie")
+		 yy.nop`, expectNothing(t))
+}
+
+/*
 func TestPuts(t *testing.T) {
 
 	ParseTestAndRunBlock(t,
@@ -378,3 +400,4 @@ func TestPuts(t *testing.T) {
 		`set ll (list 3 4 5)
 		 puts (ll 1)`, expectNothing(t))
 }
+*/

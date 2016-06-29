@@ -42,3 +42,14 @@ func ParseTestAndRunBlock(t *testing.T, s string, testfunc func(RunContext, Valu
 	})
 
 }
+
+// ParseTestAndRunBlockWithinContext will parse given script to block, run it within given context and execute test function on its result
+//
+func ParseTestAndRunBlockWithinContext(t *testing.T, context RunContext, s string, testfunc func(RunContext, Value)) {
+
+	ParseAndTestBlock(t, s, func(block Block) {
+		result := block.Run(context, []Argument{})
+		testfunc(context, result)
+	})
+
+}

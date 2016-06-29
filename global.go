@@ -1,8 +1,14 @@
 package elmo
 
-import "fmt"
+import (
+	"fmt"
+)
 
 var noArguments = []Argument{}
+
+// GlobalContext is the shared runtime of all elmo scripts
+//
+var GlobalContext = NewGlobalContext()
 
 // NewGlobalContext constructs a new context and initializes it with
 // all default global values
@@ -22,8 +28,10 @@ func NewGlobalContext() RunContext {
 	context.SetNamed(list())
 	context.SetNamed(dict())
 	context.SetNamed(mixin())
+	context.SetNamed(load())
 	context.SetNamed(puts())
 
+	//context.RegisterModule()
 	return context
 }
 
@@ -266,5 +274,25 @@ func puts() NamedValue {
 		}
 		fmt.Printf("\n")
 		return Nothing
+	})
+}
+
+func load() NamedValue {
+	return NewGoFunction("load", func(context RunContext, arguments []Argument) Value {
+
+		if len(arguments) != 1 {
+			return NewErrorValue("invalid call to load, expected 1 parameter: usage load <package name>")
+		}
+
+		name := evalArgument2String(context, arguments[0])
+
+		module, found := context.Module(name)
+
+		if found {
+			content := module.Content(context)
+			return content
+		}
+
+		return NewErrorValue(fmt.Sprintf("could not find module %s", name))
 	})
 }
