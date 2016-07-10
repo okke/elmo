@@ -10,7 +10,7 @@ func initModule(context elmo.RunContext) elmo.Value {
 
 	mapping := make(map[string]elmo.Value)
 
-	all := []elmo.NamedValue{_append()}
+	all := []elmo.NamedValue{_append(), prepend()}
 
 	for _, v := range all {
 		mapping[v.Name()] = v
@@ -45,5 +45,33 @@ func _append() elmo.NamedValue {
 
 		return elmo.NewListValue(internal)
 
+	})
+}
+
+func prepend() elmo.NamedValue {
+	return elmo.NewGoFunction("prepend", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+
+		argLen := len(arguments)
+
+		// first argument is a list, rest of the arguments are appended to the list
+		if argLen < 2 {
+			return elmo.NewErrorValue("invalid call to prepend, expect at least 2 parameters: usage prepend <list> <value> <value>?")
+		}
+
+		// first argument of a list function can be an identifier with the name of the list
+		//
+		list := elmo.EvalArgumentOrSolveIdentifier(context, arguments[0])
+
+		if list.Type() != elmo.TypeList {
+			return elmo.NewErrorValue("invalid call to prepend, expect at list as first argument: usage prepend <list> <value> <value>?")
+		}
+
+		internal := list.Internal().([]elmo.Value)
+
+		for i := 1; i < argLen; i++ {
+			internal = append([]elmo.Value{elmo.EvalArgument(context, arguments[i])}, internal...)
+		}
+
+		return elmo.NewListValue(internal)
 	})
 }

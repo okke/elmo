@@ -517,6 +517,10 @@ func (call *call) Run(context RunContext, arguments []Argument) Value {
 
 			inDictValue := value.Internal().(map[string]Value)[call.functionName[1]]
 
+			if inDictValue == nil {
+				return call.addInfoWhenError(NewErrorValue(fmt.Sprintf("could not find %s.%s", call.functionName[0], call.functionName[1])))
+			}
+
 			if inDictValue.Type() == TypeGoFunction {
 				return call.addInfoWhenError(inDictValue.(Runnable).Run(context, call.arguments))
 			}
@@ -626,6 +630,22 @@ func EvalArgument(context RunContext, argument Argument) Value {
 	}
 
 	return argument.Value()
+
+}
+
+// EvalArgumentOrSolveIdentifier evaluates given argument
+//
+func EvalArgumentOrSolveIdentifier(context RunContext, argument Argument) Value {
+
+	if argument.Type() == TypeIdentifier {
+		value, found := context.Get(argument.String())
+		if found {
+			return value
+		}
+		return NewErrorValue(fmt.Sprintf("could not find %v", argument.String()))
+	}
+
+	return EvalArgument(context, argument)
 
 }
 
