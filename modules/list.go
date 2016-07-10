@@ -29,15 +29,18 @@ func _append() elmo.NamedValue {
 			return elmo.NewErrorValue("invalid call to append, expect at least 2 parameters: usage append <list> <value> <value>?")
 		}
 
-		list := elmo.EvalArgument(context, arguments[0])
+		// first argument of a list function can be an identifier with the name of the list
+		//
+		list := elmo.EvalArgumentOrSolveIdentifier(context, arguments[0])
+
+		if list.Type() != elmo.TypeList {
+			return elmo.NewErrorValue("invalid call to append, expect at list as first argument: usage append <list> <value> <value>?")
+		}
+
 		internal := list.Internal().([]elmo.Value)
 
 		for i := 1; i < argLen; i++ {
 			internal = append(internal, elmo.EvalArgument(context, arguments[i]))
-		}
-
-		if list.Type() != elmo.TypeList {
-			return elmo.NewErrorValue("invalid call to append, expect at list as first argument: usage append <list> <value> <value>?")
 		}
 
 		return elmo.NewListValue(internal)

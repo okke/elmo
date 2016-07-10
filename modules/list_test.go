@@ -31,4 +31,10 @@ func TestAppend(t *testing.T) {
     l: (list 1 2 3)
     l: (el.append (l) 4 5 6)
 		l`, elmo.ExpectValue(t, elmo.ParseAndRun(elmo.NewGlobalContext(), "list 1 2 3 4 5 6")))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, listContext(),
+		`el: (load "el")
+    l: (list 1 2 3)
+    l: (el.append l 4 )
+		l`, elmo.ExpectValue(t, elmo.ParseAndRun(elmo.NewGlobalContext(), "list 1 2 3 4")))
 }
