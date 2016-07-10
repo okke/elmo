@@ -222,7 +222,7 @@ func (listValue *listValue) Internal() interface{} {
 }
 
 func (listValue *listValue) index(context RunContext, argument Argument) (int, ErrorValue) {
-	indexValue := evalArgument(context, argument)
+	indexValue := EvalArgument(context, argument)
 
 	if indexValue.Type() != TypeInteger {
 		return 0, NewErrorValue("list accessor must be an integer")
@@ -291,7 +291,7 @@ func (dictValue *dictValue) Internal() interface{} {
 
 func (dictValue *dictValue) Run(context RunContext, arguments []Argument) Value {
 
-	key := evalArgument(context, arguments[0])
+	key := EvalArgument(context, arguments[0])
 	value, found := dictValue.values[key.String()]
 
 	if found {
@@ -617,7 +617,9 @@ func NewBlock(meta ScriptMetaData, begin uint32, end uint32, calls []Call) Block
 	return &block{astNode: astNode{meta: meta, begin: begin, end: end}, calls: calls}
 }
 
-func evalArgument(context RunContext, argument Argument) Value {
+// EvalArgument evaluates given argument
+//
+func EvalArgument(context RunContext, argument Argument) Value {
 
 	if argument.Type() == TypeCall {
 		return argument.Value().(Runnable).Run(context, noArguments)
@@ -627,7 +629,10 @@ func evalArgument(context RunContext, argument Argument) Value {
 
 }
 
-func evalArgumentWithBlock(context RunContext, argument Argument) Value {
+// EvalArgumentWithBlock evaluates given argument and if argument is a block
+// it will evaluate block content
+//
+func EvalArgumentWithBlock(context RunContext, argument Argument) Value {
 
 	if argument.Type() == TypeCall || argument.Type() == TypeBlock {
 		return argument.Value().(Runnable).Run(context, noArguments)
@@ -637,8 +642,10 @@ func evalArgumentWithBlock(context RunContext, argument Argument) Value {
 
 }
 
-func evalArgument2String(context RunContext, argument Argument) string {
+// EvalArgument2String evaluates given argument and returns it String presentation
+//
+func EvalArgument2String(context RunContext, argument Argument) string {
 
-	return evalArgument(context, argument).String()
+	return EvalArgument(context, argument).String()
 
 }

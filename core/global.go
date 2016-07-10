@@ -44,8 +44,8 @@ func set() NamedValue {
 			return NewErrorValue("invalid call to set, expected 2 parameters: usage set <identifier> <value>")
 		}
 
-		name := evalArgument2String(context, arguments[0])
-		value := evalArgument(context, arguments[1])
+		name := EvalArgument2String(context, arguments[0])
+		value := EvalArgument(context, arguments[1])
 
 		context.Set(name, value)
 
@@ -61,7 +61,7 @@ func get() NamedValue {
 			return NewErrorValue("invalid call to get, expected 1 parameter: usage get <identifier>")
 		}
 
-		result, found := context.Get(evalArgument2String(context, arguments[0]))
+		result, found := context.Get(EvalArgument2String(context, arguments[0]))
 		if found {
 			return result
 		}
@@ -79,7 +79,7 @@ func _return() NamedValue {
 			return NewErrorValue("invalid call to return, expected 1 parameter: usage return <value>")
 		}
 
-		return evalArgument(context, arguments[0])
+		return EvalArgument(context, arguments[0])
 	})
 }
 
@@ -97,7 +97,7 @@ func _func() NamedValue {
 		argNames := make([]string, len(argNamesAsArgument))
 
 		for i, v := range argNamesAsArgument {
-			argNames[i] = evalArgument2String(context, v)
+			argNames[i] = EvalArgument2String(context, v)
 		}
 
 		if block.Type() != TypeBlock {
@@ -118,7 +118,7 @@ func _func() NamedValue {
 			subContext := cloneFrom.CreateSubContext()
 
 			for i, v := range innerArguments {
-				subContext.Set(argNames[i], evalArgument(innerContext, v))
+				subContext.Set(argNames[i], EvalArgument(innerContext, v))
 			}
 
 			return block.Value().(Block).Run(subContext, noArguments)
@@ -136,13 +136,13 @@ func _if() NamedValue {
 			return NewErrorValue("invalid call to if, expect at least 2 parameters: usage if <condition> {...}")
 		}
 
-		condition := evalArgument(context, arguments[0])
+		condition := EvalArgument(context, arguments[0])
 		if condition.Type() != TypeBoolean {
 			return NewErrorValue("if condition does not evaluate to a boolean value")
 		}
 
 		if condition.(*booleanLiteral).value {
-			return evalArgumentWithBlock(context, arguments[1])
+			return EvalArgumentWithBlock(context, arguments[1])
 		}
 
 		// condition not true, check else part
@@ -151,10 +151,10 @@ func _if() NamedValue {
 		case 2:
 			return Nothing
 		case 3:
-			return evalArgumentWithBlock(context, arguments[2])
+			return EvalArgumentWithBlock(context, arguments[2])
 		case 4:
 			if arguments[2].Value().String() == "else" {
-				return evalArgumentWithBlock(context, arguments[3])
+				return EvalArgumentWithBlock(context, arguments[3])
 			}
 			return NewErrorValue("invalid call to if, expected else as 3rd argument")
 		default:
@@ -168,7 +168,7 @@ func list() NamedValue {
 	return NewGoFunction("list", func(context RunContext, arguments []Argument) Value {
 		values := make([]Value, len(arguments))
 		for i, arg := range arguments {
-			values[i] = evalArgument(context, arg)
+			values[i] = EvalArgument(context, arg)
 		}
 		return NewListValue(values)
 	})
@@ -191,7 +191,7 @@ func dict() NamedValue {
 		mapping := make(map[string]Value)
 
 		if len(arguments) == 1 {
-			evaluated := evalArgument(context, arguments[0])
+			evaluated := EvalArgument(context, arguments[0])
 			if evaluated.Type() == TypeBlock {
 				return dictWithBlock(context, arguments)
 			}
@@ -226,9 +226,9 @@ func dict() NamedValue {
 
 			for i, arg := range arguments {
 				if i%2 == 0 {
-					key = evalArgument(context, arg)
+					key = EvalArgument(context, arg)
 				} else {
-					mapping[key.String()] = evalArgument(context, arg)
+					mapping[key.String()] = EvalArgument(context, arg)
 				}
 			}
 		}
@@ -248,7 +248,7 @@ func mixin() NamedValue {
 
 		var dict Value
 		for _, arg := range arguments {
-			dict = evalArgument(context, arg)
+			dict = EvalArgument(context, arg)
 			if dict.Type() != TypeDictionary {
 				return NewErrorValue(fmt.Sprintf("mixin can only mix in dictionaries, not %s", dict.String()))
 			}
@@ -270,7 +270,7 @@ func mixin() NamedValue {
 func puts() NamedValue {
 	return NewGoFunction("puts", func(context RunContext, arguments []Argument) Value {
 		for _, arg := range arguments {
-			fmt.Printf("%s", evalArgument(context, arg))
+			fmt.Printf("%s", EvalArgument(context, arg))
 		}
 		fmt.Printf("\n")
 		return Nothing
@@ -284,7 +284,7 @@ func load() NamedValue {
 			return NewErrorValue("invalid call to load, expected 1 parameter: usage load <package name>")
 		}
 
-		name := evalArgument2String(context, arguments[0])
+		name := EvalArgument2String(context, arguments[0])
 
 		module, found := context.Module(name)
 
