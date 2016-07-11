@@ -7,7 +7,10 @@ import "github.com/okke/elmo/core"
 var Module = elmo.NewModule("el", initModule)
 
 func initModule(context elmo.RunContext) elmo.Value {
-	return elmo.NewMappingForModule(context, []elmo.NamedValue{_append(), prepend()})
+	return elmo.NewMappingForModule(context, []elmo.NamedValue{
+		_append(),
+		prepend(),
+		each()})
 }
 
 func _append() elmo.NamedValue {
@@ -64,5 +67,36 @@ func prepend() elmo.NamedValue {
 		}
 
 		return elmo.NewListValue(internal)
+	})
+}
+
+func each() elmo.NamedValue {
+	return elmo.NewGoFunction("each", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+
+		argLen := len(arguments)
+
+		if argLen != 3 {
+			return elmo.NewErrorValue("invalid call to each, expect at 3 parameters: usage each <list> <identifier> <block>")
+		}
+
+		// first argument of a list function can be an identifier with the name of the list
+		//
+		list := elmo.EvalArgumentOrSolveIdentifier(context, arguments[0])
+		name := elmo.EvalArgument2String(context, arguments[1])
+		block := arguments[argLen-1]
+
+		if list.Type() != elmo.TypeList {
+			return elmo.NewErrorValue("invalid call to each, expect at list as first argument: usage each <list> <identifier> <block>")
+		}
+
+		var result elmo.Value
+		subContext := context.CreateSubContext()
+		for _, v := range list.Internal().([]elmo.Value) {
+			subContext.Set(name, v)
+			result = block.Value().(elmo.Block).Run(subContext, elmo.NoArguments)
+		}
+
+		return result
+
 	})
 }

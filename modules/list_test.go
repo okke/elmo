@@ -53,3 +53,15 @@ func TestPrepend(t *testing.T) {
     l: (el.prepend l 4 5 6)
 		l`, elmo.ExpectValue(t, elmo.ParseAndRun(elmo.NewGlobalContext(), "list 6 5 4 1 2 3")))
 }
+
+func TestEach(t *testing.T) {
+
+	elmo.ParseTestAndRunBlockWithinContext(t, listContext(),
+		`el: (load "el")
+    l: (list 1 2 3)
+    el.each l v {
+		  once result (list)
+			result: (el.append result (v))
+	  }`, elmo.ExpectValue(t, elmo.ParseAndRun(elmo.NewGlobalContext(), "list 1 2 3")))
+
+}
