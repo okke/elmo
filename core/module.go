@@ -34,3 +34,15 @@ func (module *module) Content(context RunContext) Value {
 func NewModule(name string, initializer ModuleInitializer) Module {
 	return &module{name: name, initializer: initializer}
 }
+
+// NewMappingForModule creates a new dictionary holding a modules functions
+//
+func NewMappingForModule(context RunContext, namedValues []NamedValue) Value {
+	mapping := make(map[string]Value)
+
+	for _, v := range namedValues {
+		mapping[v.Name()] = v
+	}
+
+	return NewDictionaryValue(mapping)
+}

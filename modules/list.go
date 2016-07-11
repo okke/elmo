@@ -7,16 +7,7 @@ import "github.com/okke/elmo/core"
 var Module = elmo.NewModule("el", initModule)
 
 func initModule(context elmo.RunContext) elmo.Value {
-
-	mapping := make(map[string]elmo.Value)
-
-	all := []elmo.NamedValue{_append(), prepend()}
-
-	for _, v := range all {
-		mapping[v.Name()] = v
-	}
-
-	return elmo.NewDictionaryValue(mapping)
+	return elmo.NewMappingForModule(context, []elmo.NamedValue{_append(), prepend()})
 }
 
 func _append() elmo.NamedValue {

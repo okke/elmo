@@ -306,13 +306,9 @@ func TestLoad(t *testing.T) {
 
 	context.RegisterModule(NewModule("yippie", func(context RunContext) Value {
 
-		mapping := make(map[string]Value)
-
-		mapping["nop"] = NewGoFunction("nop", func(context RunContext, arguments []Argument) Value {
+		return NewMappingForModule(context, []NamedValue{NewGoFunction("nop", func(context RunContext, arguments []Argument) Value {
 			return Nothing
-		})
-
-		return NewDictionaryValue(mapping)
+		})})
 
 	}))
 
