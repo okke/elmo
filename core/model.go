@@ -52,6 +52,14 @@ type nothing struct {
 //
 var Nothing = &nothing{}
 
+// True represents boolean value true
+//
+var True = NewBooleanLiteral(true)
+
+// False represents boolean value false
+//
+var False = NewBooleanLiteral(false)
+
 type identifier struct {
 	value string
 }

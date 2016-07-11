@@ -321,6 +321,26 @@ func TestLoad(t *testing.T) {
 		 yy.nop`, ExpectNothing(t))
 }
 
+func TestEq(t *testing.T) {
+	ParseTestAndRunBlock(t, `eq 1 1`, ExpectValue(t, True))
+	ParseTestAndRunBlock(t, `eq 1 0`, ExpectValue(t, False))
+	ParseTestAndRunBlock(t, `eq 1 "1"`, ExpectValue(t, False))
+	ParseTestAndRunBlock(t, `eq "1" "1"`, ExpectValue(t, True))
+	ParseTestAndRunBlock(t, `eq "1" (list 1)`, ExpectValue(t, False))
+	ParseTestAndRunBlock(t, `eq (list 1) (list 1)`, ExpectValue(t, True))
+	ParseTestAndRunBlock(t, `eq (list 1) (list 0)`, ExpectValue(t, False))
+}
+
+func TestNe(t *testing.T) {
+	ParseTestAndRunBlock(t, `ne 1 1`, ExpectValue(t, False))
+	ParseTestAndRunBlock(t, `ne 1 0`, ExpectValue(t, True))
+	ParseTestAndRunBlock(t, `ne 1 "1"`, ExpectValue(t, True))
+	ParseTestAndRunBlock(t, `ne "1" "1"`, ExpectValue(t, False))
+	ParseTestAndRunBlock(t, `ne "1" (list 1)`, ExpectValue(t, True))
+	ParseTestAndRunBlock(t, `ne (list 1) (list 1)`, ExpectValue(t, False))
+	ParseTestAndRunBlock(t, `ne (list 1) (list 0)`, ExpectValue(t, True))
+}
+
 /*
 func TestPuts(t *testing.T) {
 

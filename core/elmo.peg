@@ -54,7 +54,7 @@ IdChar <- [a-z] / [A-Z] / [0-9] / [_]
 # STRING LITERALS
 #
 
-StringLiteral <- (["] StringChar* ["] Spacing)+
+StringLiteral <- ["] StringChar* ["] Spacing
 
 StringChar <- Escape / ![\"\n\\] .
 
