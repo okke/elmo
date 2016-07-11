@@ -359,6 +359,11 @@ func TestOr(t *testing.T) {
 	ParseTestAndRunBlock(t, `or (true) (false)`, ExpectValue(t, True))
 }
 
+func TestNot(t *testing.T) {
+	ParseTestAndRunBlock(t, `not (true)`, ExpectValue(t, False))
+	ParseTestAndRunBlock(t, `not (false)`, ExpectValue(t, True))
+}
+
 /*
 func TestPuts(t *testing.T) {
 

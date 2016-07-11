@@ -35,6 +35,7 @@ func NewGlobalContext() RunContext {
 	context.SetNamed(ne())
 	context.SetNamed(and())
 	context.SetNamed(or())
+	context.SetNamed(not())
 
 	return context
 }
@@ -345,7 +346,7 @@ func and() NamedValue {
 		for i := 0; i < argLen; i++ {
 			condition := EvalArgument(context, arguments[i])
 			if condition.Type() != TypeBoolean {
-				return NewErrorValue("if condition does not evaluate to a boolean value")
+				return NewErrorValue("and condition does not evaluate to a boolean value")
 			}
 
 			if !condition.(*booleanLiteral).value {
@@ -366,7 +367,7 @@ func or() NamedValue {
 		for i := 0; i < argLen; i++ {
 			condition := EvalArgument(context, arguments[i])
 			if condition.Type() != TypeBoolean {
-				return NewErrorValue("if condition does not evaluate to a boolean value")
+				return NewErrorValue("or condition does not evaluate to a boolean value")
 			}
 
 			if condition.(*booleanLiteral).value {
@@ -376,5 +377,27 @@ func or() NamedValue {
 
 		return False
 
+	})
+}
+
+func not() NamedValue {
+	return NewGoFunction("not", func(context RunContext, arguments []Argument) Value {
+
+		argLen := len(arguments)
+
+		if argLen != 1 {
+			return NewErrorValue("invalid call to not, expected exactly 1 parameters: usage not <boolean>")
+		}
+
+		condition := EvalArgument(context, arguments[0])
+		if condition.Type() != TypeBoolean {
+			return NewErrorValue("not condition does not evaluate to a boolean value")
+		}
+
+		if condition.(*booleanLiteral).value {
+			return False
+		}
+
+		return True
 	})
 }
