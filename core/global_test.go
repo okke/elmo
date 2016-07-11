@@ -341,6 +341,24 @@ func TestNe(t *testing.T) {
 	ParseTestAndRunBlock(t, `ne (list 1) (list 0)`, ExpectValue(t, True))
 }
 
+func TestAnd(t *testing.T) {
+	ParseTestAndRunBlock(t, `and (true) (true)`, ExpectValue(t, True))
+	ParseTestAndRunBlock(t, `and (true) (true) (true)`, ExpectValue(t, True))
+	ParseTestAndRunBlock(t, `and (false) (false)`, ExpectValue(t, False))
+	ParseTestAndRunBlock(t, `and (false) (true)`, ExpectValue(t, False))
+	ParseTestAndRunBlock(t, `and (true) (false)`, ExpectValue(t, False))
+}
+
+func TestOr(t *testing.T) {
+	ParseTestAndRunBlock(t, `or (true) (true)`, ExpectValue(t, True))
+	ParseTestAndRunBlock(t, `or (true) (true) (true)`, ExpectValue(t, True))
+	ParseTestAndRunBlock(t, `or (false) (false)`, ExpectValue(t, False))
+	ParseTestAndRunBlock(t, `or (false) (false) (false)`, ExpectValue(t, False))
+	ParseTestAndRunBlock(t, `or (false) (false) (true)`, ExpectValue(t, True))
+	ParseTestAndRunBlock(t, `or (false) (true)`, ExpectValue(t, True))
+	ParseTestAndRunBlock(t, `or (true) (false)`, ExpectValue(t, True))
+}
+
 /*
 func TestPuts(t *testing.T) {
 

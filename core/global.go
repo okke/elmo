@@ -33,6 +33,8 @@ func NewGlobalContext() RunContext {
 	context.SetNamed(puts())
 	context.SetNamed(eq())
 	context.SetNamed(ne())
+	context.SetNamed(and())
+	context.SetNamed(or())
 
 	return context
 }
@@ -331,6 +333,48 @@ func ne() NamedValue {
 		}
 
 		return True
+
+	})
+}
+
+func and() NamedValue {
+	return NewGoFunction("and", func(context RunContext, arguments []Argument) Value {
+
+		argLen := len(arguments)
+
+		for i := 0; i < argLen; i++ {
+			condition := EvalArgument(context, arguments[i])
+			if condition.Type() != TypeBoolean {
+				return NewErrorValue("if condition does not evaluate to a boolean value")
+			}
+
+			if !condition.(*booleanLiteral).value {
+				return False
+			}
+		}
+
+		return True
+
+	})
+}
+
+func or() NamedValue {
+	return NewGoFunction("or", func(context RunContext, arguments []Argument) Value {
+
+		argLen := len(arguments)
+
+		for i := 0; i < argLen; i++ {
+			condition := EvalArgument(context, arguments[i])
+			if condition.Type() != TypeBoolean {
+				return NewErrorValue("if condition does not evaluate to a boolean value")
+			}
+
+			if condition.(*booleanLiteral).value {
+				return True
+			}
+		}
+
+		return False
 
 	})
 }
