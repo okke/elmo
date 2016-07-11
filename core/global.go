@@ -5,7 +5,9 @@ import (
 	"reflect"
 )
 
-var noArguments = []Argument{}
+// NoArguments is an array of arguments with no arguments
+//
+var NoArguments = []Argument{}
 
 // GlobalContext is the shared runtime of all elmo scripts
 //
@@ -23,6 +25,7 @@ func NewGlobalContext() RunContext {
 
 	context.SetNamed(set())
 	context.SetNamed(get())
+	context.SetNamed(once())
 	context.SetNamed(_return())
 	context.SetNamed(_func())
 	context.SetNamed(_if())
@@ -76,6 +79,27 @@ func get() NamedValue {
 	})
 }
 
+func once() NamedValue {
+	return NewGoFunction("once", func(context RunContext, arguments []Argument) Value {
+
+		argLen := len(arguments)
+
+		if argLen != 2 {
+			return NewErrorValue("invalid call to setOnce: usage new <identifier> <value>")
+		}
+
+		name := EvalArgument2String(context, arguments[0])
+
+		existing, found := context.Get(name)
+		if !found {
+			existing = EvalArgument(context, arguments[1])
+			context.Set(name, existing)
+		}
+
+		return existing
+	})
+}
+
 func _return() NamedValue {
 	return NewGoFunction("return", func(context RunContext, arguments []Argument) Value {
 		// return expects exactly 1 argument
@@ -126,7 +150,7 @@ func _func() NamedValue {
 				subContext.Set(argNames[i], EvalArgument(innerContext, v))
 			}
 
-			return block.Value().(Block).Run(subContext, noArguments)
+			return block.Value().(Block).Run(subContext, NoArguments)
 		})
 
 	})
@@ -186,7 +210,7 @@ func dictWithBlock(context RunContext, arguments []Argument) Value {
 	//
 	subContext := NewRunContext(context)
 
-	block.Value().(Block).Run(subContext, noArguments)
+	block.Value().(Block).Run(subContext, NoArguments)
 
 	return NewDictionaryValue(subContext.Mapping())
 }

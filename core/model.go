@@ -634,7 +634,7 @@ func NewBlock(meta ScriptMetaData, begin uint32, end uint32, calls []Call) Block
 func EvalArgument(context RunContext, argument Argument) Value {
 
 	if argument.Type() == TypeCall {
-		return argument.Value().(Runnable).Run(context, noArguments)
+		return argument.Value().(Runnable).Run(context, NoArguments)
 	}
 
 	return argument.Value()
@@ -663,7 +663,7 @@ func EvalArgumentOrSolveIdentifier(context RunContext, argument Argument) Value 
 func EvalArgumentWithBlock(context RunContext, argument Argument) Value {
 
 	if argument.Type() == TypeCall || argument.Type() == TypeBlock {
-		return argument.Value().(Runnable).Run(context, noArguments)
+		return argument.Value().(Runnable).Run(context, NoArguments)
 	}
 
 	return argument.Value()

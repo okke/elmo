@@ -97,7 +97,7 @@ func ParseAndRun(context RunContext, s string) Value {
 		panic(fmt.Sprintf("could not parse: %v", err))
 	} else {
 		block := Ast2Block(grammar.AST(), NewScriptMetaData("", s))
-		return block.Run(context, noArguments)
+		return block.Run(context, NoArguments)
 	}
 
 }

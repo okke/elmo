@@ -37,6 +37,13 @@ func TestDynamicSetValueIntoGlobalContext(t *testing.T) {
      set (chipotle) 147`, ExpectValueSetTo(t, "sauce", "147"))
 }
 
+func TestSetValueOnceIntoGlobalContext(t *testing.T) {
+
+	ParseTestAndRunBlock(t,
+		`once chipotle "sauce"
+		 once chipotle "jar"`, ExpectValueSetTo(t, "chipotle", "sauce"))
+}
+
 func TestUserDefinedFunctionWithoutArguments(t *testing.T) {
 
 	ParseTestAndRunBlock(t,
