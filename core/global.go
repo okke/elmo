@@ -34,7 +34,6 @@ func NewGlobalContext() RunContext {
 	context.SetNamed(eq())
 	context.SetNamed(ne())
 
-	//context.RegisterModule()
 	return context
 }
 
