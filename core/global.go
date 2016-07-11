@@ -2,6 +2,7 @@ package elmo
 
 import (
 	"fmt"
+	"reflect"
 )
 
 var noArguments = []Argument{}
@@ -17,8 +18,8 @@ func NewGlobalContext() RunContext {
 	context := NewRunContext(nil)
 
 	context.Set("nil", Nothing)
-	context.Set("true", NewBooleanLiteral(true))
-	context.Set("false", NewBooleanLiteral(false))
+	context.Set("true", True)
+	context.Set("false", False)
 
 	context.SetNamed(set())
 	context.SetNamed(get())
@@ -30,6 +31,8 @@ func NewGlobalContext() RunContext {
 	context.SetNamed(mixin())
 	context.SetNamed(load())
 	context.SetNamed(puts())
+	context.SetNamed(eq())
+	context.SetNamed(ne())
 
 	//context.RegisterModule()
 	return context
@@ -294,5 +297,41 @@ func load() NamedValue {
 		}
 
 		return NewErrorValue(fmt.Sprintf("could not find module %s", name))
+	})
+}
+
+func eq() NamedValue {
+	return NewGoFunction("eq", func(context RunContext, arguments []Argument) Value {
+
+		argLen := len(arguments)
+
+		if argLen != 2 {
+			return NewErrorValue("invalid call to eq, expected exactly 2 parameters: usage eq <value> <value>")
+		}
+
+		if reflect.DeepEqual(EvalArgument(context, arguments[0]), EvalArgument(context, arguments[1])) {
+			return True
+		}
+
+		return False
+
+	})
+}
+
+func ne() NamedValue {
+	return NewGoFunction("ne", func(context RunContext, arguments []Argument) Value {
+
+		argLen := len(arguments)
+
+		if argLen != 2 {
+			return NewErrorValue("invalid call to eq, expected exactly 2 parameters: usage eq <value> <value>")
+		}
+
+		if reflect.DeepEqual(EvalArgument(context, arguments[0]), EvalArgument(context, arguments[1])) {
+			return False
+		}
+
+		return True
+
 	})
 }

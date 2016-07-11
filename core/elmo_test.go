@@ -151,6 +151,9 @@ func TestParseCommandWithMultipleParameters(t *testing.T) {
 
 	ParseAndTest(t, "chipotle {} jar {}", expectOneLineContaining(t, IdentifierFollowedByMultipleArguments(t,
 		[]pegRule{ruleBlock, ruleIdentifier, ruleBlock})))
+
+	ParseAndTest(t, "jar \"chipotle\" \"chipotle\"", expectOneLineContaining(t, IdentifierFollowedByMultipleArguments(t,
+		[]pegRule{ruleStringLiteral, ruleStringLiteral})))
 }
 
 func TestParseCommandWithBlockContainingNewlinesAsArguments(t *testing.T) {
