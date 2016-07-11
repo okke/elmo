@@ -329,6 +329,9 @@ func TestEq(t *testing.T) {
 	ParseTestAndRunBlock(t, `eq "1" (list 1)`, ExpectValue(t, False))
 	ParseTestAndRunBlock(t, `eq (list 1) (list 1)`, ExpectValue(t, True))
 	ParseTestAndRunBlock(t, `eq (list 1) (list 0)`, ExpectValue(t, False))
+	ParseTestAndRunBlock(t, `eq`, ExpectErrorValueAt(t, 1))
+	ParseTestAndRunBlock(t, `eq 1`, ExpectErrorValueAt(t, 1))
+	ParseTestAndRunBlock(t, `eq 1 1 1`, ExpectErrorValueAt(t, 1))
 }
 
 func TestNe(t *testing.T) {
@@ -339,6 +342,9 @@ func TestNe(t *testing.T) {
 	ParseTestAndRunBlock(t, `ne "1" (list 1)`, ExpectValue(t, True))
 	ParseTestAndRunBlock(t, `ne (list 1) (list 1)`, ExpectValue(t, False))
 	ParseTestAndRunBlock(t, `ne (list 1) (list 0)`, ExpectValue(t, True))
+	ParseTestAndRunBlock(t, `ne`, ExpectErrorValueAt(t, 1))
+	ParseTestAndRunBlock(t, `ne 1`, ExpectErrorValueAt(t, 1))
+	ParseTestAndRunBlock(t, `ne 1 1 1`, ExpectErrorValueAt(t, 1))
 }
 
 func TestAnd(t *testing.T) {
@@ -347,6 +353,8 @@ func TestAnd(t *testing.T) {
 	ParseTestAndRunBlock(t, `and (false) (false)`, ExpectValue(t, False))
 	ParseTestAndRunBlock(t, `and (false) (true)`, ExpectValue(t, False))
 	ParseTestAndRunBlock(t, `and (true) (false)`, ExpectValue(t, False))
+	ParseTestAndRunBlock(t, `and (true)`, ExpectValue(t, True))
+	ParseTestAndRunBlock(t, `and (false)`, ExpectValue(t, False))
 }
 
 func TestOr(t *testing.T) {
@@ -357,11 +365,16 @@ func TestOr(t *testing.T) {
 	ParseTestAndRunBlock(t, `or (false) (false) (true)`, ExpectValue(t, True))
 	ParseTestAndRunBlock(t, `or (false) (true)`, ExpectValue(t, True))
 	ParseTestAndRunBlock(t, `or (true) (false)`, ExpectValue(t, True))
+	ParseTestAndRunBlock(t, `or (true)`, ExpectValue(t, True))
+	ParseTestAndRunBlock(t, `or (false)`, ExpectValue(t, False))
 }
 
 func TestNot(t *testing.T) {
 	ParseTestAndRunBlock(t, `not (true)`, ExpectValue(t, False))
 	ParseTestAndRunBlock(t, `not (false)`, ExpectValue(t, True))
+	ParseTestAndRunBlock(t, `not (true) (true)`, ExpectErrorValueAt(t, 1))
+	ParseTestAndRunBlock(t, `not true`, ExpectErrorValueAt(t, 1))
+	ParseTestAndRunBlock(t, `not 1`, ExpectErrorValueAt(t, 1))
 }
 
 /*
