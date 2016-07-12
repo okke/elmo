@@ -73,3 +73,46 @@ func TestEach(t *testing.T) {
 		  }`, elmo.ExpectValue(t, elmo.ParseAndRun(elmo.NewGlobalContext(), "list 0 a 1 b 2 c")))
 
 }
+
+func TestMap(t *testing.T) {
+
+	elmo.ParseTestAndRunBlockWithinContext(t, listContext(),
+		`el: (load "el")
+    l: (list a b c)
+    el.map l v {
+		  true
+	  }`, elmo.ExpectValue(t, elmo.ParseAndRun(elmo.NewGlobalContext(), "list (true) (true) (true)")))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, listContext(),
+		`el: (load "el")
+		 l: (list a b c)
+		 el.map l v {
+			 v
+		 }`, elmo.ExpectValue(t, elmo.ParseAndRun(elmo.NewGlobalContext(), "list a b c")))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, listContext(),
+		`el: (load "el")
+ 		 l: (list a b c)
+		 el.map l v {
+		   nil
+		 }`, elmo.ExpectValue(t, elmo.ParseAndRun(elmo.NewGlobalContext(), "list")))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, listContext(),
+		`el: (load "el")
+	 	  l: (list a b c)
+	 	  el.map l v i {
+	 			list (i) (v)
+	 		}`, elmo.ExpectValue(t, elmo.ParseAndRun(elmo.NewGlobalContext(), "list (list 0 a) (list 1 b) (list 2 c)")))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, listContext(),
+		`el: (load "el")
+			l: (list a b c)
+			el.map l v i {
+				if (eq (i) 1) {
+					list (i) (v)
+				} else {
+					return 99
+				}
+			}`, elmo.ExpectValue(t, elmo.ParseAndRun(elmo.NewGlobalContext(), "list 99 (list 1 b) 99")))
+
+}

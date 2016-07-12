@@ -10,7 +10,8 @@ func initModule(context elmo.RunContext) elmo.Value {
 	return elmo.NewMappingForModule(context, []elmo.NamedValue{
 		_append(),
 		prepend(),
-		each()})
+		each(),
+		_map()})
 }
 
 func _append() elmo.NamedValue {
@@ -70,40 +71,77 @@ func prepend() elmo.NamedValue {
 	})
 }
 
+func getValueIndexAndBlock(context elmo.RunContext, arguments []elmo.Argument) (elmo.Value, string, string, elmo.Argument, bool) {
+
+	argLen := len(arguments)
+
+	if argLen < 3 || argLen > 4 {
+		return nil, "", "", nil, false
+	}
+
+	list := elmo.EvalArgumentOrSolveIdentifier(context, arguments[0])
+
+	if list.Type() != elmo.TypeList {
+		return nil, "", "", nil, false
+	}
+
+	valueName := elmo.EvalArgument2String(context, arguments[1])
+	var indexName string
+	if argLen == 4 {
+		indexName = elmo.EvalArgument2String(context, arguments[2])
+	}
+	block := arguments[argLen-1]
+
+	return list, valueName, indexName, block, true
+}
+
+func runInBlock(context elmo.RunContext, valueName string, value elmo.Value, indexName string, index int, block elmo.Argument) elmo.Value {
+	context.Set(valueName, value)
+	if indexName != "" {
+		context.Set(indexName, elmo.NewIntegerLiteral(int64(index)))
+	}
+	return block.Value().(elmo.Block).Run(context, elmo.NoArguments)
+}
+
 func each() elmo.NamedValue {
 	return elmo.NewGoFunction("each", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
 
-		argLen := len(arguments)
+		list, valueName, indexName, block, valid := getValueIndexAndBlock(context, arguments)
 
-		if argLen < 3 || argLen > 4 {
-			return elmo.NewErrorValue("invalid call to each, expect at 3 parameters: usage each <list> <value identifier> <index identifier>? <block>")
-		}
-
-		// first argument of a list function can be an identifier with the name of the list
-		//
-		list := elmo.EvalArgumentOrSolveIdentifier(context, arguments[0])
-		valueName := elmo.EvalArgument2String(context, arguments[1])
-		var indexName string
-		if argLen == 4 {
-			indexName = elmo.EvalArgument2String(context, arguments[2])
-		}
-		block := arguments[argLen-1]
-
-		if list.Type() != elmo.TypeList {
-			return elmo.NewErrorValue("invalid call to each, expect at list as first argument: usage each <list> <identifier> <block>")
+		if !valid {
+			return elmo.NewErrorValue("invalid call to each: usage each <list> <value identifier> <index identifier>? <block>")
 		}
 
 		var result elmo.Value
 
-		for index, v := range list.Internal().([]elmo.Value) {
-			context.Set(valueName, v)
-			if indexName != "" {
-				context.Set(indexName, elmo.NewIntegerLiteral(int64(index)))
-			}
-			result = block.Value().(elmo.Block).Run(context, elmo.NoArguments)
+		for index, value := range list.Internal().([]elmo.Value) {
+			result = runInBlock(context, valueName, value, indexName, index, block)
 		}
 
 		return result
 
+	})
+}
+
+func _map() elmo.NamedValue {
+	return elmo.NewGoFunction("map", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+
+		list, valueName, indexName, block, valid := getValueIndexAndBlock(context, arguments)
+
+		if !valid {
+			return elmo.NewErrorValue("invalid call to map: usage each <list> <value identifier> <index identifier>? <block>")
+		}
+
+		oldValues := list.Internal().([]elmo.Value)
+		newValues := []elmo.Value{}
+
+		for index, value := range oldValues {
+			result := runInBlock(context, valueName, value, indexName, index, block)
+			if result != elmo.Nothing {
+				newValues = append(newValues, result)
+			}
+		}
+
+		return elmo.NewListValue(newValues)
 	})
 }
