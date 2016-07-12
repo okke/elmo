@@ -133,13 +133,11 @@ func _map() elmo.NamedValue {
 		}
 
 		oldValues := list.Internal().([]elmo.Value)
-		newValues := []elmo.Value{}
+		l := len(oldValues)
+		newValues := make([]elmo.Value, l, l)
 
 		for index, value := range oldValues {
-			result := runInBlock(context, valueName, value, indexName, index, block)
-			if result != elmo.Nothing {
-				newValues = append(newValues, result)
-			}
+			newValues[index] = runInBlock(context, valueName, value, indexName, index, block)
 		}
 
 		return elmo.NewListValue(newValues)

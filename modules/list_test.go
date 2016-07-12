@@ -95,7 +95,7 @@ func TestMap(t *testing.T) {
  		 l: (list a b c)
 		 el.map l v {
 		   nil
-		 }`, elmo.ExpectValue(t, elmo.ParseAndRun(elmo.NewGlobalContext(), "list")))
+		 }`, elmo.ExpectValue(t, elmo.ParseAndRun(elmo.NewGlobalContext(), "list (nil) (nil) (nil)")))
 
 	elmo.ParseTestAndRunBlockWithinContext(t, listContext(),
 		`el: (load "el")
