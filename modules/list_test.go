@@ -64,4 +64,12 @@ func TestEach(t *testing.T) {
 			result: (el.append result (v))
 	  }`, elmo.ExpectValue(t, elmo.ParseAndRun(elmo.NewGlobalContext(), "list 1 2 3")))
 
+	elmo.ParseTestAndRunBlockWithinContext(t, listContext(),
+		`el: (load "el")
+	    l: (list a b c)
+	    el.each l v i {
+			  once result (list)
+				result: (el.append result (i) (v))
+		  }`, elmo.ExpectValue(t, elmo.ParseAndRun(elmo.NewGlobalContext(), "list 0 a 1 b 2 c")))
+
 }

@@ -75,14 +75,18 @@ func each() elmo.NamedValue {
 
 		argLen := len(arguments)
 
-		if argLen != 3 {
-			return elmo.NewErrorValue("invalid call to each, expect at 3 parameters: usage each <list> <identifier> <block>")
+		if argLen < 3 || argLen > 4 {
+			return elmo.NewErrorValue("invalid call to each, expect at 3 parameters: usage each <list> <value identifier> <index identifier>? <block>")
 		}
 
 		// first argument of a list function can be an identifier with the name of the list
 		//
 		list := elmo.EvalArgumentOrSolveIdentifier(context, arguments[0])
-		name := elmo.EvalArgument2String(context, arguments[1])
+		valueName := elmo.EvalArgument2String(context, arguments[1])
+		var indexName string
+		if argLen == 4 {
+			indexName = elmo.EvalArgument2String(context, arguments[2])
+		}
 		block := arguments[argLen-1]
 
 		if list.Type() != elmo.TypeList {
@@ -90,10 +94,13 @@ func each() elmo.NamedValue {
 		}
 
 		var result elmo.Value
-		subContext := context.CreateSubContext()
-		for _, v := range list.Internal().([]elmo.Value) {
-			subContext.Set(name, v)
-			result = block.Value().(elmo.Block).Run(subContext, elmo.NoArguments)
+
+		for index, v := range list.Internal().([]elmo.Value) {
+			context.Set(valueName, v)
+			if indexName != "" {
+				context.Set(indexName, elmo.NewIntegerLiteral(int64(index)))
+			}
+			result = block.Value().(elmo.Block).Run(context, elmo.NoArguments)
 		}
 
 		return result
