@@ -11,7 +11,8 @@ func initModule(context elmo.RunContext) elmo.Value {
 		_append(),
 		prepend(),
 		each(),
-		_map()})
+		_map(),
+		filter()})
 }
 
 func _append() elmo.NamedValue {
@@ -129,7 +130,7 @@ func _map() elmo.NamedValue {
 		list, valueName, indexName, block, valid := getValueIndexAndBlock(context, arguments)
 
 		if !valid {
-			return elmo.NewErrorValue("invalid call to map: usage each <list> <value identifier> <index identifier>? <block>")
+			return elmo.NewErrorValue("invalid call to map: usage map <list> <value identifier> <index identifier>? <block>")
 		}
 
 		oldValues := list.Internal().([]elmo.Value)
@@ -138,6 +139,28 @@ func _map() elmo.NamedValue {
 
 		for index, value := range oldValues {
 			newValues[index] = runInBlock(context, valueName, value, indexName, index, block)
+		}
+
+		return elmo.NewListValue(newValues)
+	})
+}
+
+func filter() elmo.NamedValue {
+	return elmo.NewGoFunction("filter", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+
+		list, valueName, indexName, block, valid := getValueIndexAndBlock(context, arguments)
+
+		if !valid {
+			return elmo.NewErrorValue("invalid call to filter: usage filter <list> <value identifier> <index identifier>? <block>")
+		}
+
+		oldValues := list.Internal().([]elmo.Value)
+		newValues := []elmo.Value{}
+
+		for index, value := range oldValues {
+			if runInBlock(context, valueName, value, indexName, index, block) == elmo.True {
+				newValues = append(newValues, value)
+			}
 		}
 
 		return elmo.NewListValue(newValues)

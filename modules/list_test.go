@@ -116,3 +116,24 @@ func TestMap(t *testing.T) {
 			}`, elmo.ExpectValue(t, elmo.ParseAndRun(elmo.NewGlobalContext(), "list 99 (list 1 b) 99")))
 
 }
+
+func TestFilter(t *testing.T) {
+
+	elmo.ParseTestAndRunBlockWithinContext(t, listContext(),
+		`el: (load "el")
+     el.filter (list a b c) v {
+		   true
+	   }`, elmo.ExpectValue(t, elmo.ParseAndRun(elmo.NewGlobalContext(), "list a b c")))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, listContext(),
+		`el: (load "el")
+	   el.filter (list 1 2 3) v {
+	 		  eq (v) 2
+	 	 }`, elmo.ExpectValue(t, elmo.ParseAndRun(elmo.NewGlobalContext(), "list 2")))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, listContext(),
+		`el: (load "el")
+		 el.filter (list 1 2 3) v {
+				ne (v) 2
+		 }`, elmo.ExpectValue(t, elmo.ParseAndRun(elmo.NewGlobalContext(), "list 1 3")))
+}
