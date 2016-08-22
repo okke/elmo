@@ -4,6 +4,7 @@ type runContext struct {
 	properties map[string]Value
 	modules    map[string]Module
 	parent     RunContext
+	stopped    bool
 }
 
 // RunContext provides a runtime environment for script execution
@@ -17,6 +18,8 @@ type RunContext interface {
 	Mapping() map[string]Value
 	RegisterModule(module Module)
 	Module(name string) (Module, bool)
+	Stop()
+	isStopped() bool
 }
 
 func (runContext *runContext) Set(key string, value Value) {
@@ -71,6 +74,14 @@ func (runContext *runContext) CreateSubContext() RunContext {
 
 func (runContext *runContext) Mapping() map[string]Value {
 	return runContext.properties
+}
+
+func (runContext *runContext) Stop() {
+	runContext.stopped = true
+}
+
+func (runContext *runContext) isStopped() bool {
+	return runContext.stopped
 }
 
 // NewRunContext constructs a new run context

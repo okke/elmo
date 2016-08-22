@@ -108,7 +108,11 @@ func _return() NamedValue {
 			return NewErrorValue("invalid call to return, expected 1 parameter: usage return <value>")
 		}
 
-		return EvalArgument(context, arguments[0])
+		result := EvalArgument(context, arguments[0])
+
+		context.Stop()
+
+		return result
 	})
 }
 

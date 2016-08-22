@@ -602,6 +602,9 @@ func (block *block) Run(context RunContext, arguments []Argument) Value {
 
 	for _, call := range block.calls {
 		result = call.Run(context, []Argument{})
+		if context.isStopped() {
+			break
+		}
 	}
 
 	return result

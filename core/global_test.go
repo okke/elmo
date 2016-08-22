@@ -60,6 +60,14 @@ func TestUserDefinedFunctionWithoutArguments(t *testing.T) {
         return
       })
       set sauce (fsauce)`, ExpectErrorValueAt(t, 2))
+
+	ParseTestAndRunBlock(t,
+		`set fsauce (func {
+			 return "chipotle"
+			 return "galapeno"
+		 })
+		 set sauce (fsauce)`, ExpectValueSetTo(t, "sauce", "chipotle"))
+
 }
 
 func TestUserDefinedFunctionWithOneArgument(t *testing.T) {
@@ -93,6 +101,25 @@ func TestIfWithoutElse(t *testing.T) {
      if (false) {
       set pepper "chipotle"
      }`, ExpectValueSetTo(t, "pepper", "galapeno"))
+
+	ParseTestAndRunBlock(t,
+		`set fsauce (func test {
+			 if (test) {
+			   return "chipotle"
+			 }
+	 		 return "galapeno"
+	 	 })
+	 	 set sauce (fsauce (true))`, ExpectValueSetTo(t, "sauce", "chipotle"))
+
+	ParseTestAndRunBlock(t,
+		`set fsauce (func test {
+	 		 if (test) {
+	 			 return "chipotle"
+	 		 }
+	 		 return "galapeno"
+	 	 })
+	 	 set sauce (fsauce (false))`, ExpectValueSetTo(t, "sauce", "galapeno"))
+
 }
 
 func TestIfWithElse(t *testing.T) {
