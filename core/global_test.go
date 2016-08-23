@@ -91,14 +91,19 @@ func TestUserDefinedFunctionWithMultipleReturnValues(t *testing.T) {
 		`set fsauce (func  {
 	 		 return "chipotle" "galapeno"
 	 	 })
-	 	 set hot hotter (fsauce)`, ExpectValueSetTo(t, "hot", "chipotle"))
+	 	 set hot hotter (fsauce)`,
+		ExpectValueSetTo(t, "hot", "chipotle"),
+		ExpectValueSetTo(t, "hotter", "galapeno"))
 
 	ParseTestAndRunBlock(t,
 		`set fsauce (func  {
- 	 		 return "chipotle" "galapeno"
- 	 	 })
- 	 	 set hot hotter (fsauce)`, ExpectValueSetTo(t, "hotter", "galapeno"))
-
+	 		 return "chipotle" "galapeno"
+	 	 })
+	 	 set also_hot also_hotter (set hot hotter (fsauce))`,
+		ExpectValueSetTo(t, "hot", "chipotle"),
+		ExpectValueSetTo(t, "hotter", "galapeno"),
+		ExpectValueSetTo(t, "also_hot", "chipotle"),
+		ExpectValueSetTo(t, "also_hotter", "galapeno"))
 }
 
 func TestIfWithoutElse(t *testing.T) {
