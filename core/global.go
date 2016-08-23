@@ -46,16 +46,32 @@ func NewGlobalContext() RunContext {
 func set() NamedValue {
 	return NewGoFunction("set", func(context RunContext, arguments []Argument) Value {
 
-		// set expects exactly 2 arguments
-		//
-		if len(arguments) != 2 {
-			return NewErrorValue("invalid call to set, expected 2 parameters: usage set <identifier> <value>")
+		argLen := len(arguments)
+
+		if len(arguments) < 2 {
+			return NewErrorValue("invalid call to set, expect at least 2 parameters: usage set <identifier> <value>")
 		}
 
-		name := EvalArgument2String(context, arguments[0])
-		value := EvalArgument(context, arguments[1])
+		var value = EvalArgument(context, arguments[argLen-1])
 
-		context.Set(name, value)
+		if value.Type() == TypeReturn {
+			returnedValues := value.(*returnValue).values
+			returnedLength := len(returnedValues)
+
+			for i := 0; i < (argLen-1) && i < returnedLength; i++ {
+				name := EvalArgument2String(context, arguments[i])
+				context.Set(name, returnedValues[i])
+			}
+		} else {
+			// set expects exactly 2 arguments
+			//
+			if len(arguments) != 2 {
+				return NewErrorValue("invalid call to set, expected 2 parameters: usage set <identifier> <value>")
+			}
+
+			name := EvalArgument2String(context, arguments[0])
+			context.Set(name, value)
+		}
 
 		return value
 	})
@@ -102,13 +118,25 @@ func once() NamedValue {
 
 func _return() NamedValue {
 	return NewGoFunction("return", func(context RunContext, arguments []Argument) Value {
+
+		argLen := len(arguments)
+
 		// return expects exactly 1 argument
 		//
-		if len(arguments) != 1 {
-			return NewErrorValue("invalid call to return, expected 1 parameter: usage return <value>")
-		}
+		var result Value
 
-		result := EvalArgument(context, arguments[0])
+		switch argLen {
+		case 0:
+			result = Nothing
+		case 1:
+			result = EvalArgument(context, arguments[0])
+		default:
+			values := make([]Value, len(arguments))
+			for i, arg := range arguments {
+				values[i] = EvalArgument(context, arg)
+			}
+			result = NewReturnValue(values)
+		}
 
 		context.Stop()
 

@@ -41,6 +41,8 @@ const (
 	TypeCall
 	// TypeGoFunction represents a type for an internal go function
 	TypeGoFunction
+	// TypeReturn represents a function result containing multiple values
+	TypeReturn
 	// TypeNil represents the type of a nil value
 	TypeNil
 )
@@ -77,6 +79,10 @@ type booleanLiteral struct {
 }
 
 type listValue struct {
+	values []Value
+}
+
+type returnValue struct {
 	values []Value
 }
 
@@ -281,6 +287,22 @@ func (listValue *listValue) Run(context RunContext, arguments []Argument) Value 
 	return NewErrorValue("too many arguments for list access")
 }
 
+func (returnValue *returnValue) Print() string {
+	return returnValue.String()
+}
+
+func (returnValue *returnValue) String() string {
+	return fmt.Sprintf("<%v>", returnValue.values)
+}
+
+func (returnValue *returnValue) Type() Type {
+	return TypeReturn
+}
+
+func (returnValue *returnValue) Internal() interface{} {
+	return returnValue.values
+}
+
 func (dictValue *dictValue) Print() string {
 	return dictValue.String()
 }
@@ -417,6 +439,12 @@ func NewErrorValue(msg string) ErrorValue {
 //
 func NewGoFunction(name string, value GoFunction) NamedValue {
 	return &goFunction{name: name, value: value}
+}
+
+// NewReturnValue creates a new list of values
+//
+func NewReturnValue(values []Value) Value {
+	return &returnValue{values: values}
 }
 
 //
