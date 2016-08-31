@@ -499,6 +499,7 @@ type call struct {
 	astNode
 	functionName []string
 	arguments    []Argument
+	pipe         Call
 }
 
 // Call is a function call
@@ -508,6 +509,7 @@ type Call interface {
 
 	Name() string
 	Arguments() []Argument
+	WillPipe() bool
 }
 
 func (call *call) Name() string {
@@ -516,6 +518,10 @@ func (call *call) Name() string {
 
 func (call *call) Arguments() []Argument {
 	return call.arguments
+}
+
+func (call *call) WillPipe() bool {
+	return call.pipe != nil
 }
 
 func (call *call) addInfoWhenError(value Value) Value {
@@ -532,14 +538,30 @@ func (call *call) addInfoWhenError(value Value) Value {
 	return value
 }
 
-func (call *call) Run(context RunContext, arguments []Argument) Value {
+func (call *call) pipeResult(context RunContext, value Value) Value {
+	if !call.WillPipe() {
+		return value
+	}
+
+	return call.pipe.Run(context, []Argument{&argument{value: value}})
+
+}
+
+func (call *call) Run(context RunContext, additionalArguments []Argument) Value {
 
 	value, found := context.Get(call.functionName[0])
+
+	var useArguments = call.arguments
+
+	if additionalArguments != nil && len(additionalArguments) > 0 {
+		useArguments = append([]Argument{}, useArguments...)
+		useArguments = append(useArguments, additionalArguments...)
+	}
 
 	if found {
 
 		if value == nil {
-			return call.addInfoWhenError(NewErrorValue(fmt.Sprintf("call to %s results in invalid nil value", call.Name())))
+			return call.pipeResult(context, call.addInfoWhenError(NewErrorValue(fmt.Sprintf("call to %s results in invalid nil value", call.Name()))))
 		}
 
 		if len(call.functionName) > 1 {
@@ -548,36 +570,36 @@ func (call *call) Run(context RunContext, arguments []Argument) Value {
 			// can be something in that dictionary
 
 			if value.Type() != TypeDictionary {
-				return call.addInfoWhenError(NewErrorValue(fmt.Sprintf("%s does not resolve to dictionary", call.Name())))
+				return call.pipeResult(context, call.addInfoWhenError(NewErrorValue(fmt.Sprintf("%s does not resolve to dictionary", call.Name()))))
 			}
 
 			inDictValue := value.Internal().(map[string]Value)[call.functionName[1]]
 
 			if inDictValue == nil {
-				return call.addInfoWhenError(NewErrorValue(fmt.Sprintf("could not find %s.%s", call.functionName[0], call.functionName[1])))
+				return call.pipeResult(context, call.addInfoWhenError(NewErrorValue(fmt.Sprintf("could not find %s.%s", call.functionName[0], call.functionName[1]))))
 			}
 
 			if inDictValue.Type() == TypeGoFunction {
-				return call.addInfoWhenError(inDictValue.(Runnable).Run(context, call.arguments))
+				return call.pipeResult(context, call.addInfoWhenError(inDictValue.(Runnable).Run(context, useArguments)))
 			}
 
-			return call.addInfoWhenError(inDictValue)
+			return call.pipeResult(context, call.addInfoWhenError(inDictValue))
 		}
 
 		if value.Type() == TypeGoFunction {
-			return call.addInfoWhenError(value.(Runnable).Run(context, call.arguments))
+			return call.pipeResult(context, call.addInfoWhenError(value.(Runnable).Run(context, useArguments)))
 		}
 
 		// list and map values can be used as functions to access list content
 		//
 		if (value.Type() == TypeList || value.Type() == TypeDictionary) && (len(call.arguments) > 0) {
-			return call.addInfoWhenError(value.(Runnable).Run(context, call.arguments))
+			return call.pipeResult(context, call.addInfoWhenError(value.(Runnable).Run(context, useArguments)))
 		}
 
-		return call.addInfoWhenError(value)
+		return call.pipeResult(context, call.addInfoWhenError(value))
 	}
 
-	return call.addInfoWhenError(NewErrorValue(fmt.Sprintf("call to undefined \"%s\"", call.functionName)))
+	return call.pipeResult(context, call.addInfoWhenError(NewErrorValue(fmt.Sprintf("call to undefined \"%s\"", call.functionName))))
 }
 
 func (call *call) Print() string {
@@ -598,8 +620,8 @@ func (call *call) Internal() interface{} {
 
 // NewCall contstructs a new function call
 //
-func NewCall(meta ScriptMetaData, begin uint32, end uint32, name []string, arguments []Argument) Call {
-	return &call{astNode: astNode{meta: meta, begin: begin, end: end}, functionName: name, arguments: arguments}
+func NewCall(meta ScriptMetaData, begin uint32, end uint32, name []string, arguments []Argument, pipeTo Call) Call {
+	return &call{astNode: astNode{meta: meta, begin: begin, end: end}, functionName: name, arguments: arguments, pipe: pipeTo}
 }
 
 //

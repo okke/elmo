@@ -106,6 +106,18 @@ func TestUserDefinedFunctionWithMultipleReturnValues(t *testing.T) {
 		ExpectValueSetTo(t, "also_hotter", "galapeno"))
 }
 
+func TestPipeToUserDefinedFunction(t *testing.T) {
+
+	ParseTestAndRunBlock(t,
+		`set fsauce (func pepper {
+       return (pepper)
+     })
+		 set injar (func pepper {
+			 return (list (pepper))
+		 })
+     fsauce "chipotle" | injar`, ExpectValue(t, NewListValue([]Value{NewStringLiteral("chipotle")})))
+}
+
 func TestIfWithoutElse(t *testing.T) {
 
 	ParseTestAndRunBlock(t,

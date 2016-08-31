@@ -5,7 +5,7 @@ import "testing"
 func expectOneLine(t *testing.T) func(*node32) {
 	return func(ast *node32) {
 		if !TestEqRules(ChildrenRules(ast), []pegRule{ruleLine}) {
-			t.Errorf("does not contain one line, found %v", Children(ast))
+			t.Errorf("does not contain one line, found %v", ChildrenRules(ast))
 		}
 	}
 }
@@ -75,6 +75,17 @@ func IdentifierFollowedByBlock(t *testing.T, blockTestFunc func(*node32)) func([
 		}
 
 		blockTestFunc(children[1].up)
+	}
+}
+
+func IdentifierFollowedbyPipe(t *testing.T) func([]*node32) {
+	return func(children []*node32) {
+		if !TestEqRules(PegRules(children), []pegRule{ruleIdentifier, rulePipedOutput}) {
+			t.Errorf("expected <identifier> <pipe>, found %v", children)
+		}
+		if !TestEqRules(PegRules(Children(children[1])), []pegRule{rulePIPE, ruleLine}) {
+			t.Errorf("expected <identifier> <pipe>, found %v", children[1])
+		}
 	}
 }
 
@@ -181,4 +192,11 @@ func TestParseCommandWithShortcutAsParameter(t *testing.T) {
 	ParseAndTest(t, "chipotle: sauce", expectOneLineContaining(t, IdentifierFollowedByShortcutAndArgument(t, ruleCOLON, ruleIdentifier)))
 	ParseAndTest(t, "chipotle . sauce", expectOneLineContaining(t, IdentifierFollowedByShortcutAndArgument(t, ruleDOT, ruleIdentifier)))
 	ParseAndTest(t, "chipotle.sauce", expectOneLineContaining(t, IdentifierFollowedByShortcutAndArgument(t, ruleDOT, ruleIdentifier)))
+}
+
+func TestParseCommandWithPipedOutput(t *testing.T) {
+	ParseAndTest(t, "chipotle | sauce", expectOneLineContaining(t, IdentifierFollowedbyPipe(t)))
+	ParseAndTest(t, "chipotle | sauce | jar", expectOneLineContaining(t, IdentifierFollowedbyPipe(t)))
+	ParseAndTest(t, "chipotle | sauce 33", expectOneLineContaining(t, IdentifierFollowedbyPipe(t)))
+	ParseAndTest(t, "chipotle | sauce 33 34 | jar 28", expectOneLineContaining(t, IdentifierFollowedbyPipe(t)))
 }

@@ -168,8 +168,7 @@ func _func() NamedValue {
 		return NewGoFunction("user_defined_function", func(innerContext RunContext, innerArguments []Argument) Value {
 
 			if len(argNames) != len(innerArguments) {
-				// TODO better error handling
-				panic("argument mismatch")
+				return NewErrorValue(fmt.Sprintf("invalid call to user defined function: expect %d parameters instead of %d", len(argNames), len(innerArguments)))
 			}
 
 			cloneFrom := innerContext

@@ -23,7 +23,9 @@ func Ast2Block(node *node32, meta ScriptMetaData) Block {
 func Ast2Call(node *node32, meta ScriptMetaData) Call {
 
 	children := Children(node)
-	if len(children) == 1 && children[0].pegRule == ruleLine {
+	childrenLength := len(children)
+
+	if childrenLength == 1 && children[0].pegRule == ruleLine {
 		return Ast2Call(children[0], meta)
 	}
 
@@ -31,6 +33,12 @@ func Ast2Call(node *node32, meta ScriptMetaData) Call {
 	var functionArg *node32
 	var arguments = []Argument{}
 	var appendToFunctionName = false
+
+	var pipeTo Call
+
+	if children[childrenLength-1].pegRule == rulePipedOutput {
+		pipeTo = Ast2Call(Children(children[childrenLength-1])[1], meta)
+	}
 
 	for idx, argument := range children {
 		if idx == 0 {
@@ -64,7 +72,7 @@ func Ast2Call(node *node32, meta ScriptMetaData) Call {
 		}
 	}
 
-	return NewCall(meta, node.begin, node.end, functionName, arguments)
+	return NewCall(meta, node.begin, node.end, functionName, arguments, pipeTo)
 }
 
 // Ast2Argument converts an ast node to a function argument

@@ -243,3 +243,21 @@ func TestCreateBlockWithOneCallWithOneCallArgument(t *testing.T) {
 
 	})
 }
+
+func TestCreateBlockWithOnePipedCall(t *testing.T) {
+	ParseAndTestBlock(t, "chipotle | galapeno", func(block Block) {
+
+		if len(block.Calls()) != 1 {
+			t.Error("exptected 1 call")
+		}
+
+		call := block.Calls()[0]
+		if call.Name() != "chipotle" {
+			t.Errorf("exptected call to chipotle, got call to %s", block.Calls()[0].Name())
+		}
+
+		if !call.WillPipe() {
+			t.Errorf("exptected the result of call to chipotle to be piped to next call")
+		}
+	})
+}
