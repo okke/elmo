@@ -381,6 +381,31 @@ func TestSetWithDictionaryAsBlock(t *testing.T) {
 	   d b`, ExpectValue(t, NewIntegerLiteral(4)))
 }
 
+func TestDictionaryFunctionsKnowDictionary(t *testing.T) {
+	ParseTestAndRunBlock(t,
+		`sauce: (dict {
+		  hot: (func {
+		  	return "chipotle"
+		  })
+			same: (func {
+				return (this.hot)
+			})
+		})
+		sauce.same`, ExpectValue(t, NewStringLiteral("chipotle")))
+
+	ParseTestAndRunBlock(t,
+		`sauce: (dict {
+		  hot: (func {
+		  	return "chipotle"
+		  })
+			same: (func {
+				return (this.hot)
+			})
+		})
+		sauce.same
+		this`, ExpectErrorValueAt(t, 10))
+}
+
 func TestLoad(t *testing.T) {
 
 	context := NewGlobalContext()

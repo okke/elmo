@@ -11,6 +11,7 @@ type runContext struct {
 //
 type RunContext interface {
 	Set(key string, value Value)
+	Remove(key string)
 	SetNamed(value NamedValue)
 	Get(key string) (Value, bool)
 	CreateSubContext() RunContext
@@ -24,6 +25,10 @@ type RunContext interface {
 
 func (runContext *runContext) Set(key string, value Value) {
 	runContext.properties[key] = value
+}
+
+func (runContext *runContext) Remove(key string) {
+	delete(runContext.properties, key)
 }
 
 func (runContext *runContext) SetNamed(value NamedValue) {
