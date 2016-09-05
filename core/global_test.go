@@ -406,6 +406,43 @@ func TestDictionaryFunctionsKnowDictionary(t *testing.T) {
 		this`, ExpectErrorValueAt(t, 10))
 }
 
+func TestNewConstructsDictionary(t *testing.T) {
+	ParseTestAndRunBlock(t,
+		`peppers: {
+		  hot: (func {
+		  	return "chipotle"
+		  })
+		}
+		sauce: (new (peppers))
+		sauce.hot`, ExpectValue(t, NewStringLiteral("chipotle")))
+
+	ParseTestAndRunBlock(t,
+		`peppers: {
+		  hot: (func {
+		  	return "chipotle"
+		  })
+		}
+		sauce: (new (peppers) {
+		  same: (func {
+			  return (this.hot)
+		  })
+	  })
+		sauce.same`, ExpectValue(t, NewStringLiteral("chipotle")))
+
+	ParseTestAndRunBlock(t,
+		`peppers: {
+		  hot: (func {
+		  	return "chipotle"
+		  })
+		}
+		sauce: (new (peppers) {
+		  hot: (func {
+			  return "galapeno"
+		  })
+	  })
+		sauce.hot`, ExpectValue(t, NewStringLiteral("galapeno")))
+}
+
 func TestLoad(t *testing.T) {
 
 	context := NewGlobalContext()

@@ -32,6 +32,7 @@ func NewGlobalContext() RunContext {
 	context.SetNamed(list())
 	context.SetNamed(dict())
 	context.SetNamed(mixin())
+	context.SetNamed(new())
 	context.SetNamed(load())
 	context.SetNamed(puts())
 	context.SetNamed(eq())
@@ -249,7 +250,7 @@ func dictWithBlock(context RunContext, block Block) Value {
 
 	block.Run(subContext, NoArguments)
 
-	return NewDictionaryValue(subContext.Mapping())
+	return NewDictionaryValue(nil, subContext.Mapping())
 }
 
 func dict() NamedValue {
@@ -299,7 +300,7 @@ func dict() NamedValue {
 			}
 		}
 
-		return NewDictionaryValue(mapping)
+		return NewDictionaryValue(nil, mapping)
 	})
 }
 
@@ -330,6 +331,40 @@ func mixin() NamedValue {
 
 		return Nothing
 
+	})
+}
+
+func new() NamedValue {
+	return NewGoFunction("new", func(context RunContext, arguments []Argument) Value {
+		argLen := len(arguments)
+
+		if (argLen < 1) || (argLen > 2) {
+			return NewErrorValue("new expect exactly one parameter. usage: new <dictionary> <block>?")
+		}
+
+		parent := EvalArgument(context, arguments[0])
+
+		if parent.Type() != TypeDictionary {
+			return NewErrorValue(fmt.Sprintf("new expects a dictionary, not %s", parent.String()))
+		}
+
+		var mapping map[string]Value
+		if argLen == 2 {
+
+			dict := EvalArgument(context, arguments[1])
+
+			if dict.Type() != TypeBlock {
+				return NewErrorValue(fmt.Sprintf("new can not construct dictionary from %s", dict.String()))
+			}
+
+			dict = dictWithBlock(context, dict.(Block))
+
+			mapping = dict.(*dictValue).values
+		} else {
+			mapping = make(map[string]Value)
+		}
+
+		return NewDictionaryValue(parent.(*dictValue), mapping)
 	})
 }
 

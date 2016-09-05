@@ -44,5 +44,5 @@ func NewMappingForModule(context RunContext, namedValues []NamedValue) Value {
 		mapping[v.Name()] = v
 	}
 
-	return NewDictionaryValue(mapping)
+	return NewDictionaryValue(nil, mapping)
 }

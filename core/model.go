@@ -87,6 +87,7 @@ type returnValue struct {
 }
 
 type dictValue struct {
+	parent *dictValue
 	values map[string]Value
 }
 
@@ -319,16 +320,24 @@ func (dictValue *dictValue) Internal() interface{} {
 	return dictValue.values
 }
 
-func (dictValue *dictValue) Run(context RunContext, arguments []Argument) Value {
-
-	key := EvalArgument(context, arguments[0])
-	value, found := dictValue.values[key.String()]
+func (dictValue *dictValue) Resolve(key string) Value {
+	value, found := dictValue.values[key]
 
 	if found {
 		return value
 	}
 
+	if dictValue.parent != nil {
+		return dictValue.parent.Resolve(key)
+	}
+
 	return Nothing
+}
+
+func (dictValue *dictValue) Run(context RunContext, arguments []Argument) Value {
+
+	key := EvalArgument(context, arguments[0])
+	return dictValue.Resolve(key.String())
 }
 
 func (errorValue *errorValue) Print() string {
@@ -425,8 +434,8 @@ func NewListValue(values []Value) Value {
 
 // NewDictionaryValue creates a new map of values
 //
-func NewDictionaryValue(values map[string]Value) Value {
-	return &dictValue{values: values}
+func NewDictionaryValue(parent *dictValue, values map[string]Value) Value {
+	return &dictValue{parent: parent, values: values}
 }
 
 // NewErrorValue creates a new Error
@@ -570,10 +579,10 @@ func (call *call) Run(context RunContext, additionalArguments []Argument) Value 
 			// can be something in that dictionary
 
 			if value.Type() != TypeDictionary {
-				return call.pipeResult(context, call.addInfoWhenError(NewErrorValue(fmt.Sprintf("%s does not resolve to dictionary", call.Name()))))
+				return call.pipeResult(context, call.addInfoWhenError(NewErrorValue(fmt.Sprintf("%s does not resolve to dictionary. found %v", call.Name(), value))))
 			}
 
-			inDictValue := value.Internal().(map[string]Value)[call.functionName[1]]
+			inDictValue := value.(*dictValue).Resolve(call.functionName[1])
 
 			if inDictValue == nil {
 				return call.pipeResult(context, call.addInfoWhenError(NewErrorValue(fmt.Sprintf("could not find %s.%s", call.functionName[0], call.functionName[1]))))
