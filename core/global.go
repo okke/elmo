@@ -63,10 +63,17 @@ func set() NamedValue {
 				context.Set(name, returnedValues[i])
 			}
 		} else {
+
 			// set expects exactly 2 arguments
 			//
 			if len(arguments) != 2 {
 				return NewErrorValue("invalid call to set, expected 2 parameters: usage set <identifier> <value>")
+			}
+
+			// convert block to dictionary
+			//
+			if value.Type() == TypeBlock {
+				value = dictWithBlock(context, value.(Block))
 			}
 
 			name := EvalArgument2String(context, arguments[0])
@@ -234,14 +241,13 @@ func list() NamedValue {
 	})
 }
 
-func dictWithBlock(context RunContext, arguments []Argument) Value {
-	block := arguments[0]
+func dictWithBlock(context RunContext, block Block) Value {
 
 	// use NewRunContext so block will be evaluated within same scope
 	//
 	subContext := NewRunContext(context)
 
-	block.Value().(Block).Run(subContext, NoArguments)
+	block.Run(subContext, NoArguments)
 
 	return NewDictionaryValue(subContext.Mapping())
 }
@@ -253,7 +259,7 @@ func dict() NamedValue {
 		if len(arguments) == 1 {
 			evaluated := EvalArgument(context, arguments[0])
 			if evaluated.Type() == TypeBlock {
-				return dictWithBlock(context, arguments)
+				return dictWithBlock(context, evaluated.(Block))
 			}
 
 			if evaluated.Type() != TypeList {

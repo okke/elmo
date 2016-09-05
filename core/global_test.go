@@ -373,6 +373,14 @@ func TestDictionaryAccessShortcut(t *testing.T) {
 		io.read`, ExpectErrorValueAt(t, 2))
 }
 
+func TestSetWithDictionaryAsBlock(t *testing.T) {
+	ParseTestAndRunBlock(t,
+		`set d {
+		   set b 4
+	   }
+	   d b`, ExpectValue(t, NewIntegerLiteral(4)))
+}
+
 func TestLoad(t *testing.T) {
 
 	context := NewGlobalContext()
