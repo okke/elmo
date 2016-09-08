@@ -185,6 +185,10 @@ func _func() NamedValue {
 			}
 			subContext := cloneFrom.CreateSubContext()
 
+			if innerContext.This() != nil {
+				subContext.Set("this", innerContext.This())
+			}
+
 			for i, v := range innerArguments {
 				subContext.Set(argNames[i], EvalArgument(innerContext, v))
 			}

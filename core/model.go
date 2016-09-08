@@ -589,9 +589,9 @@ func (call *call) Run(context RunContext, additionalArguments []Argument) Value 
 			}
 
 			if inDictValue.Type() == TypeGoFunction {
-				context.Set("this", value)
+				context.SetThis(value)
 				result := call.addInfoWhenError(inDictValue.(Runnable).Run(context, useArguments))
-				context.Remove("this")
+				context.SetThis(Nothing)
 				return call.pipeResult(context, result)
 			}
 

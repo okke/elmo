@@ -404,6 +404,21 @@ func TestDictionaryFunctionsKnowDictionary(t *testing.T) {
 		})
 		sauce.same
 		this`, ExpectErrorValueAt(t, 10))
+
+	ParseTestAndRunBlock(t,
+		` soup: (func {
+				return (this.hot) # will fail, this is not defined
+		  })
+		  sauce: (dict {
+			hot: (func {
+				return "chipotle"
+			})
+			same: (func {
+				return (soup)
+			})
+		})
+		sauce.same`, ExpectErrorValueAt(t, 2))
+
 }
 
 func TestNewConstructsDictionary(t *testing.T) {

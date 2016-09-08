@@ -2,6 +2,7 @@ package elmo
 
 type runContext struct {
 	properties map[string]Value
+	this       Value
 	modules    map[string]Module
 	parent     RunContext
 	stopped    bool
@@ -13,6 +14,8 @@ type RunContext interface {
 	Set(key string, value Value)
 	Remove(key string)
 	SetNamed(value NamedValue)
+	SetThis(this Value)
+	This() Value
 	Get(key string) (Value, bool)
 	CreateSubContext() RunContext
 	Parent() RunContext
@@ -33,6 +36,14 @@ func (runContext *runContext) Remove(key string) {
 
 func (runContext *runContext) SetNamed(value NamedValue) {
 	runContext.Set(value.Name(), value)
+}
+
+func (runContext *runContext) This() Value {
+	return runContext.this
+}
+
+func (runContext *runContext) SetThis(this Value) {
+	runContext.this = this
 }
 
 func (runContext *runContext) RegisterModule(module Module) {
@@ -92,5 +103,5 @@ func (runContext *runContext) isStopped() bool {
 // NewRunContext constructs a new run context
 //
 func NewRunContext(parent RunContext) RunContext {
-	return &runContext{parent: parent, properties: make(map[string]Value), modules: make(map[string]Module)}
+	return &runContext{parent: parent, properties: make(map[string]Value), this: Nothing, modules: make(map[string]Module)}
 }
