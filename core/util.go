@@ -89,6 +89,12 @@ func ParseAndTest(t *testing.T, s string, testfunc func(*node32)) {
 // ParseAndRun will parse given script and execute test function on its result
 //
 func ParseAndRun(context RunContext, s string) Value {
+	return ParseAndRunWithFile(context, s, "stdin")
+}
+
+// ParseAndRunWithFile will parse given script and execute test function on its result
+//
+func ParseAndRunWithFile(context RunContext, s string, fileName string) Value {
 	grammar := &ElmoGrammar{Buffer: s}
 
 	grammar.Init()
@@ -96,7 +102,7 @@ func ParseAndRun(context RunContext, s string) Value {
 	if err := grammar.Parse(); err != nil {
 		panic(fmt.Sprintf("could not parse: %v", err))
 	} else {
-		block := Ast2Block(grammar.AST(), NewScriptMetaData("", s))
+		block := Ast2Block(grammar.AST(), NewScriptMetaData(fileName, s))
 		return block.Run(context, NoArguments)
 	}
 
