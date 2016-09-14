@@ -62,6 +62,14 @@ var True = NewBooleanLiteral(true)
 //
 var False = NewBooleanLiteral(false)
 
+// Zero is 0
+//
+var Zero = NewIntegerLiteral(0)
+
+// One is 1
+//
+var One = NewIntegerLiteral(1)
+
 type identifier struct {
 	value string
 }
@@ -114,6 +122,12 @@ type Value interface {
 	String() string
 	Type() Type
 	Internal() interface{}
+}
+
+// IncrementableValue represents a value that can be incremented
+//
+type IncrementableValue interface {
+	Increment(Value) Value
 }
 
 // ErrorValue represents an Error
@@ -202,6 +216,13 @@ func (integerLiteral *integerLiteral) Type() Type {
 
 func (integerLiteral *integerLiteral) Internal() interface{} {
 	return integerLiteral.value
+}
+
+func (integerLiteral *integerLiteral) Increment(value Value) Value {
+	if value.Type() == TypeInteger {
+		return NewIntegerLiteral(integerLiteral.value + value.Internal().(int64))
+	}
+	return NewErrorValue("can not ad non integer to integer")
 }
 
 func (booleanLiteral *booleanLiteral) Print() string {
@@ -679,6 +700,9 @@ func (block *block) Run(context RunContext, arguments []Argument) Value {
 		result = call.Run(context, []Argument{})
 		if context.isStopped() {
 			break
+		}
+		if result.Type() == TypeError {
+			return result
 		}
 	}
 

@@ -30,6 +30,50 @@ func TestSetValueIntoGlobalContextAndGetIt(t *testing.T) {
 
 }
 
+func TestIncrementValue(t *testing.T) {
+
+	ParseTestAndRunBlock(t,
+		`incr chipotle
+		 chipotle`, ExpectValue(t, NewIntegerLiteral(1)))
+
+	ParseTestAndRunBlock(t,
+		`incr chipotle
+		 incr chipotle
+		 chipotle`, ExpectValue(t, NewIntegerLiteral(2)))
+
+	ParseTestAndRunBlock(t,
+		`set chipotle 3
+	 	 set galapeno (incr chipotle)
+	 	 galapeno`, ExpectValue(t, NewIntegerLiteral(4)))
+
+	// increments returns incremented value but also changes
+	// incremented variable
+	//
+	ParseTestAndRunBlock(t,
+		`set chipotle 3
+	 	 set galapeno (incr chipotle)
+	 	 chipotle`, ExpectValue(t, NewIntegerLiteral(4)))
+
+	ParseTestAndRunBlock(t,
+		`incr chipotle 3
+ 		 chipotle`, ExpectValue(t, NewIntegerLiteral(3)))
+
+	ParseTestAndRunBlock(t,
+		`incr chipotle 3
+ 		 incr chipotle 5
+ 		 chipotle`, ExpectValue(t, NewIntegerLiteral(8)))
+
+	ParseTestAndRunBlock(t,
+		`incr chipotle "galapeno"
+  	 chipotle`, ExpectErrorValueAt(t, 1))
+
+	ParseTestAndRunBlock(t,
+		`incr chipotle 3
+  	 incr chipotle "galapeno"
+  	 chipotle`, ExpectErrorValueAt(t, 2))
+
+}
+
 func TestDynamicSetValueIntoGlobalContext(t *testing.T) {
 
 	ParseTestAndRunBlock(t,

@@ -26,6 +26,7 @@ func NewGlobalContext() RunContext {
 	context.SetNamed(set())
 	context.SetNamed(get())
 	context.SetNamed(once())
+	context.SetNamed(incr())
 	context.SetNamed(_return())
 	context.SetNamed(_func())
 	context.SetNamed(_if())
@@ -121,6 +122,49 @@ func once() NamedValue {
 		}
 
 		return existing
+	})
+}
+
+func incr() NamedValue {
+	return NewGoFunction("incr", func(context RunContext, arguments []Argument) Value {
+
+		argLen := len(arguments)
+
+		if argLen < 1 || argLen > 2 {
+			return NewErrorValue("invalid call to incr, expected 1 or 2 parameters: usage incr <identifier> <value>?")
+		}
+
+		name := EvalArgument2String(context, arguments[0])
+		var incrValue = One
+		if argLen == 2 {
+			incrValue = EvalArgument(context, arguments[1])
+		}
+
+		currentValue, found := context.Get(name)
+		if found {
+
+			if currentValue.Type() == TypeInteger {
+				newValue := currentValue.(IncrementableValue).Increment(incrValue)
+				context.Set(name, newValue)
+				return newValue
+			}
+
+			return NewErrorValue("invalid call to incr, expected integer variable")
+
+		}
+
+		incrType := reflect.TypeOf(incrValue)
+		shouldBe := reflect.TypeOf((*IncrementableValue)(nil)).Elem()
+
+		if !incrType.Implements(shouldBe) {
+			return NewErrorValue("invalid call to incr, expected a value that can be incremented")
+		}
+
+		// not found so set it to initial value
+		//
+		context.Set(name, incrValue)
+		return incrValue
+
 	})
 }
 
