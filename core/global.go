@@ -134,18 +134,30 @@ func incr() NamedValue {
 			return NewErrorValue("invalid call to incr, expected 1 or 2 parameters: usage incr <identifier> <value>?")
 		}
 
-		name := EvalArgument2String(context, arguments[0])
+		arg0 := EvalArgument(context, arguments[0])
+
 		var incrValue = One
 		if argLen == 2 {
 			incrValue = EvalArgument(context, arguments[1])
 		}
 
-		currentValue, found := context.Get(name)
+		var currentValue Value
+		var found bool
+		if arg0.Type() == TypeIdentifier {
+			currentValue, found = context.Get(arg0.String())
+		} else {
+			currentValue, found = arg0, true
+		}
+
 		if found {
 
 			if currentValue.Type() == TypeInteger {
 				newValue := currentValue.(IncrementableValue).Increment(incrValue)
-				context.Set(name, newValue)
+
+				if arg0.Type() == TypeIdentifier {
+					context.Set(arg0.String(), newValue)
+				}
+
 				return newValue
 			}
 
@@ -162,7 +174,7 @@ func incr() NamedValue {
 
 		// not found so set it to initial value
 		//
-		context.Set(name, incrValue)
+		context.Set(arg0.String(), incrValue)
 		return incrValue
 
 	})

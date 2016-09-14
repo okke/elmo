@@ -72,6 +72,10 @@ func TestIncrementValue(t *testing.T) {
   	 incr chipotle "galapeno"
   	 chipotle`, ExpectErrorValueAt(t, 2))
 
+	ParseTestAndRunBlock(t,
+		`set chipotle (incr 3)
+	 	 set chipotle (incr 3)
+	 	 chipotle`, ExpectValue(t, NewIntegerLiteral(4)))
 }
 
 func TestDynamicSetValueIntoGlobalContext(t *testing.T) {
