@@ -248,6 +248,25 @@ func TestListAccess(t *testing.T) {
 	ParseTestAndRunBlock(t,
 		`set ll (list 1 2 3)
 		 ll 0 -2`, ExpectValue(t, NewListValue([]Value{NewIntegerLiteral(1), NewIntegerLiteral(2)})))
+
+	// when last index is smaller than first, reverse result
+	//
+	ParseTestAndRunBlock(t,
+		`set ll (list 1 2 3 4 5 6)
+	 	ll 3 1`, ExpectValue(t, NewListValue([]Value{NewIntegerLiteral(4), NewIntegerLiteral(3), NewIntegerLiteral(2)})))
+
+	// when last index is smaller than first, reverse result
+	//
+	ParseTestAndRunBlock(t,
+		`set ll (list 1 2 3 4 5 6)
+	 	 ll -3 1`, ExpectValue(t, NewListValue([]Value{NewIntegerLiteral(4), NewIntegerLiteral(3), NewIntegerLiteral(2)})))
+
+	// reverse list using index accessors
+	//
+	ParseTestAndRunBlock(t,
+		`set ll (list 1 2 3)
+ 	 	 ll -1 0`, ExpectValue(t, NewListValue([]Value{NewIntegerLiteral(3), NewIntegerLiteral(2), NewIntegerLiteral(1)})))
+
 	// index must be integer
 	//
 	ParseTestAndRunBlock(t,

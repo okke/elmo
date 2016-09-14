@@ -281,6 +281,19 @@ func (listValue *listValue) Run(context RunContext, arguments []Argument) Value 
 			return err
 		}
 
+		if i1 > i2 {
+			// return a reversed version of the sub list
+
+			list := listValue.values[i2 : i1+1]
+			length := len(list)
+			reversed := make([]Value, length)
+			copy(reversed, list)
+			for i, j := 0, length-1; i < j; i, j = i+1, j-1 {
+				reversed[i], reversed[j] = reversed[j], reversed[i]
+			}
+			return NewListValue(reversed)
+		}
+
 		return NewListValue(listValue.values[i1 : i2+1])
 
 	}
