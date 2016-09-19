@@ -296,7 +296,17 @@ func list() NamedValue {
 	return NewGoFunction("list", func(context RunContext, arguments []Argument) Value {
 		values := make([]Value, len(arguments))
 		for i, arg := range arguments {
-			values[i] = EvalArgument(context, arg)
+			var value = EvalArgument(context, arg)
+
+			// accept blocks within a list
+			// as dictionaries in order to support
+			// [{...} {...} ...] constructions
+			//
+			if value.Type() == TypeBlock {
+				value = dictWithBlock(context, value.(Block))
+			}
+
+			values[i] = value
 		}
 		return NewListValue(values)
 	})

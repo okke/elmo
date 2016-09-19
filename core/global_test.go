@@ -398,6 +398,21 @@ func TestDictionaryWithBlock(t *testing.T) {
    	 d b`, ExpectValue(t, NewStringLiteral("galapeno")))
 }
 
+func TestDictionaryInListAsBlock(t *testing.T) {
+
+	ParseTestAndRunBlock(t,
+		`set l [
+  		{
+     		a:3
+	  	}
+    	{
+      	a:4
+     	}
+     ]
+		 first: (l 0)
+		 first a`, ExpectValue(t, NewIntegerLiteral(3)))
+}
+
 func TestMixin(t *testing.T) {
 	ParseTestAndRunBlock(t,
 		`mixin (dict a 2 b 4)
