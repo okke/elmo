@@ -115,8 +115,9 @@ func each() elmo.NamedValue {
 
 		var result elmo.Value
 
+		subContext := context.CreateSubContext()
 		for index, value := range list.Internal().([]elmo.Value) {
-			result = runInBlock(context, valueName, value, indexName, index, block)
+			result = runInBlock(subContext, valueName, value, indexName, index, block)
 		}
 
 		return result
@@ -137,8 +138,9 @@ func _map() elmo.NamedValue {
 		l := len(oldValues)
 		newValues := make([]elmo.Value, l, l)
 
+		subContext := context.CreateSubContext()
 		for index, value := range oldValues {
-			newValues[index] = runInBlock(context, valueName, value, indexName, index, block)
+			newValues[index] = runInBlock(subContext, valueName, value, indexName, index, block)
 		}
 
 		return elmo.NewListValue(newValues)
@@ -157,8 +159,9 @@ func filter() elmo.NamedValue {
 		oldValues := list.Internal().([]elmo.Value)
 		newValues := []elmo.Value{}
 
+		subContext := context.CreateSubContext()
 		for index, value := range oldValues {
-			if runInBlock(context, valueName, value, indexName, index, block) == elmo.True {
+			if runInBlock(subContext, valueName, value, indexName, index, block) == elmo.True {
 				newValues = append(newValues, value)
 			}
 		}

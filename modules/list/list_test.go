@@ -72,6 +72,23 @@ func TestEach(t *testing.T) {
 				result: (el.append result (i) (v))
 		  }`, elmo.ExpectValue(t, elmo.ParseAndRun(elmo.NewGlobalContext(), "list 0 a 1 b 2 c")))
 
+	elmo.ParseTestAndRunBlockWithinContext(t, listContext(),
+		`el: (load "el")
+			l: (list 1 2 3)
+			touch: 99
+			el.each l v {
+				touch: (v)
+			}
+			touch`, elmo.ExpectValue(t, elmo.NewIntegerLiteral(99)))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, listContext(),
+		`el: (load "el")
+			l: (list 1 2 3)
+			stepsize: 99
+			el.each l v {
+				incr index (stepsize)
+			}`, elmo.ExpectValue(t, elmo.NewIntegerLiteral(297)))
+
 }
 
 func TestMap(t *testing.T) {
@@ -82,6 +99,13 @@ func TestMap(t *testing.T) {
     el.map l v {
 		  true
 	  }`, elmo.ExpectValue(t, elmo.ParseAndRun(elmo.NewGlobalContext(), "list (true) (true) (true)")))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, listContext(),
+		`el: (load "el")
+		l: (list a b c)
+		el.map l v {
+			incr index
+		}`, elmo.ExpectValue(t, elmo.ParseAndRun(elmo.NewGlobalContext(), "list 1 2 3")))
 
 	elmo.ParseTestAndRunBlockWithinContext(t, listContext(),
 		`el: (load "el")
