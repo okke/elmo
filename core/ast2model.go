@@ -18,6 +18,16 @@ func Ast2Block(node *node32, meta ScriptMetaData) Block {
 	return NewBlock(meta, node.begin, node.end, calls)
 }
 
+// Ast2List converts an ast node to a call to list
+//
+func Ast2List(node *node32, meta ScriptMetaData) Call {
+	var arguments = []Argument{}
+	for _, argument := range Children(node) {
+		arguments = append(arguments, Ast2Argument(argument.up, meta))
+	}
+	return NewCall(meta, node.begin, node.end, []string{"list"}, arguments, nil)
+}
+
 // Ast2Call converts an ast node to a function call
 //
 func Ast2Call(node *node32, meta ScriptMetaData) Call {
@@ -95,6 +105,8 @@ func Ast2Argument(node *node32, meta ScriptMetaData) Argument {
 		return NewArgument(meta, node.begin, node.end, Ast2Call(node, meta))
 	case ruleBlock:
 		return NewArgument(meta, node.begin, node.end, Ast2Block(node, meta))
+	case ruleList:
+		return NewArgument(meta, node.begin, node.end, Ast2List(node, meta))
 	default:
 		panic(fmt.Sprintf("invalid argument node: %v", node))
 	}

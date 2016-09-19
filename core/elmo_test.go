@@ -147,6 +147,17 @@ func TestParseCommandWithEmptyBlockAsParameter(t *testing.T) {
 	ParseAndTest(t, "chipotle {}", expectOneLineContaining(t, IdentifierFollowedByOneArgument(t, ruleBlock)))
 }
 
+func TestParseCommandWithListAsParameter(t *testing.T) {
+	ParseAndTest(t, "chipotle [1 2 3]", expectOneLineContaining(t, IdentifierFollowedByOneArgument(t, ruleList)))
+	ParseAndTest(t, `chipotle [1
+		2 3]`, expectOneLineContaining(t, IdentifierFollowedByOneArgument(t, ruleList)))
+	ParseAndTest(t, `chipotle [
+		1
+		2
+		3
+	]`, expectOneLineContaining(t, IdentifierFollowedByOneArgument(t, ruleList)))
+}
+
 func TestParseCommandWithMultipleParameters(t *testing.T) {
 	ParseAndTest(t, "chipotle sauce in_a_jar", expectOneLineContaining(t, IdentifierFollowedByMultipleArguments(t,
 		[]pegRule{ruleIdentifier, ruleIdentifier})))

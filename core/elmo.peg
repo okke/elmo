@@ -19,10 +19,13 @@ Argument <- Identifier
            / DecimalConstant
            / FunctionCall
            / Block
+           / List
 
 FunctionCall <- LPAR Line RPAR
 
 Block <- LCURLY (NewLine)* (Line)* RCURLY
+
+List <- LBRACKET (NewLine)* (Argument/NewLine)* RBRACKET
 
 
 # SPACING
@@ -77,6 +80,8 @@ LPAR      <-  '('         Spacing
 RPAR      <-  ')'         Spacing
 LCURLY    <-  '{'         Spacing
 RCURLY    <-  '}'         Spacing
+LBRACKET  <-  '['         Spacing
+RBRACKET  <-  ']'         Spacing
 PCOMMA    <-  ';'         Spacing
 COLON     <-  ':'         Spacing
 DOT       <-  '.'         Spacing

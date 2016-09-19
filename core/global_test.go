@@ -261,7 +261,11 @@ func TestListCreation(t *testing.T) {
 func TestListAccess(t *testing.T) {
 
 	ParseTestAndRunBlock(t,
-		`set ll (list 1 2 3)
+		`set ll [
+		  1
+		  2
+		  3
+		 ]
 		 ll 0`, ExpectValue(t, NewIntegerLiteral(1)))
 
 	ParseTestAndRunBlock(t,
