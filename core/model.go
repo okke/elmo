@@ -136,6 +136,12 @@ type IncrementableValue interface {
 	Increment(Value) Value
 }
 
+// ComparableValue represents a value that can be compared
+//
+type ComparableValue interface {
+	Compare(Value) (int, ErrorValue)
+}
+
 // ErrorValue represents an Error
 //
 type ErrorValue interface {
@@ -231,6 +237,22 @@ func (integerLiteral *integerLiteral) Increment(value Value) Value {
 	return NewErrorValue("can not ad non integer to integer")
 }
 
+func (integerLiteral *integerLiteral) Compare(value Value) (int, ErrorValue) {
+	if value.Type() == TypeInteger {
+		v1 := integerLiteral.value
+		v2 := value.Internal().(int64)
+
+		if v1 > v2 {
+			return 1, nil
+		}
+		if v2 > v1 {
+			return -1, nil
+		}
+		return 0, nil
+	}
+	return 0, NewErrorValue("can not compare integer with non integer")
+}
+
 func (floatLiteral *floatLiteral) Print() string {
 	return fmt.Sprintf("%f", floatLiteral.value)
 }
@@ -255,6 +277,22 @@ func (floatLiteral *floatLiteral) Increment(value Value) Value {
 		return NewFloatLiteral(floatLiteral.value + float64(value.Internal().(int64)))
 	}
 	return NewErrorValue("can not ad non float to float")
+}
+
+func (floatLiteral *floatLiteral) Compare(value Value) (int, ErrorValue) {
+	if value.Type() == TypeFloat {
+		v1 := floatLiteral.value
+		v2 := value.Internal().(float64)
+
+		if v1 > v2 {
+			return 1, nil
+		}
+		if v2 > v1 {
+			return -1, nil
+		}
+		return 0, nil
+	}
+	return 0, NewErrorValue("can not compare float with non float")
 }
 
 func (booleanLiteral *booleanLiteral) Print() string {

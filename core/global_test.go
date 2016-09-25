@@ -592,6 +592,62 @@ func TestNe(t *testing.T) {
 	ParseTestAndRunBlock(t, `ne 1 1 1`, ExpectErrorValueAt(t, 1))
 }
 
+func TestGt(t *testing.T) {
+	ParseTestAndRunBlock(t, `gt 1 1`, ExpectValue(t, False))
+	ParseTestAndRunBlock(t, `gt 2 1`, ExpectValue(t, True))
+	ParseTestAndRunBlock(t, `gt 0 1`, ExpectValue(t, False))
+	ParseTestAndRunBlock(t, `gt -1 0`, ExpectValue(t, False))
+	ParseTestAndRunBlock(t, `gt -1 -2`, ExpectValue(t, True))
+
+	ParseTestAndRunBlock(t, `gt 1.0 1.0`, ExpectValue(t, False))
+	ParseTestAndRunBlock(t, `gt 2.0 1.0`, ExpectValue(t, True))
+	ParseTestAndRunBlock(t, `gt 0.0 1.0`, ExpectValue(t, False))
+	ParseTestAndRunBlock(t, `gt -1.0 0.0`, ExpectValue(t, False))
+	ParseTestAndRunBlock(t, `gt -1.0 -2.0`, ExpectValue(t, True))
+}
+
+func TestGte(t *testing.T) {
+	ParseTestAndRunBlock(t, `gte 1 1`, ExpectValue(t, True))
+	ParseTestAndRunBlock(t, `gte 2 1`, ExpectValue(t, True))
+	ParseTestAndRunBlock(t, `gte 0 1`, ExpectValue(t, False))
+	ParseTestAndRunBlock(t, `gte -1 0`, ExpectValue(t, False))
+	ParseTestAndRunBlock(t, `gte -1 -2`, ExpectValue(t, True))
+
+	ParseTestAndRunBlock(t, `gte 1.0 1.0`, ExpectValue(t, True))
+	ParseTestAndRunBlock(t, `gte 2.0 1.0`, ExpectValue(t, True))
+	ParseTestAndRunBlock(t, `gte 0.0 1.0`, ExpectValue(t, False))
+	ParseTestAndRunBlock(t, `gte -1.0 0.0`, ExpectValue(t, False))
+	ParseTestAndRunBlock(t, `gte -1.0 -2.0`, ExpectValue(t, True))
+}
+
+func TestLt(t *testing.T) {
+	ParseTestAndRunBlock(t, `lt 1 1`, ExpectValue(t, False))
+	ParseTestAndRunBlock(t, `lt 2 1`, ExpectValue(t, False))
+	ParseTestAndRunBlock(t, `lt 0 1`, ExpectValue(t, True))
+	ParseTestAndRunBlock(t, `lt -1 0`, ExpectValue(t, True))
+	ParseTestAndRunBlock(t, `lt -1 -2`, ExpectValue(t, False))
+
+	ParseTestAndRunBlock(t, `lt 1.0 1.0`, ExpectValue(t, False))
+	ParseTestAndRunBlock(t, `lt 2.0 1.0`, ExpectValue(t, False))
+	ParseTestAndRunBlock(t, `lt 0.0 1.0`, ExpectValue(t, True))
+	ParseTestAndRunBlock(t, `lt -1.0 0.0`, ExpectValue(t, True))
+	ParseTestAndRunBlock(t, `lt -1.0 -2.0`, ExpectValue(t, False))
+}
+
+func TestLte(t *testing.T) {
+	ParseTestAndRunBlock(t, `lte 1 1`, ExpectValue(t, True))
+	ParseTestAndRunBlock(t, `lte 2 1`, ExpectValue(t, False))
+	ParseTestAndRunBlock(t, `lte 0 1`, ExpectValue(t, True))
+	ParseTestAndRunBlock(t, `lte -1 0`, ExpectValue(t, True))
+	ParseTestAndRunBlock(t, `lte -1 -2`, ExpectValue(t, False))
+
+	ParseTestAndRunBlock(t, `lte 1.0 1.0`, ExpectValue(t, True))
+	ParseTestAndRunBlock(t, `lte 2.0 1.0`, ExpectValue(t, False))
+	ParseTestAndRunBlock(t, `lte 0.0 1.0`, ExpectValue(t, True))
+	ParseTestAndRunBlock(t, `lte -1.0 0.0`, ExpectValue(t, True))
+	ParseTestAndRunBlock(t, `lte -1.0 -2.0`, ExpectValue(t, False))
+}
+
 func TestAnd(t *testing.T) {
 	ParseTestAndRunBlock(t, `and (true) (true)`, ExpectValue(t, True))
 	ParseTestAndRunBlock(t, `and (true) (true) (true)`, ExpectValue(t, True))

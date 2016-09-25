@@ -38,6 +38,10 @@ func NewGlobalContext() RunContext {
 	context.SetNamed(puts())
 	context.SetNamed(eq())
 	context.SetNamed(ne())
+	context.SetNamed(gt())
+	context.SetNamed(gte())
+	context.SetNamed(lt())
+	context.SetNamed(lte())
 	context.SetNamed(and())
 	context.SetNamed(or())
 	context.SetNamed(not())
@@ -492,7 +496,7 @@ func ne() NamedValue {
 		argLen := len(arguments)
 
 		if argLen != 2 {
-			return NewErrorValue("invalid call to eq, expected exactly 2 parameters: usage eq <value> <value>")
+			return NewErrorValue("invalid call to ne, expected exactly 2 parameters: usage ne <value> <value>")
 		}
 
 		if reflect.DeepEqual(EvalArgument(context, arguments[0]), EvalArgument(context, arguments[1])) {
@@ -500,6 +504,105 @@ func ne() NamedValue {
 		}
 
 		return True
+
+	})
+}
+
+func compareValues(v1 Value, v2 Value, f func(int) Value) Value {
+	if v1.Type() == TypeInteger || v1.Type() == TypeFloat {
+		result, err := v1.(ComparableValue).Compare(v2)
+		if err != nil {
+			return err
+		}
+		return f(result)
+	}
+	return NewErrorValue(fmt.Sprintf("invalid comparison, expected number values instead of %v and %v", v1, v2))
+}
+
+func gt() NamedValue {
+	return NewGoFunction("gt", func(context RunContext, arguments []Argument) Value {
+
+		argLen := len(arguments)
+
+		if argLen != 2 {
+			return NewErrorValue("invalid call to gt, expected exactly 2 parameters: usage gt <number> <number>")
+		}
+
+		v1 := EvalArgument(context, arguments[0])
+		v2 := EvalArgument(context, arguments[1])
+
+		return compareValues(v1, v2, func(result int) Value {
+			if result == 1 {
+				return True
+			}
+			return False
+		})
+
+	})
+}
+
+func gte() NamedValue {
+	return NewGoFunction("gte", func(context RunContext, arguments []Argument) Value {
+
+		argLen := len(arguments)
+
+		if argLen != 2 {
+			return NewErrorValue("invalid call to gte, expected exactly 2 parameters: usage gte <number> <number>")
+		}
+
+		v1 := EvalArgument(context, arguments[0])
+		v2 := EvalArgument(context, arguments[1])
+
+		return compareValues(v1, v2, func(result int) Value {
+			if result == -1 {
+				return False
+			}
+			return True
+		})
+
+	})
+}
+
+func lt() NamedValue {
+	return NewGoFunction("lt", func(context RunContext, arguments []Argument) Value {
+
+		argLen := len(arguments)
+
+		if argLen != 2 {
+			return NewErrorValue("invalid call to lt, expected exactly 2 parameters: usage lt <number> <number>")
+		}
+
+		v1 := EvalArgument(context, arguments[0])
+		v2 := EvalArgument(context, arguments[1])
+
+		return compareValues(v1, v2, func(result int) Value {
+			if result == -1 {
+				return True
+			}
+			return False
+		})
+
+	})
+}
+
+func lte() NamedValue {
+	return NewGoFunction("lte", func(context RunContext, arguments []Argument) Value {
+
+		argLen := len(arguments)
+
+		if argLen != 2 {
+			return NewErrorValue("invalid call to lte, expected exactly 2 parameters: usage lte <number> <number>")
+		}
+
+		v1 := EvalArgument(context, arguments[0])
+		v2 := EvalArgument(context, arguments[1])
+
+		return compareValues(v1, v2, func(result int) Value {
+			if result == 1 {
+				return False
+			}
+			return True
+		})
 
 	})
 }
