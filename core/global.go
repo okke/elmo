@@ -32,6 +32,7 @@ func NewGlobalContext() RunContext {
 	context.SetNamed(_if())
 	context.SetNamed(while())
 	context.SetNamed(until())
+	context.SetNamed(do())
 	context.SetNamed(list())
 	context.SetNamed(dict())
 	context.SetNamed(mixin())
@@ -301,10 +302,10 @@ func _if() NamedValue {
 func createLoop(name string, stopCondition bool) func(context RunContext, arguments []Argument) Value {
 	return func(context RunContext, arguments []Argument) Value {
 
-		// if expects at least 2 arguments
+		// if expects exactly 2 arguments
 		//
 		arglen := len(arguments)
-		if arglen < 2 {
+		if arglen != 2 {
 			return NewErrorValue(fmt.Sprintf("invalid call to %s, expect 2 parameters: usage %s <condition> {...}", name, name))
 		}
 
@@ -330,6 +331,45 @@ func while() NamedValue {
 
 func until() NamedValue {
 	return NewGoFunction("until", createLoop("until", false))
+}
+
+func do() NamedValue {
+	return NewGoFunction("do", func(context RunContext, arguments []Argument) Value {
+		// do { } [while|until] condition
+
+		// if expects exactly 2 arguments
+		//
+		arglen := len(arguments)
+		if arglen != 3 {
+			return NewErrorValue("invalid call to do, expect 3 parameters: usage do {...} while|until <condition>")
+		}
+
+		result := EvalArgumentWithBlock(context, arguments[0])
+
+		// while => true, until => false
+		//
+		var stopCondition bool
+		switch arguments[1].Value().String() {
+		case "while":
+			stopCondition = true
+		case "until":
+			stopCondition = false
+		default:
+			return NewErrorValue("expected while or until condition in do loop")
+		}
+
+		for {
+			condition := EvalArgument(context, arguments[2])
+			if condition.Type() != TypeBoolean {
+				return NewErrorValue("condition does not evaluate to a boolean value")
+			}
+			if !(condition.(*booleanLiteral).value == stopCondition) {
+				return result
+			}
+			result = EvalArgumentWithBlock(context, arguments[0])
+		}
+
+	})
 }
 
 func list() NamedValue {

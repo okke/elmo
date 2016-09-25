@@ -258,6 +258,16 @@ func TestWhile(t *testing.T) {
 		 pepper`, ExpectValue(t, NewIntegerLiteral(11)))
 }
 
+func TestDoWhile(t *testing.T) {
+
+	ParseTestAndRunBlock(t,
+		`pepper: 1
+     do {
+       incr pepper
+     } while (lte (pepper) 5)
+		 pepper`, ExpectValue(t, NewIntegerLiteral(6)))
+}
+
 func TestUntil(t *testing.T) {
 
 	ParseTestAndRunBlock(t,
@@ -266,6 +276,16 @@ func TestUntil(t *testing.T) {
        incr pepper
      }
 		 pepper`, ExpectValue(t, NewIntegerLiteral(10)))
+}
+
+func TestDoUntil(t *testing.T) {
+
+	ParseTestAndRunBlock(t,
+		`pepper: 1
+     do {
+       incr pepper
+     } until (eq (pepper) 5)
+		 pepper`, ExpectValue(t, NewIntegerLiteral(5)))
 }
 
 func TestListCreation(t *testing.T) {
