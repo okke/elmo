@@ -16,7 +16,7 @@ Shortcut <- COLON / DOT
 
 Argument <- Identifier
            / StringLiteral
-           / DecimalConstant
+           / Number
            / FunctionCall
            / Block
            / List
@@ -69,7 +69,7 @@ Escape <- '\\' ['\"?\\abfnrtv]
 # NUMBERS
 #
 
-DecimalConstant <- ('-')? [0-9][0-9]* Spacing
+Number <- ('-')? [0-9][0-9]* ('.' [0-9][0-9]*)? Spacing
 
 
 #

@@ -27,6 +27,8 @@ const (
 	TypeString
 	// TypeInteger represents a type for an integer value
 	TypeInteger
+	// TypeFloat represents a type for a floating point value
+	TypeFloat
 	// TypeBoolean represents a type for a boolean value
 	TypeBoolean
 	// TypeList represents a type for an array value
@@ -80,6 +82,10 @@ type stringLiteral struct {
 
 type integerLiteral struct {
 	value int64
+}
+
+type floatLiteral struct {
+	value float64
 }
 
 type booleanLiteral struct {
@@ -223,6 +229,32 @@ func (integerLiteral *integerLiteral) Increment(value Value) Value {
 		return NewIntegerLiteral(integerLiteral.value + value.Internal().(int64))
 	}
 	return NewErrorValue("can not ad non integer to integer")
+}
+
+func (floatLiteral *floatLiteral) Print() string {
+	return fmt.Sprintf("%f", floatLiteral.value)
+}
+
+func (floatLiteral *floatLiteral) String() string {
+	return fmt.Sprintf("%f", floatLiteral.value)
+}
+
+func (floatLiteral *floatLiteral) Type() Type {
+	return TypeFloat
+}
+
+func (floatLiteral *floatLiteral) Internal() interface{} {
+	return floatLiteral.value
+}
+
+func (floatLiteral *floatLiteral) Increment(value Value) Value {
+	if value.Type() == TypeFloat {
+		return NewFloatLiteral(floatLiteral.value + value.Internal().(float64))
+	}
+	if value.Type() == TypeInteger {
+		return NewFloatLiteral(floatLiteral.value + float64(value.Internal().(int64)))
+	}
+	return NewErrorValue("can not ad non float to float")
 }
 
 func (booleanLiteral *booleanLiteral) Print() string {
@@ -452,6 +484,12 @@ func NewStringLiteral(value string) Value {
 //
 func NewIntegerLiteral(value int64) Value {
 	return &integerLiteral{value: value}
+}
+
+// NewFloatLiteral creates a new integer value
+//
+func NewFloatLiteral(value float64) Value {
+	return &floatLiteral{value: value}
 }
 
 // NewBooleanLiteral creates a new integer value

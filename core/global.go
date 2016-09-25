@@ -151,7 +151,7 @@ func incr() NamedValue {
 
 		if found {
 
-			if currentValue.Type() == TypeInteger {
+			if currentValue.Type() == TypeInteger || currentValue.Type() == TypeFloat {
 				newValue := currentValue.(IncrementableValue).Increment(incrValue)
 
 				if arg0.Type() == TypeIdentifier {

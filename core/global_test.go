@@ -46,6 +46,11 @@ func TestIncrementValue(t *testing.T) {
 	 	 set galapeno (incr chipotle)
 	 	 galapeno`, ExpectValue(t, NewIntegerLiteral(4)))
 
+	ParseTestAndRunBlock(t,
+		`set chipotle 3.0
+ 	 	 set galapeno (incr chipotle)
+ 	 	 galapeno`, ExpectValue(t, NewFloatLiteral(4.0)))
+
 	// increments returns incremented value but also changes
 	// incremented variable
 	//

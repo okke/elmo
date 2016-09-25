@@ -94,11 +94,22 @@ func Ast2Argument(node *node32, meta ScriptMetaData) Argument {
 	case ruleStringLiteral:
 		txt := Text(node, meta.Content())
 		return NewArgument(meta, node.begin, node.end, NewStringLiteral(txt[1:len(txt)-1]))
-	case ruleDecimalConstant:
+	case ruleNumber:
 		txt := Text(node, meta.Content())
+
+		// first try if its an integer value
+		//
 		i, err := strconv.ParseInt(txt, 10, 64)
 		if err != nil {
-			panic(err)
+
+			// then try parsing as float
+			//
+			f, err := strconv.ParseFloat(txt, 64)
+			if err != nil {
+				panic(err)
+			}
+
+			return NewArgument(meta, node.begin, node.end, NewFloatLiteral(f))
 		}
 		return NewArgument(meta, node.begin, node.end, NewIntegerLiteral(i))
 	case ruleFunctionCall:

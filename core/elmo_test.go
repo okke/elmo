@@ -134,9 +134,9 @@ func TestParseCommandWithStringAsParameter(t *testing.T) {
 }
 
 func TestParseCommandWithIntegerAsParameter(t *testing.T) {
-	ParseAndTest(t, "chipotle 138", expectOneLineContaining(t, IdentifierFollowedByOneArgument(t, ruleDecimalConstant)))
-	ParseAndTest(t, "chipotle 0", expectOneLineContaining(t, IdentifierFollowedByOneArgument(t, ruleDecimalConstant)))
-	ParseAndTest(t, "chipotle -6", expectOneLineContaining(t, IdentifierFollowedByOneArgument(t, ruleDecimalConstant)))
+	ParseAndTest(t, "chipotle 138", expectOneLineContaining(t, IdentifierFollowedByOneArgument(t, ruleNumber)))
+	ParseAndTest(t, "chipotle 0", expectOneLineContaining(t, IdentifierFollowedByOneArgument(t, ruleNumber)))
+	ParseAndTest(t, "chipotle -6", expectOneLineContaining(t, IdentifierFollowedByOneArgument(t, ruleNumber)))
 }
 
 func TestParseCommandWithFunctionCallAsParameter(t *testing.T) {
@@ -163,7 +163,7 @@ func TestParseCommandWithMultipleParameters(t *testing.T) {
 		[]pegRule{ruleIdentifier, ruleIdentifier})))
 
 	ParseAndTest(t, "chipotle sauce 128", expectOneLineContaining(t, IdentifierFollowedByMultipleArguments(t,
-		[]pegRule{ruleIdentifier, ruleDecimalConstant})))
+		[]pegRule{ruleIdentifier, ruleNumber})))
 
 	ParseAndTest(t, "chipotle (sauce 128) (jar 136)", expectOneLineContaining(t, IdentifierFollowedByMultipleArguments(t,
 		[]pegRule{ruleFunctionCall, ruleFunctionCall})))
