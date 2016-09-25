@@ -248,6 +248,26 @@ func TestIfWithElse(t *testing.T) {
 
 }
 
+func TestWhile(t *testing.T) {
+
+	ParseTestAndRunBlock(t,
+		`pepper: 1
+     while (lte (pepper) 10) {
+       incr pepper
+     }
+		 pepper`, ExpectValue(t, NewIntegerLiteral(11)))
+}
+
+func TestUntil(t *testing.T) {
+
+	ParseTestAndRunBlock(t,
+		`pepper: 1
+     until (eq (pepper) 10) {
+       incr pepper
+     }
+		 pepper`, ExpectValue(t, NewIntegerLiteral(10)))
+}
+
 func TestListCreation(t *testing.T) {
 
 	ParseTestAndRunBlock(t,

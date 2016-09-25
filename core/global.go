@@ -30,6 +30,8 @@ func NewGlobalContext() RunContext {
 	context.SetNamed(_return())
 	context.SetNamed(_func())
 	context.SetNamed(_if())
+	context.SetNamed(while())
+	context.SetNamed(until())
 	context.SetNamed(list())
 	context.SetNamed(dict())
 	context.SetNamed(mixin())
@@ -294,6 +296,40 @@ func _if() NamedValue {
 		}
 
 	})
+}
+
+func createLoop(name string, stopCondition bool) func(context RunContext, arguments []Argument) Value {
+	return func(context RunContext, arguments []Argument) Value {
+
+		// if expects at least 2 arguments
+		//
+		arglen := len(arguments)
+		if arglen < 2 {
+			return NewErrorValue(fmt.Sprintf("invalid call to %s, expect 2 parameters: usage %s <condition> {...}", name, name))
+		}
+
+		var result Value
+		result = Nothing
+		for {
+			condition := EvalArgument(context, arguments[0])
+			if condition.Type() != TypeBoolean {
+				return NewErrorValue("condition does not evaluate to a boolean value")
+			}
+			if condition.(*booleanLiteral).value == stopCondition {
+				result = EvalArgumentWithBlock(context, arguments[1])
+			} else {
+				return result
+			}
+		}
+	}
+}
+
+func while() NamedValue {
+	return NewGoFunction("while", createLoop("while", true))
+}
+
+func until() NamedValue {
+	return NewGoFunction("until", createLoop("until", false))
 }
 
 func list() NamedValue {
