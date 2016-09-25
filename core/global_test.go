@@ -604,6 +604,11 @@ func TestGt(t *testing.T) {
 	ParseTestAndRunBlock(t, `gt 0.0 1.0`, ExpectValue(t, False))
 	ParseTestAndRunBlock(t, `gt -1.0 0.0`, ExpectValue(t, False))
 	ParseTestAndRunBlock(t, `gt -1.0 -2.0`, ExpectValue(t, True))
+
+	ParseTestAndRunBlock(t, `gt 1 1.0`, ExpectErrorValueAt(t, 1))
+	ParseTestAndRunBlock(t, `gt 1.0 1`, ExpectErrorValueAt(t, 1))
+	ParseTestAndRunBlock(t, `gt "chipotle" "galapeno"`, ExpectErrorValueAt(t, 1))
+
 }
 
 func TestGte(t *testing.T) {
