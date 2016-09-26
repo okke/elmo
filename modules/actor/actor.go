@@ -55,8 +55,10 @@ func _new() elmo.NamedValue {
 func send() elmo.NamedValue {
 	return elmo.NewGoFunction("send", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
 
-		if len(arguments) != 2 {
-			return elmo.NewErrorValue("invalid call to actor.send, expected two parameters. usage: send <actor> <message>")
+		argLen := len(arguments)
+
+		if argLen < 1 || argLen > 2 {
+			return elmo.NewErrorValue("invalid call to actor.send, expected one or two parameters. usage: send <actor> <message>?")
 		}
 
 		// first argument of a list function can be an identifier with the name of the list
@@ -68,10 +70,14 @@ func send() elmo.NamedValue {
 		}
 
 		actualActor := resolvedActor.Internal().(Actor)
-		message := elmo.EvalArgument(context, arguments[1])
-		actualActor.Send(message)
+		if argLen == 1 {
+			actualActor.Send(elmo.True)
+		} else {
+			message := elmo.EvalArgument(context, arguments[1])
+			actualActor.Send(message)
+		}
 
-		return message
+		return elmo.Nothing
 	})
 }
 
