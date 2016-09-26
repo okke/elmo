@@ -3,6 +3,7 @@ package elmo
 import (
 	"fmt"
 	"reflect"
+	"time"
 )
 
 // NoArguments is an array of arguments with no arguments
@@ -39,6 +40,7 @@ func NewGlobalContext() RunContext {
 	context.SetNamed(new())
 	context.SetNamed(load())
 	context.SetNamed(puts())
+	context.SetNamed(sleep())
 	context.SetNamed(eq())
 	context.SetNamed(ne())
 	context.SetNamed(gt())
@@ -520,10 +522,35 @@ func new() NamedValue {
 
 func puts() NamedValue {
 	return NewGoFunction("puts", func(context RunContext, arguments []Argument) Value {
-		for _, arg := range arguments {
-			fmt.Printf("%s", EvalArgument(context, arg))
+		if len(arguments) == 1 {
+			fmt.Printf("%s\n", EvalArgument(context, arguments[0]))
+		} else {
+			line := ""
+			for _, arg := range arguments {
+				line = fmt.Sprintf("%s%s", line, EvalArgument(context, arg))
+			}
+			fmt.Printf("%s\n", line)
 		}
-		fmt.Printf("\n")
+
+		return Nothing
+	})
+}
+
+func sleep() NamedValue {
+	return NewGoFunction("sleep", func(context RunContext, arguments []Argument) Value {
+
+		if len(arguments) != 1 {
+			return NewErrorValue("invalid call to sleep, expected 1 parameter: usage sleep <milliseconds>")
+		}
+		duration := EvalArgument(context, arguments[0])
+
+		if duration.Type() != TypeInteger {
+			return NewErrorValue("invalid call to sleep, expected integer parameter: usage sleep <milliseconds>")
+		}
+
+		sleepTime := time.Duration(duration.(*integerLiteral).value)
+		time.Sleep(time.Millisecond * sleepTime)
+
 		return Nothing
 	})
 }

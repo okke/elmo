@@ -37,6 +37,8 @@ const (
 	TypeDictionary
 	// TypeError represents a type for an error value
 	TypeError
+	// TypeInternal represents an internal type
+	TypeInternal
 	// TypeBlock represents a type for a code block
 	TypeBlock
 	// TypeCall represent the type for a function call
@@ -103,6 +105,10 @@ type returnValue struct {
 type dictValue struct {
 	parent *dictValue
 	values map[string]Value
+}
+
+type internalValue struct {
+	value interface{}
 }
 
 type errorValue struct {
@@ -456,6 +462,22 @@ func (errorValue *errorValue) String() string {
 	return fmt.Sprintf("error: %s", errorValue.msg)
 }
 
+func (internalValue *internalValue) Print() string {
+	return fmt.Sprintf("%v", internalValue.value)
+}
+
+func (internalValue *internalValue) String() string {
+	return fmt.Sprintf("%v", internalValue.value)
+}
+
+func (internalValue *internalValue) Type() Type {
+	return TypeInternal
+}
+
+func (internalValue *internalValue) Internal() interface{} {
+	return internalValue.value
+}
+
 func (errorValue *errorValue) Type() Type {
 	return TypeError
 }
@@ -546,6 +568,12 @@ func NewListValue(values []Value) Value {
 //
 func NewDictionaryValue(parent *dictValue, values map[string]Value) Value {
 	return &dictValue{parent: parent, values: values}
+}
+
+// NewInternalValue wraps a go value into an elmo value
+//
+func NewInternalValue(value interface{}) Value {
+	return &internalValue{value: value}
 }
 
 // NewErrorValue creates a new Error

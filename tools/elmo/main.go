@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/okke/elmo/core"
+	"github.com/okke/elmo/modules/actor"
 	"github.com/okke/elmo/modules/dictionary"
 	"github.com/okke/elmo/modules/list"
 )
@@ -18,6 +19,7 @@ func createMainContext() elmo.RunContext {
 
 	context.RegisterModule(el.Module)
 	context.RegisterModule(ed.Module)
+	context.RegisterModule(elmoActor.Module)
 
 	// provide an exit function so the repl can be stoppped
 	// (TODO 12sep2016: should it be here?)
@@ -65,7 +67,7 @@ func read(source string) {
 	}
 	result := elmo.ParseAndRunWithFile(mainContext, string(b), source)
 	if result.Type() == elmo.TypeError {
-		fmt.Printf("erro: %v\n", result)
+		fmt.Printf("error: %v\n", result)
 	}
 }
 
