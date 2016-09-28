@@ -574,7 +574,7 @@ func (p *ElmoGrammar) Init() {
 			position, tokenIndex, depth = position0, tokenIndex0, depth0
 			return false
 		},
-		/* 1 Line <- <(NewLine? Identifier Shortcut? Argument* (PipedOutput / EndOfLine)?)> */
+		/* 1 Line <- <(NewLine? Argument Shortcut? Argument* (PipedOutput / EndOfLine)?)> */
 		func() bool {
 			position4, tokenIndex4, depth4 := position, tokenIndex, depth
 			{
@@ -590,7 +590,7 @@ func (p *ElmoGrammar) Init() {
 					position, tokenIndex, depth = position6, tokenIndex6, depth6
 				}
 			l7:
-				if !_rules[ruleIdentifier]() {
+				if !_rules[ruleArgument]() {
 					goto l4
 				}
 				{

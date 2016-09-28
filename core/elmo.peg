@@ -6,7 +6,7 @@ type ElmoGrammar Peg {
 
 Script <- Spacing (Line)* EOT
 
-Line <- (NewLine)? Identifier (Shortcut)? (Argument)* (PipedOutput / EndOfLine)?
+Line <- (NewLine)? Argument (Shortcut)? (Argument)* (PipedOutput / EndOfLine)?
 
 PipedOutput <- PIPE Line
 

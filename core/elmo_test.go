@@ -31,7 +31,7 @@ func expectTwoLines(t *testing.T) func(*node32) {
 
 func IdentifierFollowedByShortcutAndArgument(t *testing.T, cut pegRule, ruleType pegRule) func([]*node32) {
 	return func(children []*node32) {
-		if !TestEqRules(PegRules(children), []pegRule{ruleIdentifier, ruleShortcut, ruleArgument}) {
+		if !TestEqRules(PegRules(children), []pegRule{ruleArgument, ruleShortcut, ruleArgument}) {
 			t.Errorf("expected <identifier> <argument>, found %v", children)
 		}
 		if children[1].up.pegRule != cut {
@@ -45,7 +45,7 @@ func IdentifierFollowedByShortcutAndArgument(t *testing.T, cut pegRule, ruleType
 
 func IdentifierFollowedByOneArgument(t *testing.T, ruleType pegRule) func([]*node32) {
 	return func(children []*node32) {
-		if !TestEqRules(PegRules(children), []pegRule{ruleIdentifier, ruleArgument}) {
+		if !TestEqRules(PegRules(children), []pegRule{ruleArgument, ruleArgument}) {
 			t.Errorf("expected <identifier> <argument>, found %v", children)
 		}
 		if children[1].up.pegRule != ruleType {
@@ -57,7 +57,7 @@ func IdentifierFollowedByOneArgument(t *testing.T, ruleType pegRule) func([]*nod
 func IdentifierFollowedByMultipleArguments(t *testing.T, ruleTypes []pegRule) func([]*node32) {
 	return func(children []*node32) {
 
-		if children[0].pegRule != ruleIdentifier {
+		if children[0].pegRule != ruleArgument {
 			t.Errorf("expected to start with an identifier, found %v", children[0])
 		}
 
@@ -70,7 +70,7 @@ func IdentifierFollowedByMultipleArguments(t *testing.T, ruleTypes []pegRule) fu
 func IdentifierFollowedByBlock(t *testing.T, blockTestFunc func(*node32)) func([]*node32) {
 	return func(children []*node32) {
 
-		if !TestEqRules(PegRules(children), []pegRule{ruleIdentifier, ruleArgument}) {
+		if !TestEqRules(PegRules(children), []pegRule{ruleArgument, ruleArgument}) {
 			t.Errorf("expected <identifier> <block>, found %v", children)
 		}
 
@@ -80,7 +80,7 @@ func IdentifierFollowedByBlock(t *testing.T, blockTestFunc func(*node32)) func([
 
 func IdentifierFollowedbyPipe(t *testing.T) func([]*node32) {
 	return func(children []*node32) {
-		if !TestEqRules(PegRules(children), []pegRule{ruleIdentifier, rulePipedOutput}) {
+		if !TestEqRules(PegRules(children), []pegRule{ruleArgument, rulePipedOutput}) {
 			t.Errorf("expected <identifier> <pipe>, found %v", children)
 		}
 		if !TestEqRules(PegRules(Children(children[1])), []pegRule{rulePIPE, ruleLine}) {

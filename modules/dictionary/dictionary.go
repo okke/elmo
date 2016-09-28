@@ -1,4 +1,4 @@
-package ed
+package dict
 
 import (
 	"sort"

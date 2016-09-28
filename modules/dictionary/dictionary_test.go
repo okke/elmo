@@ -1,4 +1,4 @@
-package ed
+package dict
 
 import (
 	"testing"
@@ -24,7 +24,7 @@ func TestKeys(t *testing.T) {
         heat: 3
       }
     }
-		ed.keys peppers`, elmo.ExpectValue(t, elmo.ParseAndRun(elmo.NewGlobalContext(), "list chipotle galapeno")))
+		ed.keys peppers`, elmo.ExpectValue(t, elmo.ParseAndRun(elmo.NewGlobalContext(), "[chipotle galapeno]")))
 
 	// keys function should return keys in sorted order
 	//
@@ -38,6 +38,6 @@ func TestKeys(t *testing.T) {
         heat: 2
       }
     }
-    ed.keys peppers`, elmo.ExpectValue(t, elmo.ParseAndRun(elmo.NewGlobalContext(), "list chipotle galapeno")))
+    ed.keys peppers`, elmo.ExpectValue(t, elmo.ParseAndRun(elmo.NewGlobalContext(), "[chipotle galapeno]")))
 
 }

@@ -1,4 +1,4 @@
-package elmoActor
+package actor
 
 import "github.com/okke/elmo/core"
 

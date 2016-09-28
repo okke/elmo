@@ -20,12 +20,12 @@ func Ast2Block(node *node32, meta ScriptMetaData) Block {
 
 // Ast2List converts an ast node to a call to list
 //
-func Ast2List(node *node32, meta ScriptMetaData) Call {
+func Ast2List(node *node32, meta ScriptMetaData, pipe Call) Call {
 	var arguments = []Argument{}
 	for _, argument := range Children(node) {
 		arguments = append(arguments, Ast2Argument(argument.up, meta))
 	}
-	return NewCall(meta, node.begin, node.end, []string{"list"}, arguments, nil)
+	return NewCallWithFunction(meta, node.begin, node.end, ListConstructor, arguments, pipe)
 }
 
 // Ast2Call converts an ast node to a function call
@@ -50,10 +50,28 @@ func Ast2Call(node *node32, meta ScriptMetaData) Call {
 		pipeTo = Ast2Call(Children(children[childrenLength-1])[1], meta)
 	}
 
+	// when call does not start with an identifier, it can be a literal without arguments
+	//
+	if (childrenLength == 1 && pipeTo == nil) || (childrenLength == 2 && pipeTo != nil) {
+		if children[0].up.pegRule == ruleList {
+			return Ast2List(children[0].up, meta, pipeTo)
+		}
+
+		if children[0].up.pegRule != ruleIdentifier {
+			panic(fmt.Sprintf("invalid call %v: %v", children[0].up, Text(children[0].up, meta.Content())))
+		}
+	}
+
 	for idx, argument := range children {
 		if idx == 0 {
-			functionArg = argument
-			functionName = append(functionName, Text(argument, meta.Content()))
+			functionArg = argument.up
+			if functionArg.pegRule == ruleIdentifier {
+				functionName = append(functionName, Text(argument, meta.Content()))
+			} else {
+				fmt.Printf("INVALID %v", children)
+				panic(fmt.Sprintf("found non identifier %v: %v", argument, Text(argument, meta.Content())))
+			}
+
 		} else {
 			if argument.pegRule == ruleArgument {
 				if appendToFunctionName {
@@ -117,7 +135,7 @@ func Ast2Argument(node *node32, meta ScriptMetaData) Argument {
 	case ruleBlock:
 		return NewArgument(meta, node.begin, node.end, Ast2Block(node, meta))
 	case ruleList:
-		return NewArgument(meta, node.begin, node.end, Ast2List(node, meta))
+		return NewArgument(meta, node.begin, node.end, Ast2List(node, meta, nil))
 	default:
 		panic(fmt.Sprintf("invalid argument node: %v", node))
 	}

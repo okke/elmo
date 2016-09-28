@@ -645,6 +645,7 @@ func NewArgument(meta ScriptMetaData, begin uint32, end uint32, value Value) Arg
 type call struct {
 	astNode
 	functionName []string
+	function     GoFunction
 	arguments    []Argument
 	pipe         Call
 }
@@ -695,6 +696,10 @@ func (call *call) pipeResult(context RunContext, value Value) Value {
 }
 
 func (call *call) Run(context RunContext, additionalArguments []Argument) Value {
+
+	if call.function != nil {
+		return call.pipeResult(context, call.addInfoWhenError(call.function(context, call.Arguments())))
+	}
 
 	value, found := context.Get(call.functionName[0])
 
@@ -772,6 +777,12 @@ func (call *call) Internal() interface{} {
 //
 func NewCall(meta ScriptMetaData, begin uint32, end uint32, name []string, arguments []Argument, pipeTo Call) Call {
 	return &call{astNode: astNode{meta: meta, begin: begin, end: end}, functionName: name, arguments: arguments, pipe: pipeTo}
+}
+
+// NewCallWithFunction constructs a call that does not need to be resolved
+//
+func NewCallWithFunction(meta ScriptMetaData, begin uint32, end uint32, function GoFunction, arguments []Argument, pipeTo Call) Call {
+	return &call{astNode: astNode{meta: meta, begin: begin, end: end}, function: function, arguments: arguments, pipe: pipeTo}
 }
 
 //

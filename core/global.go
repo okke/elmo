@@ -34,7 +34,6 @@ func NewGlobalContext() RunContext {
 	context.SetNamed(while())
 	context.SetNamed(until())
 	context.SetNamed(do())
-	context.SetNamed(list())
 	context.SetNamed(dict())
 	context.SetNamed(mixin())
 	context.SetNamed(new())
@@ -52,6 +51,26 @@ func NewGlobalContext() RunContext {
 	context.SetNamed(not())
 
 	return context
+}
+
+// ListConstructor constructs a list at runtime
+//
+func ListConstructor(context RunContext, arguments []Argument) Value {
+	values := make([]Value, len(arguments))
+	for i, arg := range arguments {
+		var value = EvalArgument(context, arg)
+
+		// accept blocks within a list
+		// as dictionaries in order to support
+		// [{...} {...} ...] constructions
+		//
+		if value.Type() == TypeBlock {
+			value = dictWithBlock(context, value.(Block))
+		}
+
+		values[i] = value
+	}
+	return NewListValue(values)
 }
 
 func set() NamedValue {
@@ -371,26 +390,6 @@ func do() NamedValue {
 			result = EvalArgumentWithBlock(context, arguments[0])
 		}
 
-	})
-}
-
-func list() NamedValue {
-	return NewGoFunction("list", func(context RunContext, arguments []Argument) Value {
-		values := make([]Value, len(arguments))
-		for i, arg := range arguments {
-			var value = EvalArgument(context, arg)
-
-			// accept blocks within a list
-			// as dictionaries in order to support
-			// [{...} {...} ...] constructions
-			//
-			if value.Type() == TypeBlock {
-				value = dictWithBlock(context, value.(Block))
-			}
-
-			values[i] = value
-		}
-		return NewListValue(values)
 	})
 }
 

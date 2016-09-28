@@ -166,7 +166,7 @@ func TestPipeToUserDefinedFunction(t *testing.T) {
        return (pepper)
      })
 		 set injar (func pepper {
-			 return (list (pepper))
+			 return [(pepper)]
 		 })
      fsauce "chipotle" | injar`, ExpectValue(t, NewListValue([]Value{NewStringLiteral("chipotle")})))
 }
@@ -291,16 +291,16 @@ func TestDoUntil(t *testing.T) {
 func TestListCreation(t *testing.T) {
 
 	ParseTestAndRunBlock(t,
-		`list 3`, ExpectValue(t, NewListValue([]Value{NewIntegerLiteral(3)})))
+		`[3]`, ExpectValue(t, NewListValue([]Value{NewIntegerLiteral(3)})))
 
 	ParseTestAndRunBlock(t,
-		`list 3 4`, ExpectValue(t, NewListValue([]Value{NewIntegerLiteral(3), NewIntegerLiteral(4)})))
+		`[3 4]`, ExpectValue(t, NewListValue([]Value{NewIntegerLiteral(3), NewIntegerLiteral(4)})))
 
 	ParseTestAndRunBlock(t,
-		`list 3 "chipotle"`, ExpectValue(t, NewListValue([]Value{NewIntegerLiteral(3), NewStringLiteral("chipotle")})))
+		`[3 "chipotle"]`, ExpectValue(t, NewListValue([]Value{NewIntegerLiteral(3), NewStringLiteral("chipotle")})))
 
 	ParseTestAndRunBlock(t,
-		`list (list 3 "chipotle")`, ExpectValue(t, NewListValue([]Value{NewListValue([]Value{NewIntegerLiteral(3), NewStringLiteral("chipotle")})})))
+		`[[3 "chipotle"]]`, ExpectValue(t, NewListValue([]Value{NewListValue([]Value{NewIntegerLiteral(3), NewStringLiteral("chipotle")})})))
 }
 
 func TestListAccess(t *testing.T) {
@@ -314,72 +314,72 @@ func TestListAccess(t *testing.T) {
 		 ll 0`, ExpectValue(t, NewIntegerLiteral(1)))
 
 	ParseTestAndRunBlock(t,
-		`set ll (list 1 2 3)
+		`set ll [1 2 3]
 	 	 ll 1`, ExpectValue(t, NewIntegerLiteral(2)))
 
 	ParseTestAndRunBlock(t,
-		`set ll (list 1 2 3)
+		`set ll [1 2 3]
 		 set idx 2
  	 	 ll (idx)`, ExpectValue(t, NewIntegerLiteral(3)))
 
 	ParseTestAndRunBlock(t,
-		`set ll (list 1 2 3)
+		`set ll [1 2 3]
  	 	 ll -1`, ExpectValue(t, NewIntegerLiteral(3)))
 
 	ParseTestAndRunBlock(t,
-		`set ll (list 1 2 3)
+		`set ll [1 2 3]
 	 	 ll -2`, ExpectValue(t, NewIntegerLiteral(2)))
 
 	ParseTestAndRunBlock(t,
-		`set ll (list 1 2 3 4 5 6)
+		`set ll [1 2 3 4 5 6]
  	 	 ll 0 2`, ExpectValue(t, NewListValue([]Value{NewIntegerLiteral(1), NewIntegerLiteral(2), NewIntegerLiteral(3)})))
 
 	ParseTestAndRunBlock(t,
-		`set ll (list 1 2 3)
+		`set ll [1 2 3]
 		 ll 0 -1`, ExpectValue(t, NewListValue([]Value{NewIntegerLiteral(1), NewIntegerLiteral(2), NewIntegerLiteral(3)})))
 
 	ParseTestAndRunBlock(t,
-		`set ll (list 1 2 3 4 5 6)
+		`set ll [1 2 3 4 5 6]
 		 ll 3 -1`, ExpectValue(t, NewListValue([]Value{NewIntegerLiteral(4), NewIntegerLiteral(5), NewIntegerLiteral(6)})))
 
 	ParseTestAndRunBlock(t,
-		`set ll (list 1 2 3)
+		`set ll [1 2 3]
 		 ll 0 -2`, ExpectValue(t, NewListValue([]Value{NewIntegerLiteral(1), NewIntegerLiteral(2)})))
 
 	// when last index is smaller than first, reverse result
 	//
 	ParseTestAndRunBlock(t,
-		`set ll (list 1 2 3 4 5 6)
+		`set ll [1 2 3 4 5 6]
 	 	ll 3 1`, ExpectValue(t, NewListValue([]Value{NewIntegerLiteral(4), NewIntegerLiteral(3), NewIntegerLiteral(2)})))
 
 	// when last index is smaller than first, reverse result
 	//
 	ParseTestAndRunBlock(t,
-		`set ll (list 1 2 3 4 5 6)
+		`set ll [1 2 3 4 5 6]
 	 	 ll -3 1`, ExpectValue(t, NewListValue([]Value{NewIntegerLiteral(4), NewIntegerLiteral(3), NewIntegerLiteral(2)})))
 
 	// reverse list using index accessors
 	//
 	ParseTestAndRunBlock(t,
-		`set ll (list 1 2 3)
+		`set ll [1 2 3]
  	 	 ll -1 0`, ExpectValue(t, NewListValue([]Value{NewIntegerLiteral(3), NewIntegerLiteral(2), NewIntegerLiteral(1)})))
 
 	// index must be integer
 	//
 	ParseTestAndRunBlock(t,
-		`set ll (list 1 2 3)
+		`set ll [1 2 3]
  		 ll "chipotle"`, ExpectErrorValueAt(t, 2))
 
 	// index out of bounds
 	//
 	ParseTestAndRunBlock(t,
-		`set ll (list 1 2 3)
+		`set ll [1 2 3]
   	 ll 3`, ExpectErrorValueAt(t, 2))
 
 	// index out of bounds
 	//
 	ParseTestAndRunBlock(t,
-		`set ll (list 1 2 3)
+		`set ll [1 2 3]
    	 ll -4`, ExpectErrorValueAt(t, 2))
 }
 
@@ -390,7 +390,7 @@ func TestDictionary(t *testing.T) {
 		 d 1`, ExpectValue(t, NewIntegerLiteral(2)))
 
 	ParseTestAndRunBlock(t,
-		`set d (dict (list 1 2 3 4))
+		`set d (dict [1 2 3 4])
  		 d 1`, ExpectValue(t, NewIntegerLiteral(2)))
 
 	ParseTestAndRunBlock(t,
@@ -398,7 +398,7 @@ func TestDictionary(t *testing.T) {
  		 d 3`, ExpectValue(t, NewIntegerLiteral(4)))
 
 	ParseTestAndRunBlock(t,
-		`set d (dict (list 1 2 3 4))
+		`set d (dict [1 2 3 4])
   		 d 3`, ExpectValue(t, NewIntegerLiteral(4)))
 
 	ParseTestAndRunBlock(t,
@@ -414,7 +414,7 @@ func TestDictionary(t *testing.T) {
 	 	 d b`, ExpectValue(t, NewIntegerLiteral(4)))
 
 	ParseTestAndRunBlock(t,
-		`set l (list a 2 b 4)
+		`set l [a 2 b 4]
 		 set d (dict (l))
  	 	 d b`, ExpectValue(t, NewIntegerLiteral(4)))
 }
@@ -500,7 +500,7 @@ func TestDictionaryAccessShortcut(t *testing.T) {
 	// Access shortcut can be on dictionaries only
 	//
 	ParseTestAndRunBlock(t,
-		`io: (list 1 2 3)
+		`io: [1 2 3]
 		io.read`, ExpectErrorValueAt(t, 2))
 }
 
@@ -611,9 +611,9 @@ func TestEq(t *testing.T) {
 	ParseTestAndRunBlock(t, `eq 1 0`, ExpectValue(t, False))
 	ParseTestAndRunBlock(t, `eq 1 "1"`, ExpectValue(t, False))
 	ParseTestAndRunBlock(t, `eq "1" "1"`, ExpectValue(t, True))
-	ParseTestAndRunBlock(t, `eq "1" (list 1)`, ExpectValue(t, False))
-	ParseTestAndRunBlock(t, `eq (list 1) (list 1)`, ExpectValue(t, True))
-	ParseTestAndRunBlock(t, `eq (list 1) (list 0)`, ExpectValue(t, False))
+	ParseTestAndRunBlock(t, `eq "1" [1]`, ExpectValue(t, False))
+	ParseTestAndRunBlock(t, `eq [1] [1]`, ExpectValue(t, True))
+	ParseTestAndRunBlock(t, `eq [1] [0]`, ExpectValue(t, False))
 	ParseTestAndRunBlock(t, `eq`, ExpectErrorValueAt(t, 1))
 	ParseTestAndRunBlock(t, `eq 1`, ExpectErrorValueAt(t, 1))
 	ParseTestAndRunBlock(t, `eq 1 1 1`, ExpectErrorValueAt(t, 1))
@@ -624,9 +624,9 @@ func TestNe(t *testing.T) {
 	ParseTestAndRunBlock(t, `ne 1 0`, ExpectValue(t, True))
 	ParseTestAndRunBlock(t, `ne 1 "1"`, ExpectValue(t, True))
 	ParseTestAndRunBlock(t, `ne "1" "1"`, ExpectValue(t, False))
-	ParseTestAndRunBlock(t, `ne "1" (list 1)`, ExpectValue(t, True))
-	ParseTestAndRunBlock(t, `ne (list 1) (list 1)`, ExpectValue(t, False))
-	ParseTestAndRunBlock(t, `ne (list 1) (list 0)`, ExpectValue(t, True))
+	ParseTestAndRunBlock(t, `ne "1" [1]`, ExpectValue(t, True))
+	ParseTestAndRunBlock(t, `ne [1] [1]`, ExpectValue(t, False))
+	ParseTestAndRunBlock(t, `ne [1] [0]`, ExpectValue(t, True))
 	ParseTestAndRunBlock(t, `ne`, ExpectErrorValueAt(t, 1))
 	ParseTestAndRunBlock(t, `ne 1`, ExpectErrorValueAt(t, 1))
 	ParseTestAndRunBlock(t, `ne 1 1 1`, ExpectErrorValueAt(t, 1))
@@ -722,24 +722,3 @@ func TestNot(t *testing.T) {
 	ParseTestAndRunBlock(t, `not true`, ExpectErrorValueAt(t, 1))
 	ParseTestAndRunBlock(t, `not 1`, ExpectErrorValueAt(t, 1))
 }
-
-/*
-func TestPuts(t *testing.T) {
-
-	ParseTestAndRunBlock(t,
-		`puts 3`, ExpectNothing(t))
-
-	ParseTestAndRunBlock(t,
-		`puts "3 4 5"`, ExpectNothing(t))
-
-	ParseTestAndRunBlock(t,
-		`puts 3 4 5`, ExpectNothing(t))
-
-	ParseTestAndRunBlock(t,
-		`puts (list 3 4 5)`, ExpectNothing(t))
-
-	ParseTestAndRunBlock(t,
-		`set ll (list 3 4 5)
-		 puts (ll 1)`, ExpectNothing(t))
-}
-*/

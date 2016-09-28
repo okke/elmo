@@ -17,9 +17,9 @@ import (
 func createMainContext() elmo.RunContext {
 	context := elmo.NewGlobalContext()
 
-	context.RegisterModule(el.Module)
-	context.RegisterModule(ed.Module)
-	context.RegisterModule(elmoActor.Module)
+	context.RegisterModule(list.Module)
+	context.RegisterModule(dict.Module)
+	context.RegisterModule(actor.Module)
 
 	// provide an exit function so the repl can be stoppped
 	// (TODO 12sep2016: should it be here?)

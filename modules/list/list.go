@@ -1,18 +1,25 @@
-package el
+package list
 
 import "github.com/okke/elmo/core"
 
 // ListModule contains functions that operate on lists
 //
-var Module = elmo.NewModule("el", initModule)
+var Module = elmo.NewModule("list", initModule)
 
 func initModule(context elmo.RunContext) elmo.Value {
 	return elmo.NewMappingForModule(context, []elmo.NamedValue{
+		_new(),
 		_append(),
 		prepend(),
 		each(),
 		_map(),
 		filter()})
+}
+
+func _new() elmo.NamedValue {
+	return elmo.NewGoFunction("new", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+		return elmo.ListConstructor(context, arguments)
+	})
 }
 
 func _append() elmo.NamedValue {

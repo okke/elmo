@@ -29,6 +29,7 @@ func Children(node *node32) []*node32 {
 	return Filter(result, func(child *node32) bool {
 		return (child.pegRule != ruleSpacing &&
 			child.pegRule != ruleNewLine &&
+			child.pegRule != ruleEndOfLine &&
 			child.pegRule != ruleLCURLY &&
 			child.pegRule != ruleRCURLY &&
 			child.pegRule != ruleLBRACKET &&
