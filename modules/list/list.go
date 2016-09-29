@@ -1,6 +1,10 @@
 package list
 
-import "github.com/okke/elmo/core"
+import (
+	"math"
+
+	"github.com/okke/elmo/core"
+)
 
 // ListModule contains functions that operate on lists
 //
@@ -25,11 +29,9 @@ func _new() elmo.NamedValue {
 func _append() elmo.NamedValue {
 	return elmo.NewGoFunction("append", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
 
-		argLen := len(arguments)
-
-		// first argument is a list, rest of the arguments are appended to the list
-		if argLen < 2 {
-			return elmo.NewErrorValue("invalid call to append, expect at least 2 parameters: usage append <list> <value> <value>?")
+		argLen, ok, err := elmo.CheckArguments(arguments, 2, math.MaxInt16, "append", "<list> <value>*")
+		if !ok {
+			return err
 		}
 
 		// first argument of a list function can be an identifier with the name of the list
@@ -37,7 +39,7 @@ func _append() elmo.NamedValue {
 		list := elmo.EvalArgumentOrSolveIdentifier(context, arguments[0])
 
 		if list.Type() != elmo.TypeList {
-			return elmo.NewErrorValue("invalid call to append, expect at list as first argument: usage append <list> <value> <value>?")
+			return elmo.NewErrorValue("invalid call to append, expect at list as first argument: usage append <list> <value>*")
 		}
 
 		internal := list.Internal().([]elmo.Value)
@@ -54,11 +56,9 @@ func _append() elmo.NamedValue {
 func prepend() elmo.NamedValue {
 	return elmo.NewGoFunction("prepend", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
 
-		argLen := len(arguments)
-
-		// first argument is a list, rest of the arguments are appended to the list
-		if argLen < 2 {
-			return elmo.NewErrorValue("invalid call to prepend, expect at least 2 parameters: usage prepend <list> <value> <value>?")
+		argLen, ok, err := elmo.CheckArguments(arguments, 2, math.MaxInt16, "prepend", "<list> <value>*")
+		if !ok {
+			return err
 		}
 
 		// first argument of a list function can be an identifier with the name of the list

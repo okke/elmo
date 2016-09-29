@@ -17,8 +17,10 @@ func initModule(context elmo.RunContext) elmo.Value {
 
 func keys() elmo.NamedValue {
 	return elmo.NewGoFunction("keys", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
-		if len(arguments) != 1 {
-			return elmo.NewErrorValue("invalid call to keys, expected exactly one parameter. usage: keys <dictionary>")
+
+		_, ok, err := elmo.CheckArguments(arguments, 1, 1, "keys", "<dictionary>")
+		if !ok {
+			return err
 		}
 
 		// first argument of a list function can be an identifier with the name of the list

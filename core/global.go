@@ -2,6 +2,7 @@ package elmo
 
 import (
 	"fmt"
+	"math"
 	"reflect"
 	"time"
 )
@@ -73,17 +74,28 @@ func ListConstructor(context RunContext, arguments []Argument) Value {
 	return NewListValue(values)
 }
 
+// CheckArguments checks number of arguments
+//
+func CheckArguments(arguments []Argument, min int, max int, fname string, usage string) (int, bool, ErrorValue) {
+	argLen := len(arguments)
+	if argLen < min || argLen > max {
+		return argLen, false, NewErrorValue(fmt.Sprintf("Invalid call to %s. Usage: %s %s", fname, fname, usage))
+	}
+	return argLen, true, nil
+}
+
 func set() NamedValue {
 	return NewGoFunction("set", func(context RunContext, arguments []Argument) Value {
 
-		argLen := len(arguments)
-
-		if len(arguments) < 2 {
-			return NewErrorValue("invalid call to set, expect at least 2 parameters: usage set <identifier> <value>")
+		argLen, ok, err := CheckArguments(arguments, 2, math.MaxInt16, "set", "<identifier>* value")
+		if !ok {
+			return err
 		}
 
 		var value = EvalArgument(context, arguments[argLen-1])
 
+		// value can evaluate to a multiple return so will result
+		// in multiple assignments
 		if value.Type() == TypeReturn {
 			returnedValues := value.(*returnValue).values
 			returnedLength := len(returnedValues)
@@ -94,10 +106,9 @@ func set() NamedValue {
 			}
 		} else {
 
-			// set expects exactly 2 arguments
-			//
-			if len(arguments) != 2 {
-				return NewErrorValue("invalid call to set, expected 2 parameters: usage set <identifier> <value>")
+			_, ok, err := CheckArguments(arguments, 2, 2, "set", "<identifier> value")
+			if !ok {
+				return err
 			}
 
 			// convert block to dictionary
@@ -116,10 +127,10 @@ func set() NamedValue {
 
 func get() NamedValue {
 	return NewGoFunction("get", func(context RunContext, arguments []Argument) Value {
-		// get expects exactly 1 argument
-		//
-		if len(arguments) != 1 {
-			return NewErrorValue("invalid call to get, expected 1 parameter: usage get <identifier>")
+
+		_, ok, err := CheckArguments(arguments, 1, 1, "get", "<identifier>")
+		if !ok {
+			return err
 		}
 
 		result, found := context.Get(EvalArgument2String(context, arguments[0]))
@@ -135,10 +146,9 @@ func get() NamedValue {
 func once() NamedValue {
 	return NewGoFunction("once", func(context RunContext, arguments []Argument) Value {
 
-		argLen := len(arguments)
-
-		if argLen != 2 {
-			return NewErrorValue("invalid call to setOnce: usage new <identifier> <value>")
+		_, ok, err := CheckArguments(arguments, 2, 2, "once", "once <identifier>")
+		if !ok {
+			return err
 		}
 
 		name := EvalArgument2String(context, arguments[0])
@@ -156,10 +166,9 @@ func once() NamedValue {
 func incr() NamedValue {
 	return NewGoFunction("incr", func(context RunContext, arguments []Argument) Value {
 
-		argLen := len(arguments)
-
-		if argLen < 1 || argLen > 2 {
-			return NewErrorValue("invalid call to incr, expected 1 or 2 parameters: usage incr <identifier> <value>?")
+		argLen, ok, err := CheckArguments(arguments, 1, 2, "incr", "<identifier> <value>?")
+		if !ok {
+			return err
 		}
 
 		arg0 := EvalArgument(context, arguments[0])
@@ -189,7 +198,7 @@ func incr() NamedValue {
 				return newValue
 			}
 
-			return NewErrorValue("invalid call to incr, expected integer variable")
+			return NewErrorValue("invalid call to incr, expected variable that can be incremented")
 
 		}
 
@@ -239,10 +248,9 @@ func _return() NamedValue {
 func _func() NamedValue {
 	return NewGoFunction("func", func(context RunContext, arguments []Argument) Value {
 
-		// get expects at least 1 argument
-		//
-		if len(arguments) < 1 {
-			return NewErrorValue("invalid call to func, expect at least 1 parameter: usage func <identifier>* {...}")
+		_, ok, err := CheckArguments(arguments, 1, math.MaxInt16, "func", "<identifier>* {...}")
+		if !ok {
+			return err
 		}
 
 		argNamesAsArgument := arguments[0 : len(arguments)-1]
@@ -285,11 +293,10 @@ func _func() NamedValue {
 
 func _if() NamedValue {
 	return NewGoFunction("if", func(context RunContext, arguments []Argument) Value {
-		// if expects at least 2 arguments
-		//
-		arglen := len(arguments)
-		if arglen < 2 {
-			return NewErrorValue("invalid call to if, expect at least 2 parameters: usage if <condition> {...}")
+
+		argLen, ok, err := CheckArguments(arguments, 2, math.MaxInt16, "if", "<condition> {...} (else {...})?")
+		if !ok {
+			return err
 		}
 
 		condition := EvalArgument(context, arguments[0])
@@ -303,7 +310,7 @@ func _if() NamedValue {
 
 		// condition not true, check else part
 		//
-		switch arglen {
+		switch argLen {
 		case 2:
 			return Nothing
 		case 3:
@@ -323,11 +330,9 @@ func _if() NamedValue {
 func createLoop(name string, stopCondition bool) func(context RunContext, arguments []Argument) Value {
 	return func(context RunContext, arguments []Argument) Value {
 
-		// if expects exactly 2 arguments
-		//
-		arglen := len(arguments)
-		if arglen != 2 {
-			return NewErrorValue(fmt.Sprintf("invalid call to %s, expect 2 parameters: usage %s <condition> {...}", name, name))
+		_, ok, err := CheckArguments(arguments, 2, 2, name, "<condition> {...}")
+		if !ok {
+			return err
 		}
 
 		var result Value
@@ -356,13 +361,10 @@ func until() NamedValue {
 
 func do() NamedValue {
 	return NewGoFunction("do", func(context RunContext, arguments []Argument) Value {
-		// do { } [while|until] condition
 
-		// if expects exactly 2 arguments
-		//
-		arglen := len(arguments)
-		if arglen != 3 {
-			return NewErrorValue("invalid call to do, expect 3 parameters: usage do {...} while|until <condition>")
+		_, ok, err := CheckArguments(arguments, 3, 3, "do", "{} while|until <condition>")
+		if !ok {
+			return err
 		}
 
 		result := EvalArgumentWithBlock(context, arguments[0])
@@ -406,9 +408,15 @@ func dictWithBlock(context RunContext, block Block) Value {
 
 func dict() NamedValue {
 	return NewGoFunction("dict", func(context RunContext, arguments []Argument) Value {
+
+		argLen, ok, err := CheckArguments(arguments, 0, math.MaxInt16, "dict", "<list> | <block> | <value>*")
+		if !ok {
+			return err
+		}
+
 		mapping := make(map[string]Value)
 
-		if len(arguments) == 1 {
+		if argLen == 1 {
 			evaluated := EvalArgument(context, arguments[0])
 			if evaluated.Type() == TypeBlock {
 				return dictWithBlock(context, evaluated.(Block))
@@ -436,7 +444,7 @@ func dict() NamedValue {
 
 		} else {
 
-			if (len(arguments) % 2) != 0 {
+			if (argLen % 2) != 0 {
 				return NewErrorValue("dict can not create a dictionary from an odd number of elements")
 			}
 
@@ -458,10 +466,9 @@ func dict() NamedValue {
 func mixin() NamedValue {
 	return NewGoFunction("mixin", func(context RunContext, arguments []Argument) Value {
 
-		arglen := len(arguments)
-
-		if arglen == 0 {
-			return NewErrorValue("mixin expects something to mix in")
+		argLen, ok, err := CheckArguments(arguments, 0, math.MaxInt16, "mixin", "<value>*")
+		if !ok {
+			return err
 		}
 
 		var dict Value
@@ -476,7 +483,7 @@ func mixin() NamedValue {
 			}
 		}
 
-		if arglen == 1 {
+		if argLen == 1 {
 			return dict
 		}
 
@@ -487,10 +494,10 @@ func mixin() NamedValue {
 
 func new() NamedValue {
 	return NewGoFunction("new", func(context RunContext, arguments []Argument) Value {
-		argLen := len(arguments)
 
-		if (argLen < 1) || (argLen > 2) {
-			return NewErrorValue("new expect exactly one parameter. usage: new <dictionary> <block>?")
+		argLen, ok, err := CheckArguments(arguments, 1, 2, "new", "<value>*")
+		if !ok {
+			return err
 		}
 
 		parent := EvalArgument(context, arguments[0])
@@ -538,9 +545,11 @@ func puts() NamedValue {
 func sleep() NamedValue {
 	return NewGoFunction("sleep", func(context RunContext, arguments []Argument) Value {
 
-		if len(arguments) != 1 {
-			return NewErrorValue("invalid call to sleep, expected 1 parameter: usage sleep <milliseconds>")
+		_, ok, err := CheckArguments(arguments, 1, 1, "sleep", "<number>")
+		if !ok {
+			return err
 		}
+
 		duration := EvalArgument(context, arguments[0])
 
 		if duration.Type() != TypeInteger {
@@ -557,8 +566,9 @@ func sleep() NamedValue {
 func load() NamedValue {
 	return NewGoFunction("load", func(context RunContext, arguments []Argument) Value {
 
-		if len(arguments) != 1 {
-			return NewErrorValue("invalid call to load, expected 1 parameter: usage load <package name>")
+		_, ok, err := CheckArguments(arguments, 1, 1, "load", "<package name>")
+		if !ok {
+			return err
 		}
 
 		name := EvalArgument2String(context, arguments[0])
@@ -577,10 +587,9 @@ func load() NamedValue {
 func eq() NamedValue {
 	return NewGoFunction("eq", func(context RunContext, arguments []Argument) Value {
 
-		argLen := len(arguments)
-
-		if argLen != 2 {
-			return NewErrorValue("invalid call to eq, expected exactly 2 parameters: usage eq <value> <value>")
+		_, ok, err := CheckArguments(arguments, 2, 2, "eq", "<value> <value>")
+		if !ok {
+			return err
 		}
 
 		if reflect.DeepEqual(EvalArgument(context, arguments[0]), EvalArgument(context, arguments[1])) {
@@ -595,12 +604,10 @@ func eq() NamedValue {
 func ne() NamedValue {
 	return NewGoFunction("ne", func(context RunContext, arguments []Argument) Value {
 
-		argLen := len(arguments)
-
-		if argLen != 2 {
-			return NewErrorValue("invalid call to ne, expected exactly 2 parameters: usage ne <value> <value>")
+		_, ok, err := CheckArguments(arguments, 2, 2, "ne", "<value> <value>")
+		if !ok {
+			return err
 		}
-
 		if reflect.DeepEqual(EvalArgument(context, arguments[0]), EvalArgument(context, arguments[1])) {
 			return False
 		}
@@ -624,10 +631,9 @@ func compareValues(v1 Value, v2 Value, f func(int) Value) Value {
 func gt() NamedValue {
 	return NewGoFunction("gt", func(context RunContext, arguments []Argument) Value {
 
-		argLen := len(arguments)
-
-		if argLen != 2 {
-			return NewErrorValue("invalid call to gt, expected exactly 2 parameters: usage gt <number> <number>")
+		_, ok, err := CheckArguments(arguments, 2, 2, "gt", "<value> <value>")
+		if !ok {
+			return err
 		}
 
 		v1 := EvalArgument(context, arguments[0])
@@ -646,10 +652,9 @@ func gt() NamedValue {
 func gte() NamedValue {
 	return NewGoFunction("gte", func(context RunContext, arguments []Argument) Value {
 
-		argLen := len(arguments)
-
-		if argLen != 2 {
-			return NewErrorValue("invalid call to gte, expected exactly 2 parameters: usage gte <number> <number>")
+		_, ok, err := CheckArguments(arguments, 2, 2, "gte", "<value> <value>")
+		if !ok {
+			return err
 		}
 
 		v1 := EvalArgument(context, arguments[0])
@@ -668,10 +673,9 @@ func gte() NamedValue {
 func lt() NamedValue {
 	return NewGoFunction("lt", func(context RunContext, arguments []Argument) Value {
 
-		argLen := len(arguments)
-
-		if argLen != 2 {
-			return NewErrorValue("invalid call to lt, expected exactly 2 parameters: usage lt <number> <number>")
+		_, ok, err := CheckArguments(arguments, 2, 2, "lt", "<value> <value>")
+		if !ok {
+			return err
 		}
 
 		v1 := EvalArgument(context, arguments[0])
@@ -690,10 +694,9 @@ func lt() NamedValue {
 func lte() NamedValue {
 	return NewGoFunction("lte", func(context RunContext, arguments []Argument) Value {
 
-		argLen := len(arguments)
-
-		if argLen != 2 {
-			return NewErrorValue("invalid call to lte, expected exactly 2 parameters: usage lte <number> <number>")
+		_, ok, err := CheckArguments(arguments, 2, 2, "lte", "<value> <value>")
+		if !ok {
+			return err
 		}
 
 		v1 := EvalArgument(context, arguments[0])
@@ -754,10 +757,9 @@ func or() NamedValue {
 func not() NamedValue {
 	return NewGoFunction("not", func(context RunContext, arguments []Argument) Value {
 
-		argLen := len(arguments)
-
-		if argLen != 1 {
-			return NewErrorValue("invalid call to not, expected exactly 1 parameters: usage not <boolean>")
+		_, ok, err := CheckArguments(arguments, 1, 1, "not", "<boolean>")
+		if !ok {
+			return err
 		}
 
 		condition := EvalArgument(context, arguments[0])

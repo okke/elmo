@@ -19,13 +19,12 @@ const currentActorKey = "-actor"
 func _new() elmo.NamedValue {
 	return elmo.NewGoFunction("new", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
 
-		// get expects exactly 1 argument
-		//
-		if len(arguments) != 1 {
-			return elmo.NewErrorValue("invalid call to actor.new, expect exactly 1 parameter: usage new {...}")
+		_, ok, err := elmo.CheckArguments(arguments, 1, 1, "new", "{...}")
+		if !ok {
+			return err
 		}
 
-		block := arguments[len(arguments)-1]
+		block := arguments[0]
 		if block.Type() != elmo.TypeBlock {
 			return elmo.NewErrorValue("invalid call to actor.new, last parameter must be a block: usage new {...}")
 		}
@@ -55,10 +54,9 @@ func _new() elmo.NamedValue {
 func send() elmo.NamedValue {
 	return elmo.NewGoFunction("send", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
 
-		argLen := len(arguments)
-
-		if argLen < 1 || argLen > 2 {
-			return elmo.NewErrorValue("invalid call to actor.send, expected one or two parameters. usage: send <actor> <message>?")
+		argLen, ok, err := elmo.CheckArguments(arguments, 1, 2, "send", "actor <message>?")
+		if !ok {
+			return err
 		}
 
 		// first argument of a list function can be an identifier with the name of the list
@@ -84,8 +82,9 @@ func send() elmo.NamedValue {
 func receive() elmo.NamedValue {
 	return elmo.NewGoFunction("receive", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
 
-		if len(arguments) != 0 {
-			return elmo.NewErrorValue("invalid call to actor.receive, did not expect any parameter. usage: receive")
+		_, ok, err := elmo.CheckArguments(arguments, 0, 0, "receive", "")
+		if !ok {
+			return err
 		}
 
 		actor, found := context.Get(currentActorKey)
@@ -100,8 +99,10 @@ func receive() elmo.NamedValue {
 
 func current() elmo.NamedValue {
 	return elmo.NewGoFunction("current", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
-		if len(arguments) != 0 {
-			return elmo.NewErrorValue("invalid call to actor.receive, did not expect any parameter. usage: receive")
+
+		_, ok, err := elmo.CheckArguments(arguments, 0, 0, "current", "")
+		if !ok {
+			return err
 		}
 
 		actor, found := context.Get(currentActorKey)
