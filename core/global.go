@@ -349,6 +349,9 @@ func createLoop(name string, stopCondition bool) func(context RunContext, argume
 			}
 			if condition.(*booleanLiteral).value == stopCondition {
 				result = EvalArgumentWithBlock(context, arguments[1])
+				if result.Type() == TypeError {
+					return result
+				}
 			} else {
 				return result
 			}
@@ -395,6 +398,9 @@ func do() NamedValue {
 				return result
 			}
 			result = EvalArgumentWithBlock(context, arguments[0])
+			if result.Type() == TypeError {
+				return result
+			}
 		}
 
 	})
