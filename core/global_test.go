@@ -722,3 +722,74 @@ func TestNot(t *testing.T) {
 	ParseTestAndRunBlock(t, `not true`, ExpectErrorValueAt(t, 1))
 	ParseTestAndRunBlock(t, `not 1`, ExpectErrorValueAt(t, 1))
 }
+
+func TestPlus(t *testing.T) {
+	ParseTestAndRunBlock(t, `plus 1 1`, ExpectValue(t, NewIntegerLiteral(2)))
+	ParseTestAndRunBlock(t, `plus 1 -1`, ExpectValue(t, NewIntegerLiteral(0)))
+	ParseTestAndRunBlock(t, `plus -1 1`, ExpectValue(t, NewIntegerLiteral(0)))
+	ParseTestAndRunBlock(t, `plus 1 1.0`, ExpectValue(t, NewFloatLiteral(2.0)))
+	ParseTestAndRunBlock(t, `plus 1.0 1`, ExpectValue(t, NewFloatLiteral(2.0)))
+	ParseTestAndRunBlock(t, `plus 88 99`, ExpectValue(t, NewIntegerLiteral(187)))
+	ParseTestAndRunBlock(t, `plus 88 "chipotle"`, ExpectErrorValueAt(t, 1))
+	ParseTestAndRunBlock(t, `plus 1.0 "chipotle"`, ExpectErrorValueAt(t, 1))
+	ParseTestAndRunBlock(t, `plus "galapeno" 88`, ExpectErrorValueAt(t, 1))
+	ParseTestAndRunBlock(t, `plus "galapeno" 1.0`, ExpectErrorValueAt(t, 1))
+}
+
+func TestMinus(t *testing.T) {
+	ParseTestAndRunBlock(t, `minus 1 1`, ExpectValue(t, NewIntegerLiteral(0)))
+	ParseTestAndRunBlock(t, `minus 1 -1`, ExpectValue(t, NewIntegerLiteral(2)))
+	ParseTestAndRunBlock(t, `minus -1 1`, ExpectValue(t, NewIntegerLiteral(-2)))
+	ParseTestAndRunBlock(t, `minus 1 1.0`, ExpectValue(t, NewFloatLiteral(0.0)))
+	ParseTestAndRunBlock(t, `minus 1.0 1`, ExpectValue(t, NewFloatLiteral(0.0)))
+	ParseTestAndRunBlock(t, `minus 88 99`, ExpectValue(t, NewIntegerLiteral(-11)))
+	ParseTestAndRunBlock(t, `minus 88 "chipotle"`, ExpectErrorValueAt(t, 1))
+	ParseTestAndRunBlock(t, `minus 1.0 "chipotle"`, ExpectErrorValueAt(t, 1))
+	ParseTestAndRunBlock(t, `minus "galapeno" 88`, ExpectErrorValueAt(t, 1))
+	ParseTestAndRunBlock(t, `minus "galapeno" 1.0`, ExpectErrorValueAt(t, 1))
+}
+
+func TestMultiply(t *testing.T) {
+	ParseTestAndRunBlock(t, `multiply 3 4`, ExpectValue(t, NewIntegerLiteral(12)))
+	ParseTestAndRunBlock(t, `multiply 3 -4`, ExpectValue(t, NewIntegerLiteral(-12)))
+	ParseTestAndRunBlock(t, `multiply -1 2`, ExpectValue(t, NewIntegerLiteral(-2)))
+	ParseTestAndRunBlock(t, `multiply 3 2.0`, ExpectValue(t, NewFloatLiteral(6.0)))
+	ParseTestAndRunBlock(t, `multiply 2.0 3`, ExpectValue(t, NewFloatLiteral(6.0)))
+	ParseTestAndRunBlock(t, `multiply 88 99`, ExpectValue(t, NewIntegerLiteral(8712)))
+	ParseTestAndRunBlock(t, `multiply 88 "chipotle"`, ExpectErrorValueAt(t, 1))
+	ParseTestAndRunBlock(t, `multiply 1.0 "chipotle"`, ExpectErrorValueAt(t, 1))
+	ParseTestAndRunBlock(t, `multiply "galapeno" 88`, ExpectErrorValueAt(t, 1))
+	ParseTestAndRunBlock(t, `multiply "galapeno" 1.0`, ExpectErrorValueAt(t, 1))
+}
+
+func TestDivide(t *testing.T) {
+	ParseTestAndRunBlock(t, `divide 8 3`, ExpectValue(t, NewIntegerLiteral(2)))
+	ParseTestAndRunBlock(t, `divide 8 -3`, ExpectValue(t, NewIntegerLiteral(-2)))
+	ParseTestAndRunBlock(t, `divide -8 2`, ExpectValue(t, NewIntegerLiteral(-4)))
+	ParseTestAndRunBlock(t, `divide 3 2.0`, ExpectValue(t, NewFloatLiteral(3/2.0)))
+	ParseTestAndRunBlock(t, `divide 2.0 3`, ExpectValue(t, NewFloatLiteral(2.0/3)))
+	ParseTestAndRunBlock(t, `divide 88 99`, ExpectValue(t, NewIntegerLiteral(88/99)))
+	ParseTestAndRunBlock(t, `divide 88 0`, ExpectErrorValueAt(t, 1))
+	ParseTestAndRunBlock(t, `divide 88 0.0`, ExpectErrorValueAt(t, 1))
+	ParseTestAndRunBlock(t, `divide 88.0 0`, ExpectErrorValueAt(t, 1))
+	ParseTestAndRunBlock(t, `divide 88.0 0.0`, ExpectErrorValueAt(t, 1))
+	ParseTestAndRunBlock(t, `divide 88 "chipotle"`, ExpectErrorValueAt(t, 1))
+	ParseTestAndRunBlock(t, `divide 1.0 "chipotle"`, ExpectErrorValueAt(t, 1))
+	ParseTestAndRunBlock(t, `divide "galapeno" 88`, ExpectErrorValueAt(t, 1))
+	ParseTestAndRunBlock(t, `divide "galapeno" 1.0`, ExpectErrorValueAt(t, 1))
+}
+
+func TestModulo(t *testing.T) {
+	ParseTestAndRunBlock(t, `modulo 10 3`, ExpectValue(t, NewIntegerLiteral(1)))
+	ParseTestAndRunBlock(t, `modulo 10.0 3`, ExpectValue(t, NewFloatLiteral(1.0)))
+	ParseTestAndRunBlock(t, `modulo 11.5 3`, ExpectValue(t, NewFloatLiteral(2.5)))
+	ParseTestAndRunBlock(t, `modulo 11.5 3.5`, ExpectValue(t, NewFloatLiteral(1.0)))
+	ParseTestAndRunBlock(t, `modulo 11.5 0`, ExpectErrorValueAt(t, 1))
+	ParseTestAndRunBlock(t, `modulo 11.5 0.0`, ExpectErrorValueAt(t, 1))
+	ParseTestAndRunBlock(t, `modulo 11 0`, ExpectErrorValueAt(t, 1))
+	ParseTestAndRunBlock(t, `modulo 11 0.0`, ExpectErrorValueAt(t, 1))
+	ParseTestAndRunBlock(t, `modulo 88 "chipotle"`, ExpectErrorValueAt(t, 1))
+	ParseTestAndRunBlock(t, `modulo 1.0 "chipotle"`, ExpectErrorValueAt(t, 1))
+	ParseTestAndRunBlock(t, `modulo "galapeno" 88`, ExpectErrorValueAt(t, 1))
+	ParseTestAndRunBlock(t, `modulo "galapeno" 1.0`, ExpectErrorValueAt(t, 1))
+}

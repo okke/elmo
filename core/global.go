@@ -50,6 +50,11 @@ func NewGlobalContext() RunContext {
 	context.SetNamed(and())
 	context.SetNamed(or())
 	context.SetNamed(not())
+	context.SetNamed(plus())
+	context.SetNamed(minus())
+	context.SetNamed(multiply())
+	context.SetNamed(divide())
+	context.SetNamed(modulo())
 
 	return context
 }
@@ -772,5 +777,76 @@ func not() NamedValue {
 		}
 
 		return True
+	})
+}
+
+func arithmeticOperation(context RunContext, arguments []Argument, name string, f func(Value, Value) Value) Value {
+	_, ok, err := CheckArguments(arguments, 2, 2, name, "<value> <value>")
+	if !ok {
+		return err
+	}
+
+	v1 := EvalArgument(context, arguments[0])
+	_, ok1 := v1.(MathValue)
+	if !ok1 {
+		return NewErrorValue(fmt.Sprintf("%s does not support %v", name, v1))
+	}
+
+	v2 := EvalArgument(context, arguments[1])
+	_, ok2 := v2.(MathValue)
+	if !ok2 {
+		return NewErrorValue(fmt.Sprintf("%s does not support %v", name, v2))
+	}
+
+	return f(v1, v2)
+}
+
+func plus() NamedValue {
+	return NewGoFunction("plus", func(context RunContext, arguments []Argument) Value {
+
+		return arithmeticOperation(context, arguments, "plus", func(v1 Value, v2 Value) Value {
+			return v1.(MathValue).Plus(v2)
+		})
+
+	})
+}
+
+func minus() NamedValue {
+	return NewGoFunction("minus", func(context RunContext, arguments []Argument) Value {
+
+		return arithmeticOperation(context, arguments, "minus", func(v1 Value, v2 Value) Value {
+			return v1.(MathValue).Minus(v2)
+		})
+
+	})
+}
+
+func multiply() NamedValue {
+	return NewGoFunction("multiply", func(context RunContext, arguments []Argument) Value {
+
+		return arithmeticOperation(context, arguments, "multiply", func(v1 Value, v2 Value) Value {
+			return v1.(MathValue).Multiply(v2)
+		})
+
+	})
+}
+
+func divide() NamedValue {
+	return NewGoFunction("divide", func(context RunContext, arguments []Argument) Value {
+
+		return arithmeticOperation(context, arguments, "divide", func(v1 Value, v2 Value) Value {
+			return v1.(MathValue).Divide(v2)
+		})
+
+	})
+}
+
+func modulo() NamedValue {
+	return NewGoFunction("modulo", func(context RunContext, arguments []Argument) Value {
+
+		return arithmeticOperation(context, arguments, "modulo", func(v1 Value, v2 Value) Value {
+			return v1.(MathValue).Modulo(v2)
+		})
+
 	})
 }

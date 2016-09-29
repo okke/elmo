@@ -3,6 +3,7 @@ package elmo
 import (
 	"errors"
 	"fmt"
+	"math"
 	"strings"
 )
 
@@ -142,6 +143,16 @@ type IncrementableValue interface {
 	Increment(Value) Value
 }
 
+// MathValue represents a value that knows how to apply basic arithmetics
+//
+type MathValue interface {
+	Plus(Value) Value
+	Minus(Value) Value
+	Multiply(Value) Value
+	Divide(Value) Value
+	Modulo(Value) Value
+}
+
 // ComparableValue represents a value that can be compared
 //
 type ComparableValue interface {
@@ -240,7 +251,63 @@ func (integerLiteral *integerLiteral) Increment(value Value) Value {
 	if value.Type() == TypeInteger {
 		return NewIntegerLiteral(integerLiteral.value + value.Internal().(int64))
 	}
-	return NewErrorValue("can not ad non integer to integer")
+	return NewErrorValue("can not add non integer to integer")
+}
+
+func (integerLiteral *integerLiteral) Plus(value Value) Value {
+	if value.Type() == TypeInteger {
+		return NewIntegerLiteral(integerLiteral.value + value.Internal().(int64))
+	}
+	if value.Type() == TypeFloat {
+		return NewFloatLiteral(float64(integerLiteral.value) + value.Internal().(float64))
+	}
+	return NewErrorValue("can not add non number to integer")
+}
+
+func (integerLiteral *integerLiteral) Minus(value Value) Value {
+	if value.Type() == TypeInteger {
+		return NewIntegerLiteral(integerLiteral.value - value.Internal().(int64))
+	}
+	if value.Type() == TypeFloat {
+		return NewFloatLiteral(float64(integerLiteral.value) - value.Internal().(float64))
+	}
+	return NewErrorValue("can not subtract non number from integer")
+}
+
+func (integerLiteral *integerLiteral) Multiply(value Value) Value {
+	if value.Type() == TypeInteger {
+		return NewIntegerLiteral(integerLiteral.value * value.Internal().(int64))
+	}
+	if value.Type() == TypeFloat {
+		return NewFloatLiteral(float64(integerLiteral.value) * value.Internal().(float64))
+	}
+	return NewErrorValue("can not multiply non number with integer")
+}
+
+func (integerLiteral *integerLiteral) Divide(value Value) Value {
+	if value.Type() == TypeInteger {
+		if value.Internal().(int64) == 0 {
+			return NewErrorValue("can not divide integer by 0")
+		}
+		return NewIntegerLiteral(integerLiteral.value / value.Internal().(int64))
+	}
+	if value.Type() == TypeFloat {
+		if value.Internal().(float64) == 0.0 {
+			return NewErrorValue("can not divide integer by 0.0")
+		}
+		return NewFloatLiteral(float64(integerLiteral.value) / value.Internal().(float64))
+	}
+	return NewErrorValue("can not divide integer by non number")
+}
+
+func (integerLiteral *integerLiteral) Modulo(value Value) Value {
+	if value.Type() == TypeInteger {
+		if value.Internal().(int64) == 0 {
+			return NewErrorValue("can not divide integer by 0")
+		}
+		return NewIntegerLiteral(integerLiteral.value % value.Internal().(int64))
+	}
+	return NewErrorValue("can not divide integer by non integer to calculate a modulo")
 }
 
 func (integerLiteral *integerLiteral) Compare(value Value) (int, ErrorValue) {
@@ -282,7 +349,71 @@ func (floatLiteral *floatLiteral) Increment(value Value) Value {
 	if value.Type() == TypeInteger {
 		return NewFloatLiteral(floatLiteral.value + float64(value.Internal().(int64)))
 	}
-	return NewErrorValue("can not ad non float to float")
+	return NewErrorValue("can not add non number to float")
+}
+
+func (floatLiteral *floatLiteral) Plus(value Value) Value {
+	return floatLiteral.Increment(value)
+}
+
+func (floatLiteral *floatLiteral) Minus(value Value) Value {
+	if value.Type() == TypeFloat {
+		return NewFloatLiteral(floatLiteral.value - value.Internal().(float64))
+	}
+	if value.Type() == TypeInteger {
+		return NewFloatLiteral(floatLiteral.value - float64(value.Internal().(int64)))
+	}
+	return NewErrorValue("can not subtract non number from float")
+}
+
+func (floatLiteral *floatLiteral) Multiply(value Value) Value {
+	if value.Type() == TypeFloat {
+		return NewFloatLiteral(floatLiteral.value * value.Internal().(float64))
+	}
+	if value.Type() == TypeInteger {
+		return NewFloatLiteral(floatLiteral.value * float64(value.Internal().(int64)))
+	}
+	return NewErrorValue("can not multiply float by non number")
+}
+
+func (floatLiteral *floatLiteral) Divide(value Value) Value {
+	if value.Type() == TypeFloat {
+		if value.Internal().(float64) == 0.0 {
+			return NewErrorValue("can not divide float by 0.0")
+		}
+		return NewFloatLiteral(floatLiteral.value / value.Internal().(float64))
+	}
+	if value.Type() == TypeInteger {
+		if value.Internal().(int64) == 0 {
+			return NewErrorValue("can not divide float by 0")
+		}
+		return NewFloatLiteral(floatLiteral.value / float64(value.Internal().(int64)))
+	}
+	return NewErrorValue("can not multiply float by non number")
+}
+
+func (floatLiteral *floatLiteral) Modulo(value Value) Value {
+	if value.Type() == TypeInteger {
+		if value.Internal().(int64) == 0 {
+			return NewErrorValue("can not divide integer by 0")
+		}
+
+		div := floatLiteral.value / float64(value.Internal().(int64))
+		total := math.Floor(div) * float64(value.Internal().(int64))
+
+		return NewFloatLiteral(floatLiteral.value - total)
+	}
+	if value.Type() == TypeFloat {
+		if value.Internal().(float64) == 0.0 {
+			return NewErrorValue("can not divide integer by 0")
+		}
+
+		div := floatLiteral.value / float64(value.Internal().(float64))
+		total := math.Floor(div) * float64(value.Internal().(float64))
+
+		return NewFloatLiteral(floatLiteral.value - total)
+	}
+	return NewErrorValue("can not divide float by non number to calculate a modulo")
 }
 
 func (floatLiteral *floatLiteral) Compare(value Value) (int, ErrorValue) {
