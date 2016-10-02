@@ -915,6 +915,28 @@ func (call *call) Run(context RunContext, additionalArguments []Argument) Value 
 		useArguments = append(useArguments, additionalArguments...)
 	}
 
+	// when call can not be resolved, try to find the 'func missing' function
+	//
+	if !found {
+		value, found = context.Get("?")
+		if found {
+
+			// pass evaluated arguments to the 'func missing' function
+			// as a list of values
+			//
+			values := make([]Value, len(useArguments))
+			for i, value := range useArguments {
+				values[i] = EvalArgument(context, value)
+			}
+
+			// and pass the original function name as first argument
+			//
+			useArguments = []Argument{
+				NewArgument(call.meta, call.astNode.begin, call.astNode.end, NewIdentifier(call.functionName[0])),
+				NewArgument(call.meta, call.astNode.begin, call.astNode.end, NewListValue(values))}
+		}
+	}
+
 	if found {
 
 		if value == nil {
