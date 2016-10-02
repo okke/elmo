@@ -31,7 +31,7 @@ func _new() elmo.NamedValue {
 
 		// create a handle that can be used to communicate with the concurent 'actor'
 		//
-		actor := elmo.NewInternalValue(NewActor())
+		actor := elmo.NewInternalValue(typeInfoActor, NewActor())
 
 		// create a new context for the actor so the actor can set its own variables
 		//
@@ -63,7 +63,7 @@ func send() elmo.NamedValue {
 		//
 		resolvedActor := elmo.EvalArgumentOrSolveIdentifier(context, arguments[0])
 
-		if resolvedActor.Type() != elmo.TypeInternal {
+		if !resolvedActor.IsType(typeInfoActor) {
 			return elmo.NewErrorValue("invalid call to actor.send, expected an actor as first parameter. usage: send <actor> <message>")
 		}
 

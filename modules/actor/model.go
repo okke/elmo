@@ -6,6 +6,8 @@ import (
 	"github.com/okke/elmo/core"
 )
 
+var typeInfoActor = elmo.NewTypeInfo("actor")
+
 type actor struct {
 	channel chan elmo.Value
 }

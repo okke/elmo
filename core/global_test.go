@@ -14,6 +14,17 @@ func TestSetValueIntoGlobalContextUsingShortcut(t *testing.T) {
 
 }
 
+func TestType(t *testing.T) {
+
+	ParseTestAndRunBlock(t, `type chipotle`, ExpectValue(t, NewIdentifier("identifier")))
+	ParseTestAndRunBlock(t, `type "chipotle"`, ExpectValue(t, NewIdentifier("string")))
+	ParseTestAndRunBlock(t, `type 3`, ExpectValue(t, NewIdentifier("int")))
+	ParseTestAndRunBlock(t, `type 3.0`, ExpectValue(t, NewIdentifier("float")))
+	ParseTestAndRunBlock(t, `type []`, ExpectValue(t, NewIdentifier("list")))
+	ParseTestAndRunBlock(t, `type (dict [])`, ExpectValue(t, NewIdentifier("dict")))
+
+}
+
 func TestSetValueIntoGlobalContextAndGetIt(t *testing.T) {
 
 	ParseTestAndRunBlock(t,

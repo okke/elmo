@@ -25,6 +25,7 @@ func NewGlobalContext() RunContext {
 	context.Set("true", True)
 	context.Set("false", False)
 
+	context.SetNamed(_type())
 	context.SetNamed(set())
 	context.SetNamed(get())
 	context.SetNamed(once())
@@ -87,6 +88,16 @@ func CheckArguments(arguments []Argument, min int, max int, fname string, usage 
 		return argLen, false, NewErrorValue(fmt.Sprintf("Invalid call to %s. Usage: %s %s", fname, fname, usage))
 	}
 	return argLen, true, nil
+}
+
+func _type() NamedValue {
+	return NewGoFunction("type", func(context RunContext, arguments []Argument) Value {
+		_, ok, err := CheckArguments(arguments, 1, 1, "type", "<value>")
+		if !ok {
+			return err
+		}
+		return EvalArgument(context, arguments[0]).Info().Name()
+	})
 }
 
 func set() NamedValue {

@@ -52,7 +52,55 @@ const (
 	TypeNil
 )
 
+var typeInfoIdentifier = NewTypeInfo("identifier")
+var typeInfoString = NewTypeInfo("string")
+var typeInfoInteger = NewTypeInfo("int")
+var typeInfoFloat = NewTypeInfo("float")
+var typeInfoBoolean = NewTypeInfo("bool")
+var typeInfoList = NewTypeInfo("list")
+var typeInfoDictionary = NewTypeInfo("dict")
+var typeInfoError = NewTypeInfo("error")
+var typeInfoBlock = NewTypeInfo("block")
+var typeInfoCall = NewTypeInfo("call")
+var typeInfoGoFunction = NewTypeInfo("func")
+var typeInfoReturn = NewTypeInfo("return")
+var typeInfoNil = NewTypeInfo("nil")
+
+// TypeInfo represents kinf of subType for TypeInternal values
+//
+type TypeInfo interface {
+	ID() int64
+	Name() Value
+}
+
+type typeInfo struct {
+	id   int64
+	name string
+}
+
+func (typeInfo *typeInfo) Name() Value {
+	return NewIdentifier(typeInfo.name)
+}
+
+func (typeInfo *typeInfo) ID() int64 {
+	return typeInfo.id
+}
+
+var typeCounter int64
+
+// NewTypeInfo constructs a new type object
+//
+func NewTypeInfo(name string) TypeInfo {
+	typeCounter = typeCounter + 1
+	return &typeInfo{id: typeCounter, name: name}
+}
+
+type baseValue struct {
+	info TypeInfo
+}
+
 type nothing struct {
+	baseValue
 }
 
 // Nothing represents nil
@@ -76,43 +124,53 @@ var Zero = NewIntegerLiteral(0)
 var One = NewIntegerLiteral(1)
 
 type identifier struct {
+	baseValue
 	value string
 }
 
 type stringLiteral struct {
+	baseValue
 	value string
 }
 
 type integerLiteral struct {
+	baseValue
 	value int64
 }
 
 type floatLiteral struct {
+	baseValue
 	value float64
 }
 
 type booleanLiteral struct {
+	baseValue
 	value bool
 }
 
 type listValue struct {
+	baseValue
 	values []Value
 }
 
 type returnValue struct {
+	baseValue
 	values []Value
 }
 
 type dictValue struct {
+	baseValue
 	parent *dictValue
 	values map[string]Value
 }
 
 type internalValue struct {
+	baseValue
 	value interface{}
 }
 
 type errorValue struct {
+	baseValue
 	meta   ScriptMetaData
 	lineno int
 	msg    string
@@ -124,6 +182,7 @@ type errorValue struct {
 type GoFunction func(RunContext, []Argument) Value
 
 type goFunction struct {
+	baseValue
 	name  string
 	value GoFunction
 }
@@ -135,6 +194,8 @@ type Value interface {
 	String() string
 	Type() Type
 	Internal() interface{}
+	Info() TypeInfo
+	IsType(TypeInfo) bool
 }
 
 // IncrementableValue represents a value that can be incremented
@@ -181,6 +242,18 @@ type RunnableValue interface {
 type NamedValue interface {
 	Value
 	Name() string
+}
+
+func (baseValue *baseValue) Info() TypeInfo {
+	return baseValue.info
+}
+
+func (baseValue *baseValue) IsType(typeInfo TypeInfo) bool {
+	if baseValue.info == nil {
+		return false
+	}
+
+	return baseValue.info.ID() == typeInfo.ID()
 }
 
 func (nothing *nothing) Print() string {
@@ -662,67 +735,67 @@ func (goFunction *goFunction) Run(context RunContext, arguments []Argument) Valu
 // NewIdentifier creates a new identifier value
 //
 func NewIdentifier(value string) Value {
-	return &identifier{value: value}
+	return &identifier{baseValue: baseValue{info: typeInfoIdentifier}, value: value}
 }
 
 // NewStringLiteral creates a new string literal value
 //
 func NewStringLiteral(value string) Value {
-	return &stringLiteral{value: value}
+	return &stringLiteral{baseValue: baseValue{info: typeInfoString}, value: value}
 }
 
 // NewIntegerLiteral creates a new integer value
 //
 func NewIntegerLiteral(value int64) Value {
-	return &integerLiteral{value: value}
+	return &integerLiteral{baseValue: baseValue{info: typeInfoInteger}, value: value}
 }
 
 // NewFloatLiteral creates a new integer value
 //
 func NewFloatLiteral(value float64) Value {
-	return &floatLiteral{value: value}
+	return &floatLiteral{baseValue: baseValue{info: typeInfoFloat}, value: value}
 }
 
 // NewBooleanLiteral creates a new integer value
 //
 func NewBooleanLiteral(value bool) Value {
-	return &booleanLiteral{value: value}
+	return &booleanLiteral{baseValue: baseValue{info: typeInfoBoolean}, value: value}
 }
 
 // NewListValue creates a new list of values
 //
 func NewListValue(values []Value) Value {
-	return &listValue{values: values}
+	return &listValue{baseValue: baseValue{info: typeInfoList}, values: values}
 }
 
 // NewDictionaryValue creates a new map of values
 //
 func NewDictionaryValue(parent *dictValue, values map[string]Value) Value {
-	return &dictValue{parent: parent, values: values}
+	return &dictValue{baseValue: baseValue{info: typeInfoDictionary}, parent: parent, values: values}
 }
 
 // NewInternalValue wraps a go value into an elmo value
 //
-func NewInternalValue(value interface{}) Value {
-	return &internalValue{value: value}
+func NewInternalValue(info TypeInfo, value interface{}) Value {
+	return &internalValue{baseValue: baseValue{info: info}, value: value}
 }
 
 // NewErrorValue creates a new Error
 //
 func NewErrorValue(msg string) ErrorValue {
-	return &errorValue{msg: msg}
+	return &errorValue{baseValue: baseValue{info: typeInfoError}, msg: msg}
 }
 
 // NewGoFunction creates a new go function
 //
 func NewGoFunction(name string, value GoFunction) NamedValue {
-	return &goFunction{name: name, value: value}
+	return &goFunction{baseValue: baseValue{info: typeInfoGoFunction}, name: name, value: value}
 }
 
 // NewReturnValue creates a new list of values
 //
 func NewReturnValue(values []Value) Value {
-	return &returnValue{values: values}
+	return &returnValue{baseValue: baseValue{info: typeInfoReturn}, values: values}
 }
 
 //
@@ -775,6 +848,7 @@ func NewArgument(meta ScriptMetaData, begin uint32, end uint32, value Value) Arg
 
 type call struct {
 	astNode
+	baseValue
 	functionName []string
 	function     GoFunction
 	arguments    []Argument
@@ -922,6 +996,7 @@ func NewCallWithFunction(meta ScriptMetaData, begin uint32, end uint32, function
 
 type block struct {
 	astNode
+	baseValue
 	calls []Call
 }
 
