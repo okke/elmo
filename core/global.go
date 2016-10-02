@@ -204,7 +204,9 @@ func incr() NamedValue {
 
 		if found {
 
-			if currentValue.Type() == TypeInteger || currentValue.Type() == TypeFloat {
+			_, ok := currentValue.(IncrementableValue)
+			if ok {
+
 				newValue := currentValue.(IncrementableValue).Increment(incrValue)
 
 				if arg0.Type() == TypeIdentifier {
@@ -218,10 +220,8 @@ func incr() NamedValue {
 
 		}
 
-		incrType := reflect.TypeOf(incrValue)
-		shouldBe := reflect.TypeOf((*IncrementableValue)(nil)).Elem()
-
-		if !incrType.Implements(shouldBe) {
+		_, ok = incrValue.(IncrementableValue)
+		if !ok {
 			return NewErrorValue("invalid call to incr, expected a value that can be incremented")
 		}
 
