@@ -141,6 +141,7 @@ func TestParseCommandWithIntegerAsParameter(t *testing.T) {
 
 func TestParseCommandWithFunctionCallAsParameter(t *testing.T) {
 	ParseAndTest(t, "chipotle (sauce)", expectOneLineContaining(t, IdentifierFollowedByOneArgument(t, ruleFunctionCall)))
+	ParseAndTest(t, "chipotle $sauce", expectOneLineContaining(t, IdentifierFollowedByOneArgument(t, ruleFunctionCall)))
 }
 
 func TestParseCommandWithEmptyBlockAsParameter(t *testing.T) {

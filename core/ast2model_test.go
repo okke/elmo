@@ -244,6 +244,11 @@ func TestCreateBlockWithOneCallWithOneCallArgument(t *testing.T) {
 	})
 }
 
+func TestCreateBlockWithOneCallWithOneShortcutCallArgument(t *testing.T) {
+	ParseAndTestBlock(t, "chipotle $sauce", func(block Block) {
+	})
+}
+
 func TestCreateBlockWithOnePipedCall(t *testing.T) {
 	ParseAndTestBlock(t, "chipotle | galapeno", func(block Block) {
 

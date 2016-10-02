@@ -21,7 +21,7 @@ Argument <- Identifier
            / Block
            / List
 
-FunctionCall <- LPAR Line RPAR
+FunctionCall <- (LPAR Line RPAR) / (DOLLAR Argument (DOT Argument)?)
 
 Block <- LCURLY (NewLine)* (Line)* RCURLY
 
@@ -86,4 +86,5 @@ PCOMMA    <-  ';'         Spacing
 COLON     <-  ':'         Spacing
 DOT       <-  '.'         Spacing
 PIPE      <-  '|'         Spacing
+DOLLAR    <-  '$'         Spacing
 EOT       <-  !.

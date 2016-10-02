@@ -6,28 +6,28 @@ fib: (func n {
   sum: 0
   i: 0
 
-  while (lte (i) (n)) {
+  while (lte $i $n) {
 
-    sum: (plus (result) (prev))
-    prev: (result)
-    result: (sum)
+    sum: (plus $result $prev)
+    prev: $result
+    result: $sum
 
     incr i
   }
 
-  return (result)
+  return $result
 })
 
 
 recfib: (func n {
 
-  if (lte (n) 1) {
-    return (n)
+  if (lte $n 1) {
+    return $n
   }
 
   # very slow when n > 25 but it works
   #
-  return (plus (recfib (minus (n) 1)) (recfib (minus (n) 2)))
+  return (plus (recfib (minus $n 1)) (recfib (minus $n 2)))
 
 })
 
