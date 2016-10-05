@@ -900,6 +900,22 @@ func (call *call) pipeResult(context RunContext, value Value) Value {
 
 }
 
+func createArgumentsForMissingFunc(context RunContext, call *call, arguments []Argument) []Argument {
+	// pass evaluated arguments to the 'func missing' function
+	// as a list of values
+	//
+	values := make([]Value, len(arguments))
+	for i, value := range arguments {
+		values[i] = EvalArgument(context, value)
+	}
+
+	// and pass the original function name as first argument
+	//
+	return []Argument{
+		NewArgument(call.meta, call.astNode.begin, call.astNode.end, NewIdentifier(call.functionName[0])),
+		NewArgument(call.meta, call.astNode.begin, call.astNode.end, NewListValue(values))}
+}
+
 func (call *call) Run(context RunContext, additionalArguments []Argument) Value {
 
 	if call.function != nil {
@@ -920,20 +936,7 @@ func (call *call) Run(context RunContext, additionalArguments []Argument) Value 
 	if !found {
 		value, found = context.Get("?")
 		if found {
-
-			// pass evaluated arguments to the 'func missing' function
-			// as a list of values
-			//
-			values := make([]Value, len(useArguments))
-			for i, value := range useArguments {
-				values[i] = EvalArgument(context, value)
-			}
-
-			// and pass the original function name as first argument
-			//
-			useArguments = []Argument{
-				NewArgument(call.meta, call.astNode.begin, call.astNode.end, NewIdentifier(call.functionName[0])),
-				NewArgument(call.meta, call.astNode.begin, call.astNode.end, NewListValue(values))}
+			useArguments = createArgumentsForMissingFunc(context, call, useArguments)
 		}
 	}
 
@@ -947,15 +950,18 @@ func (call *call) Run(context RunContext, additionalArguments []Argument) Value 
 
 			// call to a.b style of function name. a should be resolvable to a dictionary and b
 			// can be something in that dictionary
-
 			if value.Type() != TypeDictionary {
 				return call.pipeResult(context, call.addInfoWhenError(NewErrorValue(fmt.Sprintf("%s does not resolve to dictionary. found %v", call.Name(), value))))
 			}
 
 			inDictValue := value.(*dictValue).Resolve(call.functionName[1])
 
-			if inDictValue == nil {
-				return call.pipeResult(context, call.addInfoWhenError(NewErrorValue(fmt.Sprintf("could not find %s.%s", call.functionName[0], call.functionName[1]))))
+			if inDictValue == nil || inDictValue == Nothing {
+				inDictValue = value.(*dictValue).Resolve("?")
+				if inDictValue == nil || inDictValue == Nothing {
+					return call.pipeResult(context, call.addInfoWhenError(NewErrorValue(fmt.Sprintf("could not find %s.%s", call.functionName[0], call.functionName[1]))))
+				}
+				useArguments = createArgumentsForMissingFunc(context, call, useArguments)
 			}
 
 			if inDictValue.Type() == TypeGoFunction {

@@ -68,7 +68,6 @@ func Ast2Call(node *node32, meta ScriptMetaData) Call {
 			if functionArg.pegRule == ruleIdentifier {
 				functionName = append(functionName, Text(argument, meta.Content()))
 			} else {
-				fmt.Printf("INVALID %v", children)
 				panic(fmt.Sprintf("found non identifier %v: %v", argument, Text(argument, meta.Content())))
 			}
 
