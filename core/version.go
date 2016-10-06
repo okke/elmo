@@ -15,7 +15,7 @@ type version struct {
 // Version of elmo
 var Version = version{0, 1, 0, "dev", "Chipotle"}
 
-// Git Build info
+// Build info from git
 var Build string
 
 func (v version) String() string {

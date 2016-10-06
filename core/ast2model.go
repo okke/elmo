@@ -11,7 +11,7 @@ func Ast2Block(node *node32, meta ScriptMetaData) Block {
 
 	calls := []Call{}
 
-	for _, call := range Children(node) {
+	for _, call := range nodeChildren(node) {
 		calls = append(calls, Ast2Call(call, meta))
 	}
 
@@ -22,7 +22,7 @@ func Ast2Block(node *node32, meta ScriptMetaData) Block {
 //
 func Ast2List(node *node32, meta ScriptMetaData, pipe Call) Call {
 	var arguments = []Argument{}
-	for _, argument := range Children(node) {
+	for _, argument := range nodeChildren(node) {
 		arguments = append(arguments, Ast2Argument(argument.up, meta))
 	}
 	return NewCallWithFunction(meta, node.begin, node.end, ListConstructor, arguments, pipe)
@@ -32,7 +32,7 @@ func Ast2List(node *node32, meta ScriptMetaData, pipe Call) Call {
 //
 func Ast2Call(node *node32, meta ScriptMetaData) Call {
 
-	children := Children(node)
+	children := nodeChildren(node)
 	childrenLength := len(children)
 
 	if childrenLength == 1 && children[0].pegRule == ruleLine {
@@ -47,7 +47,7 @@ func Ast2Call(node *node32, meta ScriptMetaData) Call {
 	var pipeTo Call
 
 	if children[childrenLength-1].pegRule == rulePipedOutput {
-		pipeTo = Ast2Call(Children(children[childrenLength-1])[1], meta)
+		pipeTo = Ast2Call(nodeChildren(children[childrenLength-1])[1], meta)
 	}
 
 	// when call does not start with an identifier, it can be a literal without arguments

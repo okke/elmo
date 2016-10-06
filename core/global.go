@@ -204,8 +204,8 @@ func incr() NamedValue {
 
 		if found {
 
-			_, ok := currentValue.(IncrementableValue)
-			if ok {
+			_, isIncrementable := currentValue.(IncrementableValue)
+			if isIncrementable {
 
 				newValue := currentValue.(IncrementableValue).Increment(incrValue)
 
