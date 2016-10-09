@@ -804,3 +804,10 @@ func TestModulo(t *testing.T) {
 	ParseTestAndRunBlock(t, `modulo "galapeno" 88`, ExpectErrorValueAt(t, 1))
 	ParseTestAndRunBlock(t, `modulo "galapeno" 1.0`, ExpectErrorValueAt(t, 1))
 }
+
+func TestAssert(t *testing.T) {
+	ParseTestAndRunBlock(t, `assert`, ExpectErrorValueAt(t, 1))
+	ParseTestAndRunBlock(t, `assert (true) "everything fine"`, ExpectValue(t, True))
+	ParseTestAndRunBlock(t, `assert (false) "things got really messy"`, ExpectErrorValueAt(t, 1))
+	ParseTestAndRunBlock(t, `assert "chipotle" "things got really messy"`, ExpectErrorValueAt(t, 1))
+}

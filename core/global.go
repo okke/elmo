@@ -56,6 +56,7 @@ func NewGlobalContext() RunContext {
 	context.SetNamed(multiply())
 	context.SetNamed(divide())
 	context.SetNamed(modulo())
+	context.SetNamed(assert())
 
 	return context
 }
@@ -876,5 +877,26 @@ func modulo() NamedValue {
 			return v1.(MathValue).Modulo(v2)
 		})
 
+	})
+}
+
+func assert() NamedValue {
+	return NewGoFunction("assert", func(context RunContext, arguments []Argument) Value {
+
+		_, ok, err := CheckArguments(arguments, 2, 2, "assert", "<boolean> <error>")
+		if !ok {
+			return err
+		}
+
+		check := EvalArgument(context, arguments[0])
+		if check != nil && check.Type() == TypeBoolean {
+			if check.(*booleanLiteral).value {
+				return True
+			}
+
+			return NewErrorValue(EvalArgument2String(context, arguments[1]))
+		}
+
+		return NewErrorValue("assert: first argument does not evaluate to a boolean value")
 	})
 }
