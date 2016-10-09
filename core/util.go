@@ -2,6 +2,7 @@ package elmo
 
 import (
 	"fmt"
+	"path/filepath"
 	"reflect"
 	"testing"
 )
@@ -95,6 +96,17 @@ func ParseAndRun(context RunContext, s string) Value {
 // ParseAndRunWithFile will parse given script and execute test function on its result
 //
 func ParseAndRunWithFile(context RunContext, s string, fileName string) Value {
+
+	absPath, err := filepath.Abs(fileName)
+
+	if err != nil {
+		return NewErrorValue(fmt.Sprintf("could not get absolute path of %s:%v", fileName, err))
+	}
+
+	currentScript := context.ScriptName()
+
+	context.SetScriptName(NewStringLiteral(absPath))
+
 	grammar := &ElmoGrammar{Buffer: s}
 
 	grammar.Init()
@@ -103,7 +115,9 @@ func ParseAndRunWithFile(context RunContext, s string, fileName string) Value {
 		panic(fmt.Sprintf("could not parse: %v", err))
 	} else {
 		block := Ast2Block(grammar.AST(), NewScriptMetaData(fileName, s))
-		return block.Run(context, NoArguments)
+		result := block.Run(context, NoArguments)
+		context.SetScriptName(currentScript)
+		return result
 	}
 
 }

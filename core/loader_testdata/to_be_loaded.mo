@@ -1,0 +1,4 @@
+
+loaded: (func {
+  return "chipotle"
+})

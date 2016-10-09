@@ -496,8 +496,11 @@ func mixin() NamedValue {
 		var dict Value
 		for _, arg := range arguments {
 			dict = EvalArgument(context, arg)
-			if dict.Type() != TypeDictionary {
-				return NewErrorValue(fmt.Sprintf("mixin can only mix in dictionaries, not %s", dict.String()))
+
+			result := context.Mixin(dict)
+
+			if result.Type() == TypeError {
+				return result
 			}
 
 			for k, v := range dict.Internal().(map[string]Value) {
@@ -602,7 +605,15 @@ func load() NamedValue {
 			return content
 		}
 
-		return NewErrorValue(fmt.Sprintf("could not find module %s", name))
+		loader := NewLoader(context, []string{})
+
+		loaded := loader.Load(name)
+
+		if loaded == nil {
+			return NewErrorValue(fmt.Sprintf("could not find module %s", name))
+		}
+
+		return context.Mixin(loaded)
 	})
 }
 
