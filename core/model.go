@@ -900,7 +900,7 @@ func (call *call) pipeResult(context RunContext, value Value) Value {
 
 }
 
-func createArgumentsForMissingFunc(context RunContext, call *call, arguments []Argument) []Argument {
+func createArgumentsForMissingFunc(context RunContext, call *call, nameIndex int, arguments []Argument) []Argument {
 	// pass evaluated arguments to the 'func missing' function
 	// as a list of values
 	//
@@ -912,7 +912,7 @@ func createArgumentsForMissingFunc(context RunContext, call *call, arguments []A
 	// and pass the original function name as first argument
 	//
 	return []Argument{
-		NewArgument(call.meta, call.astNode.begin, call.astNode.end, NewIdentifier(call.functionName[0])),
+		NewArgument(call.meta, call.astNode.begin, call.astNode.end, NewIdentifier(call.functionName[nameIndex])),
 		NewArgument(call.meta, call.astNode.begin, call.astNode.end, NewListValue(values))}
 }
 
@@ -924,11 +924,13 @@ func (call *call) Run(context RunContext, additionalArguments []Argument) Value 
 
 	value, found := context.Get(call.functionName[0])
 
-	var useArguments = call.arguments
+	var useArguments []Argument
 
 	if additionalArguments != nil && len(additionalArguments) > 0 {
-		useArguments = append([]Argument{}, useArguments...)
-		useArguments = append(useArguments, additionalArguments...)
+		useArguments = append([]Argument{}, additionalArguments...)
+		useArguments = append(useArguments, call.arguments...)
+	} else {
+		useArguments = call.arguments
 	}
 
 	// when call can not be resolved, try to find the 'func missing' function
@@ -936,7 +938,7 @@ func (call *call) Run(context RunContext, additionalArguments []Argument) Value 
 	if !found {
 		value, found = context.Get("?")
 		if found {
-			useArguments = createArgumentsForMissingFunc(context, call, useArguments)
+			useArguments = createArgumentsForMissingFunc(context, call, 0, useArguments)
 		}
 	}
 
@@ -961,7 +963,7 @@ func (call *call) Run(context RunContext, additionalArguments []Argument) Value 
 				if inDictValue == nil || inDictValue == Nothing {
 					return call.pipeResult(context, call.addInfoWhenError(NewErrorValue(fmt.Sprintf("could not find %s.%s", call.functionName[0], call.functionName[1]))))
 				}
-				useArguments = createArgumentsForMissingFunc(context, call, useArguments)
+				useArguments = createArgumentsForMissingFunc(context, call, 1, useArguments)
 			}
 
 			if inDictValue.Type() == TypeGoFunction {

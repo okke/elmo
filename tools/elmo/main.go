@@ -12,6 +12,7 @@ import (
 	"github.com/okke/elmo/modules/actor"
 	"github.com/okke/elmo/modules/dictionary"
 	"github.com/okke/elmo/modules/list"
+	"github.com/okke/elmo/modules/sys"
 )
 
 func createMainContext() elmo.RunContext {
@@ -20,6 +21,7 @@ func createMainContext() elmo.RunContext {
 	context.RegisterModule(list.Module)
 	context.RegisterModule(dict.Module)
 	context.RegisterModule(actor.Module)
+	context.RegisterModule(sys.Module)
 
 	// provide an exit function so the repl can be stoppped
 	// (TODO 12sep2016: should it be here?)
