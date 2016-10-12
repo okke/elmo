@@ -104,10 +104,6 @@ func getValueIndexAndBlock(context elmo.RunContext, arguments []elmo.Argument) (
 
 	list := elmo.EvalArgumentOrSolveIdentifier(context, arguments[0])
 
-	if list.Type() != elmo.TypeList {
-		return nil, "", "", nil, false
-	}
-
 	valueName := elmo.EvalArgument2String(context, arguments[1])
 	var indexName string
 	if argLen == 4 {
