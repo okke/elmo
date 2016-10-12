@@ -1,12 +1,13 @@
 package list
 
 import (
+	"fmt"
 	"math"
 
 	"github.com/okke/elmo/core"
 )
 
-// ListModule contains functions that operate on lists
+// Module contains functions that operate on lists
 //
 var Module = elmo.NewModule("list", initModule)
 
@@ -18,6 +19,22 @@ func initModule(context elmo.RunContext) elmo.Value {
 		each(),
 		_map(),
 		filter()})
+}
+
+func convertToList(value elmo.Value) ([]elmo.Value, elmo.ErrorValue) {
+
+	if value.Type() == elmo.TypeList {
+		return value.Internal().([]elmo.Value), nil
+	}
+
+	convertable, casted := value.Internal().(Listable)
+
+	if !casted {
+		return nil, elmo.NewErrorValue(fmt.Sprintf("can not convert %v to list", value))
+	}
+
+	return convertable.List(), nil
+
 }
 
 func _new() elmo.NamedValue {
@@ -38,11 +55,10 @@ func _append() elmo.NamedValue {
 		//
 		list := elmo.EvalArgumentOrSolveIdentifier(context, arguments[0])
 
-		if list.Type() != elmo.TypeList {
-			return elmo.NewErrorValue("invalid call to append, expect at list as first argument: usage append <list> <value>*")
+		internal, err := convertToList(list)
+		if err != nil {
+			return err
 		}
-
-		internal := list.Internal().([]elmo.Value)
 
 		for i := 1; i < argLen; i++ {
 			internal = append(internal, elmo.EvalArgument(context, arguments[i]))
@@ -65,11 +81,10 @@ func prepend() elmo.NamedValue {
 		//
 		list := elmo.EvalArgumentOrSolveIdentifier(context, arguments[0])
 
-		if list.Type() != elmo.TypeList {
-			return elmo.NewErrorValue("invalid call to prepend, expect at list as first argument: usage prepend <list> <value> <value>?")
+		internal, err := convertToList(list)
+		if err != nil {
+			return err
 		}
-
-		internal := list.Internal().([]elmo.Value)
 
 		for i := 1; i < argLen; i++ {
 			internal = append([]elmo.Value{elmo.EvalArgument(context, arguments[i])}, internal...)
@@ -123,7 +138,13 @@ func each() elmo.NamedValue {
 		var result elmo.Value
 
 		subContext := context.CreateSubContext()
-		for index, value := range list.Internal().([]elmo.Value) {
+
+		internal, err := convertToList(list)
+		if err != nil {
+			return err
+		}
+
+		for index, value := range internal {
 			result = runInBlock(subContext, valueName, value, indexName, index, block)
 		}
 
@@ -141,7 +162,11 @@ func _map() elmo.NamedValue {
 			return elmo.NewErrorValue("invalid call to map: usage map <list> <value identifier> <index identifier>? <block>")
 		}
 
-		oldValues := list.Internal().([]elmo.Value)
+		oldValues, err := convertToList(list)
+		if err != nil {
+			return err
+		}
+
 		l := len(oldValues)
 		newValues := make([]elmo.Value, l, l)
 
@@ -163,7 +188,11 @@ func filter() elmo.NamedValue {
 			return elmo.NewErrorValue("invalid call to filter: usage filter <list> <value identifier> <index identifier>? <block>")
 		}
 
-		oldValues := list.Internal().([]elmo.Value)
+		oldValues, err := convertToList(list)
+		if err != nil {
+			return err
+		}
+
 		newValues := []elmo.Value{}
 
 		subContext := context.CreateSubContext()
