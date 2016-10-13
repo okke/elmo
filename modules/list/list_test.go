@@ -20,6 +20,57 @@ func TestNew(t *testing.T) {
 		l`, elmo.ExpectValue(t, elmo.ParseAndRun(elmo.NewGlobalContext(), "[1 2 3]")))
 }
 
+func TestLen(t *testing.T) {
+
+	elmo.ParseTestAndRunBlockWithinContext(t, listContext(),
+		`list: (load "list")
+    list.len [1 2 3]`, elmo.ExpectValue(t, elmo.NewIntegerLiteral(3)))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, listContext(),
+		`list: (load "list")
+    list.len "chipotle"`, elmo.ExpectErrorValueAt(t, 2))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, listContext(),
+		`list: (load "list")
+    list.len`, elmo.ExpectErrorValueAt(t, 2))
+}
+
+func TestAt(t *testing.T) {
+
+	elmo.ParseTestAndRunBlockWithinContext(t, listContext(),
+		`list: (load "list")
+		list.at`, elmo.ExpectErrorValueAt(t, 2))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, listContext(),
+		`list: (load "list")
+		list.at 1 2`, elmo.ExpectErrorValueAt(t, 2))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, listContext(),
+		`list: (load "list")
+    list.at [1 2 3] 0`, elmo.ExpectValue(t, elmo.NewIntegerLiteral(1)))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, listContext(),
+		`list: (load "list")
+		list.at [1 2 3] 0 0`, elmo.ExpectValue(t, elmo.ParseAndRun(elmo.NewGlobalContext(), "[1]")))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, listContext(),
+		`list: (load "list")
+		list.at [1 2 3] 0 2`, elmo.ExpectValue(t, elmo.ParseAndRun(elmo.NewGlobalContext(), "[1 2 3]")))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, listContext(),
+		`list: (load "list")
+		list.at [1 2 3] -1`, elmo.ExpectValue(t, elmo.NewIntegerLiteral(3)))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, listContext(),
+		`list: (load "list")
+		list.at [1 2 3] -1 -2`, elmo.ExpectValue(t, elmo.ParseAndRun(elmo.NewGlobalContext(), "[3 2]")))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, listContext(),
+		`list: (load "list")
+		list.at [1 2 3] -2 -1`, elmo.ExpectValue(t, elmo.ParseAndRun(elmo.NewGlobalContext(), "[2 3]")))
+
+}
+
 func TestAppend(t *testing.T) {
 
 	elmo.ParseTestAndRunBlockWithinContext(t, listContext(),
