@@ -190,7 +190,6 @@ type goFunction struct {
 // Value represents data within elmo
 //
 type Value interface {
-	Print() string
 	String() string
 	Type() Type
 	Internal() interface{}
@@ -256,10 +255,6 @@ func (baseValue *baseValue) IsType(typeInfo TypeInfo) bool {
 	return baseValue.info.ID() == typeInfo.ID()
 }
 
-func (nothing *nothing) Print() string {
-	return "nil"
-}
-
 func (nothing *nothing) String() string {
 	return "nil"
 }
@@ -270,10 +265,6 @@ func (nothing *nothing) Type() Type {
 
 func (nothing *nothing) Internal() interface{} {
 	return nil
-}
-
-func (identifier *identifier) Print() string {
-	return identifier.value
 }
 
 func (identifier *identifier) String() string {
@@ -288,10 +279,6 @@ func (identifier *identifier) Internal() interface{} {
 	return identifier.value
 }
 
-func (stringLiteral *stringLiteral) Print() string {
-	return fmt.Sprintf("\"%s\"", stringLiteral.value)
-}
-
 func (stringLiteral *stringLiteral) String() string {
 	return fmt.Sprintf("%s", stringLiteral.value)
 }
@@ -302,10 +289,6 @@ func (stringLiteral *stringLiteral) Type() Type {
 
 func (stringLiteral *stringLiteral) Internal() interface{} {
 	return stringLiteral.value
-}
-
-func (integerLiteral *integerLiteral) Print() string {
-	return fmt.Sprintf("%d", integerLiteral.value)
 }
 
 func (integerLiteral *integerLiteral) String() string {
@@ -397,10 +380,6 @@ func (integerLiteral *integerLiteral) Compare(value Value) (int, ErrorValue) {
 		return 0, nil
 	}
 	return 0, NewErrorValue("can not compare integer with non integer")
-}
-
-func (floatLiteral *floatLiteral) Print() string {
-	return fmt.Sprintf("%f", floatLiteral.value)
 }
 
 func (floatLiteral *floatLiteral) String() string {
@@ -505,10 +484,6 @@ func (floatLiteral *floatLiteral) Compare(value Value) (int, ErrorValue) {
 	return 0, NewErrorValue("can not compare float with non float")
 }
 
-func (booleanLiteral *booleanLiteral) Print() string {
-	return booleanLiteral.String()
-}
-
 func (booleanLiteral *booleanLiteral) String() string {
 	return fmt.Sprintf("%v", booleanLiteral.value)
 }
@@ -519,10 +494,6 @@ func (booleanLiteral *booleanLiteral) Type() Type {
 
 func (booleanLiteral *booleanLiteral) Internal() interface{} {
 	return booleanLiteral.value
-}
-
-func (listValue *listValue) Print() string {
-	return listValue.String()
 }
 
 func (listValue *listValue) String() string {
@@ -602,10 +573,6 @@ func (listValue *listValue) Run(context RunContext, arguments []Argument) Value 
 	return NewErrorValue("too many arguments for list access")
 }
 
-func (returnValue *returnValue) Print() string {
-	return returnValue.String()
-}
-
 func (returnValue *returnValue) String() string {
 	return fmt.Sprintf("<%v>", returnValue.values)
 }
@@ -616,10 +583,6 @@ func (returnValue *returnValue) Type() Type {
 
 func (returnValue *returnValue) Internal() interface{} {
 	return returnValue.values
-}
-
-func (dictValue *dictValue) Print() string {
-	return dictValue.String()
 }
 
 func (dictValue *dictValue) String() string {
@@ -654,20 +617,12 @@ func (dictValue *dictValue) Run(context RunContext, arguments []Argument) Value 
 	return dictValue.Resolve(key.String())
 }
 
-func (errorValue *errorValue) Print() string {
-	return errorValue.String()
-}
-
 func (errorValue *errorValue) String() string {
 	if errorValue.meta != nil {
 		meta, lineno := errorValue.At()
 		return fmt.Sprintf("error at %s at line %d: %s", meta.Name(), lineno, errorValue.msg)
 	}
 	return fmt.Sprintf("error: %s", errorValue.msg)
-}
-
-func (internalValue *internalValue) Print() string {
-	return fmt.Sprintf("%v", internalValue.value)
 }
 
 func (internalValue *internalValue) String() string {
@@ -706,10 +661,6 @@ func (errorValue *errorValue) At() (meta ScriptMetaData, lineno int) {
 func (errorValue *errorValue) IsTraced() bool {
 	meta, lineno := errorValue.At()
 	return meta != nil && lineno > 0
-}
-
-func (goFunction *goFunction) Print() string {
-	return goFunction.String()
 }
 
 func (goFunction *goFunction) String() string {
@@ -992,10 +943,6 @@ func (call *call) Run(context RunContext, additionalArguments []Argument) Value 
 	return call.pipeResult(context, call.addInfoWhenError(NewErrorValue(fmt.Sprintf("call to undefined \"%s\"", call.functionName))))
 }
 
-func (call *call) Print() string {
-	return call.String()
-}
-
 func (call *call) String() string {
 	return fmt.Sprintf("(%s ...)", call.Name())
 }
@@ -1058,10 +1005,6 @@ func (block *block) Run(context RunContext, arguments []Argument) Value {
 	}
 
 	return result
-}
-
-func (block *block) Print() string {
-	return block.String()
 }
 
 func (block *block) String() string {
