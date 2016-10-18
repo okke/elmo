@@ -36,7 +36,8 @@ func nodeChildren(node *node32) []*node32 {
 			child.pegRule != ruleRBRACKET &&
 			child.pegRule != ruleLPAR &&
 			child.pegRule != ruleRPAR &&
-			child.pegRule != ruleDOLLAR)
+			child.pegRule != ruleDOLLAR &&
+			child.pegRule != ruleCOMMA)
 	})
 }
 

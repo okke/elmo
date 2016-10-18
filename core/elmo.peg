@@ -6,7 +6,7 @@ type ElmoGrammar Peg {
 
 Script <- Spacing (Line)* EOT
 
-Line <- (NewLine)? Argument (Shortcut)? (Argument)* (PipedOutput / EndOfLine)?
+Line <- (NewLine)? Argument (Shortcut)? (Argument)? ((COMMA (NewLine)?)? Argument)* (PipedOutput / EndOfLine)?
 
 PipedOutput <- PIPE Line
 
@@ -25,7 +25,7 @@ FunctionCall <- (LPAR Line RPAR) / (DOLLAR Argument (DOT Argument)?)
 
 Block <- LCURLY (NewLine)* (Line)* RCURLY
 
-List <- LBRACKET (NewLine)* (Argument/NewLine)* RBRACKET
+List <- LBRACKET (NewLine)* (Argument/NewLine)? ((COMMA (NewLine)?)? Argument/NewLine)* RBRACKET
 
 
 # SPACING
@@ -82,6 +82,7 @@ LCURLY    <-  '{'         Spacing
 RCURLY    <-  '}'         Spacing
 LBRACKET  <-  '['         Spacing
 RBRACKET  <-  ']'         Spacing
+COMMA     <-  ','         Spacing
 PCOMMA    <-  ';'         Spacing
 COLON     <-  ':'         Spacing
 DOT       <-  '.'         Spacing
