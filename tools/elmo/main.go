@@ -58,6 +58,35 @@ func createCommandLine() *liner.State {
 	return commandLine
 }
 
+func replReadMore(commandLine *liner.State, command string) string {
+	trimmed := strings.TrimSpace(command)
+	if len(trimmed) == 0 {
+		return trimmed
+	}
+	last := string(trimmed[len(trimmed)-1:])
+
+	for strings.Index("{}()[],;", last) != -1 {
+
+		// TODO: 18okt2016 should check if character not with a string or a comment
+		//
+		fDepth := strings.Count(trimmed, "(") - strings.Count(trimmed, ")")
+		bDepth := strings.Count(trimmed, "{") - strings.Count(trimmed, "}")
+		lDepth := strings.Count(trimmed, "[") - strings.Count(trimmed, "]")
+
+		if fDepth > 0 || bDepth > 0 || lDepth > 0 {
+			if next, err := commandLine.Prompt("    : " + strings.Repeat("\t", bDepth)); err == nil {
+				trimmed = trimmed + next
+				last = string(trimmed[len(trimmed)-1:])
+			}
+		} else {
+			return trimmed
+		}
+
+	}
+
+	return trimmed
+}
+
 func repl() {
 
 	commandLine := createCommandLine()
@@ -74,6 +103,7 @@ func repl() {
 	for {
 		if command, err := commandLine.Prompt("e>mo: "); err == nil {
 
+			command = replReadMore(commandLine, command)
 			value := elmo.ParseAndRun(mainContext, command)
 
 			if value != nil {

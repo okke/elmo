@@ -112,13 +112,13 @@ func ParseAndRunWithFile(context RunContext, s string, fileName string) Value {
 	grammar.Init()
 
 	if err := grammar.Parse(); err != nil {
-		panic(fmt.Sprintf("could not parse: %v", err))
-	} else {
-		block := Ast2Block(grammar.AST(), NewScriptMetaData(fileName, s))
-		result := block.Run(context, NoArguments)
-		context.SetScriptName(currentScript)
-		return result
+		return NewErrorValue(err.Error())
 	}
+
+	block := Ast2Block(grammar.AST(), NewScriptMetaData(fileName, s))
+	result := block.Run(context, NoArguments)
+	context.SetScriptName(currentScript)
+	return result
 
 }
 

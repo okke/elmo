@@ -183,6 +183,9 @@ func TestParseCommandWithMultipleCommaSeparatedParameters(t *testing.T) {
 	ParseAndTest(t, "chipotle sauce, in_a_jar", expectOneLineContaining(t, IdentifierFollowedByMultipleArguments(t,
 		[]pegRule{ruleIdentifier, ruleIdentifier})))
 
+	ParseAndTest(t, "chipotle sauce, in_a_jar;", expectOneLineContaining(t, IdentifierFollowedByMultipleArguments(t,
+		[]pegRule{ruleIdentifier, ruleIdentifier})))
+
 	ParseAndTest(t, "chipotle sauce, 128, 132", expectOneLineContaining(t, IdentifierFollowedByMultipleArguments(t,
 		[]pegRule{ruleIdentifier, ruleNumber, ruleNumber})))
 
