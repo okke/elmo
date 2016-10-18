@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -13,6 +12,7 @@ import (
 	"github.com/okke/elmo/modules/dictionary"
 	"github.com/okke/elmo/modules/list"
 	"github.com/okke/elmo/modules/sys"
+	"github.com/peterh/liner"
 )
 
 func createMainContext() elmo.RunContext {
@@ -23,22 +23,10 @@ func createMainContext() elmo.RunContext {
 	context.RegisterModule(actor.Module)
 	context.RegisterModule(sys.Module)
 
-	// provide an exit function so the repl can be stoppped
-	// (TODO 12sep2016: should it be here?)
-	//
-	context.SetNamed(exit())
-
 	return context
 }
 
 var mainContext = createMainContext()
-
-func exit() elmo.NamedValue {
-	return elmo.NewGoFunction("exit", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
-		os.Exit(0)
-		return elmo.Nothing
-	})
-}
 
 func help() {
 
@@ -54,12 +42,50 @@ func help() {
 	})
 }
 
+func createCommandLine() *liner.State {
+	commandLine := liner.NewLiner()
+
+	commandLine.SetCompleter(func(line string) (possibilities []string) {
+
+		for cmd := range mainContext.Mapping() {
+			if strings.HasPrefix(cmd, strings.ToLower(line)) {
+				possibilities = append(possibilities, cmd)
+			}
+		}
+		return
+	})
+
+	return commandLine
+}
+
 func repl() {
-	scanner := bufio.NewScanner(os.Stdin)
-	fmt.Printf("e>mo: ")
-	for scanner.Scan() {
-		fmt.Printf("%v\ne>mo: ", elmo.ParseAndRun(mainContext, scanner.Text()))
+
+	commandLine := createCommandLine()
+
+	// provide an exit function so the repl can be stoppped
+	// (TODO 18oct2016 is an exit hook not better?)
+	//
+	mainContext.SetNamed(elmo.NewGoFunction("exit", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+		commandLine.Close()
+		os.Exit(0)
+		return elmo.Nothing
+	}))
+
+	for {
+		if command, err := commandLine.Prompt("e>mo: "); err == nil {
+
+			value := elmo.ParseAndRun(mainContext, command)
+
+			if value != nil {
+				commandLine.AppendHistory(command)
+				if value != elmo.Nothing {
+					fmt.Printf("%v\n", value)
+				}
+			}
+
+		}
 	}
+
 }
 
 func read(source string) {
