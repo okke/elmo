@@ -2,6 +2,41 @@ package elmo
 
 import "testing"
 
+func TestMissingStatement(t *testing.T) {
+
+	ParseTestAndRunBlock(t,
+		`?: (func name args {
+			return [$name $args]
+		 })
+		 chipotle uno dos tres`, ExpectValue(t, NewListValue([]Value{NewIdentifier("chipotle"),
+			NewListValue([]Value{NewIdentifier("uno"), NewIdentifier("dos"), NewIdentifier("tres")})})))
+
+	ParseTestAndRunBlock(t,
+		`chipotle: {
+			?: (func name args {
+					return [$name $args]
+				 })
+		 }
+		 chipotle.sauce uno dos tres`, ExpectValue(t, NewListValue([]Value{NewIdentifier("sauce"),
+			NewListValue([]Value{NewIdentifier("uno"), NewIdentifier("dos"), NewIdentifier("tres")})})))
+
+}
+
+func TestListCreation(t *testing.T) {
+
+	ParseTestAndRunBlock(t,
+		`[3]`, ExpectValue(t, NewListValue([]Value{NewIntegerLiteral(3)})))
+
+	ParseTestAndRunBlock(t,
+		`[3 4]`, ExpectValue(t, NewListValue([]Value{NewIntegerLiteral(3), NewIntegerLiteral(4)})))
+
+	ParseTestAndRunBlock(t,
+		`[3 "chipotle"]`, ExpectValue(t, NewListValue([]Value{NewIntegerLiteral(3), NewStringLiteral("chipotle")})))
+
+	ParseTestAndRunBlock(t,
+		`[[3 "chipotle"]]`, ExpectValue(t, NewListValue([]Value{NewListValue([]Value{NewIntegerLiteral(3), NewStringLiteral("chipotle")})})))
+}
+
 func TestBlockWithoutCallsShouldReturnNothing(t *testing.T) {
 
 	result := NewBlock(nil, 0, 0, []Call{}).Run(NewRunContext(nil), []Argument{})
