@@ -3,74 +3,8 @@ package elmo
 import (
 	"fmt"
 	"path/filepath"
-	"reflect"
 	"testing"
 )
-
-// ExpectValueSetTo expects a given variable is set to a given value
-//
-func ExpectValueSetTo(t *testing.T, key string, value string) func(RunContext, Value) {
-
-	return func(context RunContext, blockResult Value) {
-
-		if blockResult.Type() == TypeError {
-			t.Error(blockResult.(ErrorValue).Error())
-			return
-		}
-
-		result, found := context.Get(key)
-
-		if !found {
-			t.Errorf("expected %s to be set", key)
-		} else {
-			if result.String() != value {
-				t.Errorf("expected %s to be set to (%s), found %s", key, value, result.String())
-			}
-		}
-	}
-}
-
-// ExpectErrorValueAt ecpects an error on a given line number
-//
-func ExpectErrorValueAt(t *testing.T, lineno int) func(RunContext, Value) {
-
-	return func(context RunContext, blockResult Value) {
-
-		if blockResult.Type() != TypeError {
-			t.Errorf("expected error but found %v", blockResult)
-			return
-		}
-
-		_, l := blockResult.(ErrorValue).At()
-
-		if l != lineno {
-			t.Errorf("expected error at line %d but found (%v) on line %d", lineno, blockResult.String(), l)
-		}
-
-	}
-}
-
-// ExpectNothing expects evauation returns Nothing
-//
-func ExpectNothing(t *testing.T) func(RunContext, Value) {
-
-	return func(context RunContext, blockResult Value) {
-		if blockResult != Nothing {
-			t.Errorf("expected nothing but found %v", blockResult)
-		}
-	}
-}
-
-// ExpectValue expects evaluation returns a given value
-//
-func ExpectValue(t *testing.T, value Value) func(RunContext, Value) {
-
-	return func(context RunContext, blockResult Value) {
-		if !reflect.DeepEqual(blockResult, value) {
-			t.Errorf("expected (%v) but found (%v)", value, blockResult)
-		}
-	}
-}
 
 // ParseAndTest will parse given script and execute test function on its result
 //
@@ -95,7 +29,13 @@ func ParseAndRun(context RunContext, s string) Value {
 
 // ParseAndRunWithFile will parse given script and execute test function on its result
 //
-func ParseAndRunWithFile(context RunContext, s string, fileName string) Value {
+func ParseAndRunWithFile(context RunContext, s string, fileName string) (val Value) {
+
+	defer func() {
+		if r := recover(); r != nil {
+			val = NewErrorValue(fmt.Sprintf("%v", r))
+		}
+	}()
 
 	absPath, err := filepath.Abs(fileName)
 

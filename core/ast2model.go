@@ -58,7 +58,7 @@ func Ast2Call(node *node32, meta ScriptMetaData) Call {
 		}
 
 		if children[0].up.pegRule != ruleIdentifier {
-			panic(fmt.Sprintf("invalid call %v: %v", children[0].up, Text(children[0].up, meta.Content())))
+			panic(fmt.Sprintf("invalid call %v: %v", children[0].up, nodeText(children[0].up, meta.Content())))
 		}
 	}
 
@@ -66,15 +66,15 @@ func Ast2Call(node *node32, meta ScriptMetaData) Call {
 		if idx == 0 {
 			functionArg = argument.up
 			if functionArg.pegRule == ruleIdentifier {
-				functionName = append(functionName, Text(argument, meta.Content()))
+				functionName = append(functionName, nodeText(argument, meta.Content()))
 			} else {
-				panic(fmt.Sprintf("found non identifier %v: %v", argument, Text(argument, meta.Content())))
+				panic(fmt.Sprintf("found non identifier %v: %v", argument, nodeText(argument, meta.Content())))
 			}
 
 		} else {
 			if argument.pegRule == ruleArgument {
 				if appendToFunctionName {
-					functionName = append(functionName, Text(argument, meta.Content()))
+					functionName = append(functionName, nodeText(argument, meta.Content()))
 					appendToFunctionName = false
 				} else {
 					arguments = append(arguments, Ast2Argument(argument.up, meta))
@@ -107,12 +107,12 @@ func Ast2Call(node *node32, meta ScriptMetaData) Call {
 func Ast2Argument(node *node32, meta ScriptMetaData) Argument {
 	switch node.pegRule {
 	case ruleIdentifier:
-		return NewArgument(meta, node.begin, node.end, NewIdentifier(Text(node, meta.Content())))
+		return NewArgument(meta, node.begin, node.end, NewIdentifier(nodeText(node, meta.Content())))
 	case ruleStringLiteral:
-		txt := Text(node, meta.Content())
+		txt := nodeText(node, meta.Content())
 		return NewArgument(meta, node.begin, node.end, NewStringLiteral(txt[1:len(txt)-1]))
 	case ruleNumber:
-		txt := Text(node, meta.Content())
+		txt := nodeText(node, meta.Content())
 
 		// first try if its an integer value
 		//

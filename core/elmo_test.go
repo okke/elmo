@@ -4,7 +4,7 @@ import "testing"
 
 func expectOneLine(t *testing.T) func(*node32) {
 	return func(ast *node32) {
-		if !TestEqRules(childrenRules(ast), []pegRule{ruleLine}) {
+		if !ruleSlicesAreEqual(childrenRules(ast), []pegRule{ruleLine}) {
 			t.Errorf("does not contain one line, found %v", childrenRules(ast))
 		}
 	}
@@ -13,7 +13,7 @@ func expectOneLine(t *testing.T) func(*node32) {
 func expectOneLineContaining(t *testing.T, testChildren func([]*node32)) func(*node32) {
 	return func(ast *node32) {
 
-		if !TestEqRules(childrenRules(ast), []pegRule{ruleLine}) {
+		if !ruleSlicesAreEqual(childrenRules(ast), []pegRule{ruleLine}) {
 			t.Error("does not contain one line")
 		}
 
@@ -23,7 +23,7 @@ func expectOneLineContaining(t *testing.T, testChildren func([]*node32)) func(*n
 
 func expectTwoLines(t *testing.T) func(*node32) {
 	return func(ast *node32) {
-		if !TestEqRules(childrenRules(ast), []pegRule{ruleLine, ruleLine}) {
+		if !ruleSlicesAreEqual(childrenRules(ast), []pegRule{ruleLine, ruleLine}) {
 			t.Error("does not contain two lines")
 		}
 	}
@@ -31,7 +31,7 @@ func expectTwoLines(t *testing.T) func(*node32) {
 
 func IdentifierFollowedByShortcutAndArgument(t *testing.T, cut pegRule, ruleType pegRule) func([]*node32) {
 	return func(children []*node32) {
-		if !TestEqRules(pegRules(children), []pegRule{ruleArgument, ruleShortcut, ruleArgument}) {
+		if !ruleSlicesAreEqual(pegRules(children), []pegRule{ruleArgument, ruleShortcut, ruleArgument}) {
 			t.Errorf("expected <identifier> <argument>, found %v", children)
 		}
 		if children[1].up.pegRule != cut {
@@ -45,7 +45,7 @@ func IdentifierFollowedByShortcutAndArgument(t *testing.T, cut pegRule, ruleType
 
 func IdentifierFollowedByOneArgument(t *testing.T, ruleType pegRule) func([]*node32) {
 	return func(children []*node32) {
-		if !TestEqRules(pegRules(children), []pegRule{ruleArgument, ruleArgument}) {
+		if !ruleSlicesAreEqual(pegRules(children), []pegRule{ruleArgument, ruleArgument}) {
 			t.Errorf("expected <identifier> <argument>, found %v", children)
 		}
 		if children[1].up.pegRule != ruleType {
@@ -61,7 +61,7 @@ func IdentifierFollowedByMultipleArguments(t *testing.T, ruleTypes []pegRule) fu
 			t.Errorf("expected to start with an identifier, found %v", children[0])
 		}
 
-		if !TestEqRules(pegRulesFirstChild(children[1:]), ruleTypes) {
+		if !ruleSlicesAreEqual(pegRulesFirstChild(children[1:]), ruleTypes) {
 			t.Errorf("expected %v, found %v", ruleTypes, pegRulesFirstChild(children[1:]))
 		}
 	}
@@ -70,7 +70,7 @@ func IdentifierFollowedByMultipleArguments(t *testing.T, ruleTypes []pegRule) fu
 func IdentifierFollowedByBlock(t *testing.T, blockTestFunc func(*node32)) func([]*node32) {
 	return func(children []*node32) {
 
-		if !TestEqRules(pegRules(children), []pegRule{ruleArgument, ruleArgument}) {
+		if !ruleSlicesAreEqual(pegRules(children), []pegRule{ruleArgument, ruleArgument}) {
 			t.Errorf("expected <identifier> <block>, found %v", children)
 		}
 
@@ -80,10 +80,10 @@ func IdentifierFollowedByBlock(t *testing.T, blockTestFunc func(*node32)) func([
 
 func IdentifierFollowedbyPipe(t *testing.T) func([]*node32) {
 	return func(children []*node32) {
-		if !TestEqRules(pegRules(children), []pegRule{ruleArgument, rulePipedOutput}) {
+		if !ruleSlicesAreEqual(pegRules(children), []pegRule{ruleArgument, rulePipedOutput}) {
 			t.Errorf("expected <identifier> <pipe>, found %v", children)
 		}
-		if !TestEqRules(pegRules(nodeChildren(children[1])), []pegRule{rulePIPE, ruleLine}) {
+		if !ruleSlicesAreEqual(pegRules(nodeChildren(children[1])), []pegRule{rulePIPE, ruleLine}) {
 			t.Errorf("expected <identifier> <pipe>, found %v", children[1])
 		}
 	}

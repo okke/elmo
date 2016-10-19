@@ -67,7 +67,7 @@ func pegRulesFirstChild(nodes []*node32) []pegRule {
 
 // TestEqRules will test if two array of rules are the same
 //
-func TestEqRules(a, b []pegRule) bool {
+func ruleSlicesAreEqual(a, b []pegRule) bool {
 
 	if a == nil && b == nil {
 		return true
@@ -98,6 +98,6 @@ func childrenRules(node *node32) []pegRule {
 
 // Text returns the textual representation of a node without any Spacing
 //
-func Text(node *node32, buf string) string {
+func nodeText(node *node32, buf string) string {
 	return strings.TrimSpace(buf[node.begin : node.begin+(node.end-node.begin)])
 }
