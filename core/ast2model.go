@@ -53,12 +53,9 @@ func Ast2Call(node *node32, meta ScriptMetaData) Call {
 	// when call does not start with an identifier, it can be a literal without arguments
 	//
 	if (childrenLength == 1 && pipeTo == nil) || (childrenLength == 2 && pipeTo != nil) {
-		if children[0].up.pegRule == ruleList {
-			return Ast2List(children[0].up, meta, pipeTo)
-		}
 
 		if children[0].up.pegRule != ruleIdentifier {
-			panic(fmt.Sprintf("invalid call %v: %v", children[0].up, nodeText(children[0].up, meta.Content())))
+			return NewCall(meta, children[0].up.begin, children[0].up.end, []string{"echo"}, []Argument{Ast2Argument(children[0].up, meta)}, pipeTo)
 		}
 	}
 

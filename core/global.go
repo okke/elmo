@@ -41,6 +41,7 @@ func NewGlobalContext() RunContext {
 	context.SetNamed(new())
 	context.SetNamed(load())
 	context.SetNamed(puts())
+	context.SetNamed(echo())
 	context.SetNamed(sleep())
 	context.SetNamed(eq())
 	context.SetNamed(ne())
@@ -565,6 +566,17 @@ func puts() NamedValue {
 		}
 
 		return Nothing
+	})
+}
+
+func echo() NamedValue {
+	return NewGoFunction("echo", func(context RunContext, arguments []Argument) Value {
+		_, ok, err := CheckArguments(arguments, 1, 1, "echo", "<value>")
+		if !ok {
+			return err
+		}
+
+		return EvalArgument(context, arguments[0])
 	})
 }
 
