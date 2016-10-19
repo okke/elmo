@@ -958,13 +958,13 @@ func (call *call) Internal() interface{} {
 // NewCall contstructs a new function call
 //
 func NewCall(meta ScriptMetaData, begin uint32, end uint32, name []string, arguments []Argument, pipeTo Call) Call {
-	return &call{astNode: astNode{meta: meta, begin: begin, end: end}, functionName: name, arguments: arguments, pipe: pipeTo}
+	return &call{astNode: astNode{meta: meta, begin: begin, end: end}, baseValue: baseValue{info: typeInfoCall}, functionName: name, arguments: arguments, pipe: pipeTo}
 }
 
 // NewCallWithFunction constructs a call that does not need to be resolved
 //
 func NewCallWithFunction(meta ScriptMetaData, begin uint32, end uint32, function GoFunction, arguments []Argument, pipeTo Call) Call {
-	return &call{astNode: astNode{meta: meta, begin: begin, end: end}, function: function, arguments: arguments, pipe: pipeTo}
+	return &call{astNode: astNode{meta: meta, begin: begin, end: end}, baseValue: baseValue{info: typeInfoFloat}, function: function, arguments: arguments, pipe: pipeTo}
 }
 
 //
@@ -1022,7 +1022,7 @@ func (block *block) Internal() interface{} {
 // NewBlock contsruct a new block of function calls
 //
 func NewBlock(meta ScriptMetaData, begin uint32, end uint32, calls []Call) Block {
-	return &block{astNode: astNode{meta: meta, begin: begin, end: end}, calls: calls}
+	return &block{astNode: astNode{meta: meta, begin: begin, end: end}, baseValue: baseValue{info: typeInfoBlock}, calls: calls}
 }
 
 // EvalArgument evaluates given argument

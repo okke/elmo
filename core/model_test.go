@@ -2,6 +2,12 @@ package elmo
 
 import "testing"
 
+func TestFunctionCallWithBlock(t *testing.T) {
+	ParseTestAndRunBlock(t,
+		`f: (func arg {return (type $arg)})
+		 f {}`, ExpectValue(t, NewIdentifier("block")))
+}
+
 func TestMissingStatement(t *testing.T) {
 
 	ParseTestAndRunBlock(t,
