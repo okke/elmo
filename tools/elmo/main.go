@@ -11,6 +11,7 @@ import (
 	"github.com/okke/elmo/modules/actor"
 	"github.com/okke/elmo/modules/dictionary"
 	"github.com/okke/elmo/modules/list"
+	str "github.com/okke/elmo/modules/string"
 	"github.com/okke/elmo/modules/sys"
 	"github.com/peterh/liner"
 )
@@ -18,6 +19,7 @@ import (
 func createMainContext() elmo.RunContext {
 	context := elmo.NewGlobalContext()
 
+	context.RegisterModule(str.Module)
 	context.RegisterModule(list.Module)
 	context.RegisterModule(dict.Module)
 	context.RegisterModule(actor.Module)
