@@ -796,3 +796,8 @@ func TestAssert(t *testing.T) {
 	ParseTestAndRunBlock(t, `assert (false) "things got really messy"`, ExpectErrorValueAt(t, 1))
 	ParseTestAndRunBlock(t, `assert "chipotle" "things got really messy"`, ExpectErrorValueAt(t, 1))
 }
+
+func TestError(t *testing.T) {
+	ParseTestAndRunBlock(t, `error`, ExpectErrorValueAt(t, 1))
+	ParseTestAndRunBlock(t, `error "chipotle"`, ExpectErrorValueAt(t, 1))
+}
