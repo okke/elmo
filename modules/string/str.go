@@ -18,7 +18,8 @@ func initModule(context elmo.RunContext) elmo.Value {
 		at(),
 		_len(),
 		concat(),
-		trim()})
+		trim(),
+		replace()})
 }
 
 func _len() elmo.NamedValue {
@@ -148,6 +149,79 @@ func trim() elmo.NamedValue {
 		}
 
 		return elmo.NewStringLiteral(strings.Trim(value.String(), cutset))
+
+	})
+}
+
+func replace() elmo.NamedValue {
+	return elmo.NewGoFunction("replace", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+
+		_, ok, err := elmo.CheckArguments(arguments, 3, 4, "replace", "(first|last|all)? <string> <old> <new>")
+		if !ok {
+			return err
+		}
+
+		idx := 1
+
+		value := elmo.EvalArgument(context, arguments[0])
+		if value.Type() == elmo.TypeError {
+			return value
+		}
+
+		all := false
+		last := false
+		first := false
+
+		if value.Type() == elmo.TypeIdentifier {
+			switch value.String() {
+			case "all":
+				all = true
+			case "first":
+				first = true
+			case "last":
+				last = true
+			default:
+				return elmo.NewErrorValue(fmt.Sprintf("replace first, last or all, not %v", value))
+			}
+		}
+
+		if all || last || first {
+			value = elmo.EvalArgument(context, arguments[1])
+			if value.Type() == elmo.TypeError {
+				return value
+			}
+			idx = 2
+		}
+
+		oldValue := elmo.EvalArgument(context, arguments[idx])
+		if oldValue.Type() == elmo.TypeError {
+			return oldValue
+		}
+
+		newValue := elmo.EvalArgument(context, arguments[idx+1])
+		if newValue.Type() == elmo.TypeError {
+			return newValue
+		}
+
+		if all {
+			return elmo.NewStringLiteral(strings.Replace(value.String(), oldValue.String(), newValue.String(), -1))
+		}
+
+		if last {
+			lastIndex := strings.LastIndex(value.String(), oldValue.String())
+			if lastIndex < 0 {
+				return value
+			}
+
+			var buffer bytes.Buffer
+			buffer.WriteString(value.String()[0:lastIndex])
+			buffer.WriteString(newValue.String())
+			buffer.WriteString(value.String()[lastIndex+len(oldValue.String()):])
+
+			return elmo.NewStringLiteral(buffer.String())
+		}
+
+		return elmo.NewStringLiteral(strings.Replace(value.String(), oldValue.String(), newValue.String(), 1))
 
 	})
 }
