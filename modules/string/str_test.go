@@ -182,3 +182,54 @@ func TestReplace(t *testing.T) {
      str.replace soup "chipotle in a jar" "in" "out"`, elmo.ExpectErrorValueAt(t, 2))
 
 }
+
+func TestFind(t *testing.T) {
+
+	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
+		`str: (load "string")
+     str.find`, elmo.ExpectErrorValueAt(t, 2))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
+		`str: (load "string")
+     str.find "chipotle in a jar" "in"`, elmo.ExpectValue(t, elmo.NewIntegerLiteral(9)))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
+		`str: (load "string")
+      str.find (error "chipotle in a jar") "in" `, elmo.ExpectErrorValueAt(t, 2))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
+		`str: (load "string")
+     str.find first (error "chipotle in a jar") "in" `, elmo.ExpectErrorValueAt(t, 2))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
+		`str: (load "string")
+     str.find "chipotle in a jar" (error "in") `, elmo.ExpectErrorValueAt(t, 2))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
+		`str: (load "string")
+     str.find soup "chipotle in a jar" "in" `, elmo.ExpectErrorValueAt(t, 2))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
+		`str: (load "string")
+     str.find first "chipotle in a jar" "in"`, elmo.ExpectValue(t, elmo.NewIntegerLiteral(9)))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
+		`str: (load "string")
+     str.find last "chipotle in a bin" "in"`, elmo.ExpectValue(t, elmo.NewIntegerLiteral(15)))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
+		`str: (load "string")
+     str.find all "galalalapeno" "la"`, elmo.ExpectValue(t, elmo.ParseAndRun(elmo.NewGlobalContext(), "[2 4 6]")))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
+		`str: (load "string")
+     str.find all "gagagagalapeno" "gaga"`, elmo.ExpectValue(t, elmo.ParseAndRun(elmo.NewGlobalContext(), "[0 4]")))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
+		`str: (load "string")
+     str.find all "galapeno" "galapeno"`, elmo.ExpectValue(t, elmo.ParseAndRun(elmo.NewGlobalContext(), "[0]")))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
+		`str: (load "string")
+     str.find all "galapeno" "peno"`, elmo.ExpectValue(t, elmo.ParseAndRun(elmo.NewGlobalContext(), "[4]")))
+}

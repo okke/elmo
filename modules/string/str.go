@@ -19,7 +19,8 @@ func initModule(context elmo.RunContext) elmo.Value {
 		_len(),
 		concat(),
 		trim(),
-		replace()})
+		replace(),
+		find()})
 }
 
 func _len() elmo.NamedValue {
@@ -153,6 +154,22 @@ func trim() elmo.NamedValue {
 	})
 }
 
+func allLastFirst(cmd string, value elmo.Value) (bool, bool, bool, elmo.ErrorValue) {
+	if value.Type() == elmo.TypeIdentifier {
+		switch value.String() {
+		case "all":
+			return true, false, false, nil
+		case "first":
+			return false, false, true, nil
+		case "last":
+			return false, true, false, nil
+		default:
+			return false, false, false, elmo.NewErrorValue(fmt.Sprintf("%s first, last or all, not %v", cmd, value))
+		}
+	}
+	return false, false, false, nil
+}
+
 func replace() elmo.NamedValue {
 	return elmo.NewGoFunction("replace", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
 
@@ -168,21 +185,10 @@ func replace() elmo.NamedValue {
 			return value
 		}
 
-		all := false
-		last := false
-		first := false
+		all, last, first, err := allLastFirst("replace", value)
 
-		if value.Type() == elmo.TypeIdentifier {
-			switch value.String() {
-			case "all":
-				all = true
-			case "first":
-				first = true
-			case "last":
-				last = true
-			default:
-				return elmo.NewErrorValue(fmt.Sprintf("replace first, last or all, not %v", value))
-			}
+		if err != nil {
+			return err
 		}
 
 		if all || last || first {
@@ -223,5 +229,63 @@ func replace() elmo.NamedValue {
 
 		return elmo.NewStringLiteral(strings.Replace(value.String(), oldValue.String(), newValue.String(), 1))
 
+	})
+}
+
+func find() elmo.NamedValue {
+	return elmo.NewGoFunction("find", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+
+		_, ok, err := elmo.CheckArguments(arguments, 2, 3, "find", "(first|last|all)? <string> <value>")
+		if !ok {
+			return err
+		}
+
+		value := elmo.EvalArgument(context, arguments[0])
+		if value.Type() == elmo.TypeError {
+			return value
+		}
+
+		all, last, first, err := allLastFirst("find", value)
+
+		if err != nil {
+			return err
+		}
+
+		idx := 1
+		if all || last || first {
+			value = elmo.EvalArgument(context, arguments[1])
+			if value.Type() == elmo.TypeError {
+				return value
+			}
+			idx = 2
+		}
+
+		whatValue := elmo.EvalArgument(context, arguments[idx])
+		if whatValue.Type() == elmo.TypeError {
+			return whatValue
+		}
+
+		if last {
+			return elmo.NewIntegerLiteral(int64(strings.LastIndex(value.String(), whatValue.String())))
+		}
+
+		if all {
+			whatStr := whatValue.String()
+			whatLen := len(whatStr)
+			result := []elmo.Value{}
+			findIn := value.String()
+			foundAt := strings.Index(findIn, whatValue.String())
+			at := 0
+			for foundAt >= 0 {
+				result = append(result, elmo.NewIntegerLiteral(int64(at+foundAt)))
+				at = at + foundAt + whatLen
+				findIn = findIn[foundAt+whatLen:]
+				foundAt = strings.Index(findIn, whatStr)
+			}
+			return elmo.NewListValue(result)
+
+		}
+
+		return elmo.NewIntegerLiteral(int64(strings.Index(value.String(), whatValue.String())))
 	})
 }
