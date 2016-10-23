@@ -291,6 +291,70 @@ func (stringLiteral *stringLiteral) Internal() interface{} {
 	return stringLiteral.value
 }
 
+func (stringLiteral *stringLiteral) index(context RunContext, argument Argument) (int, ErrorValue) {
+	indexValue := EvalArgument(context, argument)
+
+	if indexValue.Type() != TypeInteger {
+		return 0, NewErrorValue("string accessor must be an integer")
+	}
+
+	i := (int)(indexValue.Internal().(int64))
+
+	// negative index will be used to get elemnts from the end of the list
+	//
+	if i < 0 {
+		i = len(stringLiteral.value) + i
+	}
+
+	if i < 0 || i >= len(stringLiteral.value) {
+		return 0, NewErrorValue("string accessor out of bounds")
+	}
+
+	return i, nil
+}
+
+func (stringLiteral *stringLiteral) Run(context RunContext, arguments []Argument) Value {
+
+	arglen := len(arguments)
+
+	if arglen == 1 {
+		i, err := stringLiteral.index(context, arguments[0])
+
+		if err != nil {
+			return err
+		}
+
+		return NewStringLiteral(stringLiteral.value[i : i+1])
+	}
+
+	if arglen == 2 {
+		i1, err := stringLiteral.index(context, arguments[0])
+		if err != nil {
+			return err
+		}
+		i2, err := stringLiteral.index(context, arguments[1])
+		if err != nil {
+			return err
+		}
+
+		if i1 > i2 {
+			// return a reversed version of the sub list
+
+			sub := stringLiteral.value[i2 : i1+1]
+			runes := []rune(sub)
+			for i, j := 0, len(runes)-1; i < j; i, j = i+1, j-1 {
+				runes[i], runes[j] = runes[j], runes[i]
+			}
+			return NewStringLiteral(string(runes))
+		}
+
+		return NewStringLiteral(stringLiteral.value[i1 : i2+1])
+
+	}
+
+	return NewErrorValue("too many arguments for string access")
+}
+
 func (integerLiteral *integerLiteral) String() string {
 	return fmt.Sprintf("%d", integerLiteral.value)
 }
@@ -931,10 +995,11 @@ func (call *call) Run(context RunContext, additionalArguments []Argument) Value 
 			return call.pipeResult(context, call.addInfoWhenError(value.(Runnable).Run(context, useArguments)))
 		}
 
-		// list and map values can be used as functions to access list content
+		// runnable values can be used as functions to access their content
 		//
-		if (value.Type() == TypeList || value.Type() == TypeDictionary) && (len(call.arguments) > 0) {
-			return call.pipeResult(context, call.addInfoWhenError(value.(Runnable).Run(context, useArguments)))
+		runnable, isRunnable := value.(Runnable)
+		if (isRunnable) && (len(call.arguments) > 0) {
+			return call.pipeResult(context, call.addInfoWhenError(runnable.Run(context, useArguments)))
 		}
 
 		return call.pipeResult(context, call.addInfoWhenError(value))

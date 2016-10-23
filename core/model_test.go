@@ -28,6 +28,45 @@ func TestMissingStatement(t *testing.T) {
 
 }
 
+func TestStringAccess(t *testing.T) {
+
+	ParseTestAndRunBlock(t,
+		`set s "chipotle"
+		 s 0`, ExpectValue(t, NewStringLiteral("c")))
+
+	ParseTestAndRunBlock(t,
+		`set s "chipotle"
+			s 0 2`, ExpectValue(t, NewStringLiteral("chi")))
+
+	ParseTestAndRunBlock(t,
+		`set s "chipotle"
+		 s 2 0`, ExpectValue(t, NewStringLiteral("ihc")))
+
+	ParseTestAndRunBlock(t,
+		`set s "chipotle"
+		 s -1 0`, ExpectValue(t, NewStringLiteral("eltopihc")))
+
+	ParseTestAndRunBlock(t,
+		`set s "chipotle"
+ 		 s 1 2 3`, ExpectErrorValueAt(t, 2))
+
+	ParseTestAndRunBlock(t,
+		`set s "chipotle"
+  	 s "sauce"`, ExpectErrorValueAt(t, 2))
+
+	ParseTestAndRunBlock(t,
+		`set s "chipotle"
+	 	 s 1 "sauce"`, ExpectErrorValueAt(t, 2))
+
+	ParseTestAndRunBlock(t,
+		`set s "chipotle"
+	 	 s "sauce" 2`, ExpectErrorValueAt(t, 2))
+
+	ParseTestAndRunBlock(t,
+		`set s "chipotle"
+	 	 s 99`, ExpectErrorValueAt(t, 2))
+}
+
 func TestListCreation(t *testing.T) {
 
 	ParseTestAndRunBlock(t,
