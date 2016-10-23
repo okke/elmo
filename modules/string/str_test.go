@@ -108,6 +108,14 @@ func TestTrim(t *testing.T) {
 
 	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
 		`str: (load "string")
+     str.trim prefix "jar_with_chipotle" "jar_with_"`, elmo.ExpectValue(t, elmo.NewStringLiteral("chipotle")))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
+		`str: (load "string")
+     str.trim suffix "chipotle_in_a_jar" "_in_a_jar"`, elmo.ExpectValue(t, elmo.NewStringLiteral("chipotle")))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
+		`str: (load "string")
       str.trim soup " chipotle "`, elmo.ExpectErrorValueAt(t, 2))
 
 	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),

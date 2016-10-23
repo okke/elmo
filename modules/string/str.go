@@ -81,7 +81,7 @@ func concat() elmo.NamedValue {
 func trim() elmo.NamedValue {
 	return elmo.NewGoFunction("trim", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
 
-		argLen, ok, err := elmo.CheckArguments(arguments, 1, 3, "trim", "(left|right)? <string> <cutset>?")
+		argLen, ok, err := elmo.CheckArguments(arguments, 1, 3, "trim", "(left|right|prefix|suffix)? <string> <cutset>?")
 		if !ok {
 			return err
 		}
@@ -90,6 +90,8 @@ func trim() elmo.NamedValue {
 
 		left := false
 		right := false
+		suffix := false
+		prefix := false
 
 		value := elmo.EvalArgument(context, arguments[0])
 		if value.Type() == elmo.TypeError {
@@ -97,17 +99,21 @@ func trim() elmo.NamedValue {
 		}
 
 		if value.Type() == elmo.TypeIdentifier {
-			left = (value.String() == "left")
-			if !left {
-				right = (value.String() == "right")
-				if !right {
-					return elmo.NewErrorValue(fmt.Sprintf("trim left or trim right, not %v", value))
-				}
+			switch value.String() {
+			case "left":
+				left = true
+			case "right":
+				right = true
+			case "suffix":
+				suffix = true
+			case "prefix":
+				prefix = true
+			default:
+				return elmo.NewErrorValue(fmt.Sprintf("trim left, right, prefix or suffix, not %v", value))
 			}
-
 		}
 
-		if left || right {
+		if left || right || prefix || suffix {
 			value = elmo.EvalArgument(context, arguments[1])
 			if value.Type() == elmo.TypeError {
 				return value
@@ -132,6 +138,15 @@ func trim() elmo.NamedValue {
 		if right {
 			return elmo.NewStringLiteral(strings.TrimRight(value.String(), cutset))
 		}
+
+		if prefix {
+			return elmo.NewStringLiteral(strings.TrimPrefix(value.String(), cutset))
+		}
+
+		if suffix {
+			return elmo.NewStringLiteral(strings.TrimSuffix(value.String(), cutset))
+		}
+
 		return elmo.NewStringLiteral(strings.Trim(value.String(), cutset))
 
 	})
