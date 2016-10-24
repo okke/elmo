@@ -23,6 +23,7 @@ type RunContext interface {
 	SetScriptName(this Value)
 	ScriptName() Value
 	Get(key string) (Value, bool)
+	Keys() []string
 	CreateSubContext() RunContext
 	Parent() RunContext
 	Mapping() map[string]Value
@@ -111,6 +112,17 @@ func (runContext *runContext) Get(key string) (Value, bool) {
 	}
 
 	return nil, false
+}
+
+func (runContext *runContext) Keys() []string {
+	keys := []string{}
+	for k := range runContext.properties {
+		keys = append(keys, k)
+	}
+	if runContext.parent == nil {
+		return keys
+	}
+	return append(keys, runContext.parent.Keys()...)
 }
 
 func (runContext *runContext) Parent() RunContext {

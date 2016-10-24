@@ -80,3 +80,36 @@ func TestSetAndGetNamedValue(t *testing.T) {
 		}
 	}
 }
+
+func TestKeys(t *testing.T) {
+
+	context := NewRunContext(nil)
+
+	context.Set("sauce", NewStringLiteral("chipotle"))
+
+	context = context.CreateSubContext()
+
+	context.Set("soup", NewStringLiteral("jalapeno"))
+
+	keys := context.Keys()
+
+	if len(keys) != 2 {
+		t.Errorf("expected one key instead of %d: %v", len(keys), keys)
+	}
+
+	set := make(map[string]bool)
+	for _, v := range keys {
+		set[v] = true
+	}
+
+	_, ok := set["sauce"]
+	if !ok {
+		t.Errorf("expected sauce to be a key")
+	}
+
+	_, ok = set["soup"]
+	if !ok {
+		t.Errorf("expected soup to be a key")
+	}
+
+}

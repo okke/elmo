@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"reflect"
+	"sort"
 	"time"
 )
 
@@ -59,6 +60,7 @@ func NewGlobalContext() RunContext {
 	context.SetNamed(modulo())
 	context.SetNamed(assert())
 	context.SetNamed(_error())
+	context.SetNamed(help())
 
 	return context
 }
@@ -923,6 +925,45 @@ func _error() NamedValue {
 		}
 
 		return NewErrorValue(EvalArgument2String(context, arguments[0]))
+
+	})
+}
+
+func help() NamedValue {
+	return NewGoFunction("help", func(context RunContext, arguments []Argument) Value {
+
+		_, ok, err := CheckArguments(arguments, 0, 0, "help", "")
+		if !ok {
+			return err
+		}
+
+		keys := context.Keys()
+		sort.Strings(keys)
+
+		result := []Value{}
+		for _, key := range keys {
+			value, _ := context.Get(key)
+			if value.Type() == TypeGoFunction {
+				result = append(result, NewStringLiteral(key))
+			} else if value.Type() == TypeDictionary {
+
+				subkeys := []string{}
+				for k := range value.Internal().(map[string]Value) {
+					subkeys = append(subkeys, k)
+				}
+
+				sort.Strings(subkeys)
+
+				for _, subkey := range subkeys {
+					subValue, _ := value.Internal().(map[string]Value)[subkey]
+					if subValue.Type() == TypeGoFunction {
+						result = append(result, NewStringLiteral(key+"."+subkey))
+					}
+				}
+			}
+		}
+
+		return NewListValue(result)
 
 	})
 }
