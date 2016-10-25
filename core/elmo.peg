@@ -6,15 +6,13 @@ type ElmoGrammar Peg {
 
 Script <- Spacing (Line)* EOT
 
-Line <- (NewLine)? Argument (Shortcut)? (Argument)? ((COMMA (NewLine)?)? Argument)* (PipedOutput / EndOfLine)?
+Line <- (NewLine)? Argument (COLON)? (Argument)? ((COMMA (NewLine)?)? Argument)* (PipedOutput / EndOfLine)?
 
 PipedOutput <- PIPE Line
 
 EndOfLine <- PCOMMA / NewLine
 
-Shortcut <- COLON / DOT
-
-Argument <- Identifier
+Argument <- Identifier (DOT Identifier)?
            / StringLiteral
            / Number
            / FunctionCall

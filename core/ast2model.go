@@ -42,7 +42,7 @@ func Ast2Call(node *node32, meta ScriptMetaData) Call {
 	var functionName = []string{}
 	var functionArg *node32
 	var arguments = []Argument{}
-	var appendToFunctionName = false
+	//var appendToFunctionName = false
 
 	var pipeTo Call
 
@@ -63,36 +63,35 @@ func Ast2Call(node *node32, meta ScriptMetaData) Call {
 		if idx == 0 {
 			functionArg = argument.up
 			if functionArg.pegRule == ruleIdentifier {
-				functionName = append(functionName, nodeText(argument, meta.Content()))
+				functionName = append(functionName, nodeText(functionArg, meta.Content()))
+
+				// can be followed by (DOT Identifier)
+				//
+				dot := functionArg.next
+				if dot != nil && dot.pegRule == ruleDOT {
+					subNameArg := dot.next
+					if subNameArg != nil && subNameArg.pegRule == ruleIdentifier {
+						functionName = append(functionName, nodeText(subNameArg, meta.Content()))
+					}
+				}
+
 			} else {
 				panic(fmt.Sprintf("found non identifier %v: %v", argument, nodeText(argument, meta.Content())))
 			}
 
 		} else {
 			if argument.pegRule == ruleArgument {
-				if appendToFunctionName {
-					functionName = append(functionName, nodeText(argument, meta.Content()))
-					appendToFunctionName = false
-				} else {
-					arguments = append(arguments, Ast2Argument(argument.up, meta))
-				}
-			} else if argument.pegRule == ruleShortcut {
-
-				cut := argument.up
-
-				if cut.pegRule == ruleCOLON {
-					// convert identifier : value => set identifier value
-					//
-					functionName = []string{"set"}
-					arguments = append(arguments, Ast2Argument(functionArg, meta))
-				} else if cut.pegRule == ruleDOT {
-					// convert identifier . value => (identifier value)
-					appendToFunctionName = true
-				} else {
-					panic(fmt.Sprintf("could not create shortcut call for %v", cut))
-				}
-
+				arguments = append(arguments, Ast2Argument(argument.up, meta))
+			} else if argument.pegRule == ruleCOLON {
+				// convert identifier : value => set identifier value
+				//
+				functionName = []string{"set"}
+				arguments = append(arguments, Ast2Argument(functionArg, meta))
+			} else if argument.pegRule == ruleDOT {
+				// convert identifier . value => (identifier value)
+				//appendToFunctionName = true
 			}
+
 		}
 	}
 
