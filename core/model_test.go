@@ -2,6 +2,9 @@ package elmo
 
 import "testing"
 
+func dummyArgFromText(name string) Argument {
+	return NewArgument(NewScriptMetaData("test", "test"), 0, 0, NewIdentifier(name))
+}
 func TestFunctionCallWithBlock(t *testing.T) {
 	ParseTestAndRunBlock(t,
 		`f: (func arg {return (type $arg)})
@@ -67,7 +70,7 @@ func TestStringAccess(t *testing.T) {
 	 	 s 99`, ExpectErrorValueAt(t, 2))
 }
 
-func TestListCreation(t *testing.T) {
+func TestLiteralsAsCalls(t *testing.T) {
 
 	ParseTestAndRunBlock(t,
 		`[3]`, ExpectValue(t, NewListValue([]Value{NewIntegerLiteral(3)})))
@@ -80,6 +83,28 @@ func TestListCreation(t *testing.T) {
 
 	ParseTestAndRunBlock(t,
 		`[[3 "chipotle"]]`, ExpectValue(t, NewListValue([]Value{NewListValue([]Value{NewIntegerLiteral(3), NewStringLiteral("chipotle")})})))
+
+	ParseTestAndRunBlock(t,
+		`3`, ExpectValue(t, NewIntegerLiteral(3)))
+
+	ParseTestAndRunBlock(t,
+		`3.0`, ExpectValue(t, NewFloatLiteral(3.0)))
+
+	ParseTestAndRunBlock(t,
+		`"chipotle"`, ExpectValue(t, NewStringLiteral("chipotle")))
+}
+
+func TestCallsAsCall(t *testing.T) {
+	ParseTestAndRunBlock(t,
+		`pepper: (func { return chipotle })
+	   chipotle: (func x { return (plus $x 1) })
+	   $pepper 2`, ExpectValue(t, NewIntegerLiteral(3)))
+
+	ParseTestAndRunBlock(t,
+		`pepper: (func { return jalapeno })
+		 jalapeno: (func { return chipotle })
+		 chipotle: (func x { return (plus $x 1) })
+		 ($pepper) 2`, ExpectValue(t, NewIntegerLiteral(3)))
 }
 
 func TestBlockWithoutCallsShouldReturnNothing(t *testing.T) {
@@ -97,7 +122,7 @@ func TestBlockWithOneCallsShouldReturnCallResult(t *testing.T) {
 
 	context.Set("chipotle", NewStringLiteral("sauce"))
 
-	result := NewBlock(nil, 0, 0, []Call{NewCall(nil, 0, 0, []string{"chipotle"}, []Argument{}, nil)}).Run(context, []Argument{})
+	result := NewBlock(nil, 0, 0, []Call{NewCall(nil, 0, 0, dummyArgFromText("chipotle"), []Argument{}, nil)}).Run(context, []Argument{})
 
 	if result == Nothing {
 		t.Error("block with statement should return something")
@@ -116,8 +141,8 @@ func TestBlockWithTwoCallsShouldReturnLastCallResult(t *testing.T) {
 	context.Set("blackbeans", NewStringLiteral("soup"))
 
 	result := NewBlock(nil, 0, 0, []Call{
-		NewCall(nil, 0, 0, []string{"chipotle"}, []Argument{}, nil),
-		NewCall(nil, 0, 0, []string{"blackbeans"}, []Argument{}, nil)}).Run(context, []Argument{})
+		NewCall(nil, 0, 0, dummyArgFromText("chipotle"), []Argument{}, nil),
+		NewCall(nil, 0, 0, dummyArgFromText("blackbeans"), []Argument{}, nil)}).Run(context, []Argument{})
 
 	if result == Nothing {
 		t.Error("block with statement should return something")
@@ -136,7 +161,7 @@ func TestBlockCallToNativeFunctionShouldExecuteFunction(t *testing.T) {
 		return NewStringLiteral("chipotle")
 	}))
 
-	result := NewBlock(nil, 0, 0, []Call{NewCall(nil, 0, 0, []string{"sauce"}, []Argument{}, nil)}).Run(context, []Argument{})
+	result := NewBlock(nil, 0, 0, []Call{NewCall(nil, 0, 0, dummyArgFromText("sauce"), []Argument{}, nil)}).Run(context, []Argument{})
 
 	if result == Nothing {
 		t.Error("block with statement should return something")
@@ -155,7 +180,7 @@ func TestGoFunctionWithOneArgumentCanReturnArgumentValue(t *testing.T) {
 		return arguments[0].Value()
 	}))
 
-	result := NewBlock(nil, 0, 0, []Call{NewCall(nil, 0, 0, []string{"echo"}, []Argument{NewArgument(nil, 0, 0, NewStringLiteral("chipotle"))}, nil)}).Run(context, []Argument{})
+	result := NewBlock(nil, 0, 0, []Call{NewCall(nil, 0, 0, dummyArgFromText("echo"), []Argument{NewArgument(nil, 0, 0, NewStringLiteral("chipotle"))}, nil)}).Run(context, []Argument{})
 
 	if result.String() != "chipotle" {
 		t.Errorf("function should return (chipotle) instead of %s", result.String())
@@ -172,7 +197,7 @@ func TestGoFunctionCanAlterContext(t *testing.T) {
 		return Nothing
 	}))
 
-	NewBlock(nil, 0, 0, []Call{NewCall(nil, 0, 0, []string{"alter"}, []Argument{
+	NewBlock(nil, 0, 0, []Call{NewCall(nil, 0, 0, dummyArgFromText("alter"), []Argument{
 		NewArgument(nil, 0, 0, NewStringLiteral("chipotle")),
 		NewArgument(nil, 0, 0, NewStringLiteral("sauce"))}, nil)}).Run(context, []Argument{})
 

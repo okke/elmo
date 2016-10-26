@@ -25,6 +25,7 @@ func Ast2List(node *node32, meta ScriptMetaData, pipe Call) Call {
 	for _, argument := range nodeChildren(node) {
 		arguments = append(arguments, Ast2Argument(argument.up, meta))
 	}
+
 	return NewCallWithFunction(meta, node.begin, node.end, ListConstructor, arguments, pipe)
 }
 
@@ -39,63 +40,33 @@ func Ast2Call(node *node32, meta ScriptMetaData) Call {
 		return Ast2Call(children[0], meta)
 	}
 
-	var functionName = []string{}
-	var functionArg *node32
+	var firstArg Argument
 	var arguments = []Argument{}
-	//var appendToFunctionName = false
-
 	var pipeTo Call
 
 	if children[childrenLength-1].pegRule == rulePipedOutput {
 		pipeTo = Ast2Call(nodeChildren(children[childrenLength-1])[1], meta)
-	}
-
-	// when call does not start with an identifier, it can be a literal without arguments
-	//
-	if (childrenLength == 1 && pipeTo == nil) || (childrenLength == 2 && pipeTo != nil) {
-
-		if children[0].up.pegRule != ruleIdentifier {
-			return NewCall(meta, children[0].up.begin, children[0].up.end, []string{"echo"}, []Argument{Ast2Argument(children[0].up, meta)}, pipeTo)
-		}
+		children = children[:len(children)-1]
 	}
 
 	for idx, argument := range children {
 		if idx == 0 {
-			functionArg = argument.up
-			if functionArg.pegRule == ruleIdentifier {
-				functionName = append(functionName, nodeText(functionArg, meta.Content()))
-
-				// can be followed by (DOT Identifier)
-				//
-				dot := functionArg.next
-				if dot != nil && dot.pegRule == ruleDOT {
-					subNameArg := dot.next
-					if subNameArg != nil && subNameArg.pegRule == ruleIdentifier {
-						functionName = append(functionName, nodeText(subNameArg, meta.Content()))
-					}
-				}
-
-			} else {
-				panic(fmt.Sprintf("found non identifier %v: %v", argument, nodeText(argument, meta.Content())))
-			}
-
+			firstArg = Ast2Argument(argument.up, meta)
 		} else {
 			if argument.pegRule == ruleArgument {
 				arguments = append(arguments, Ast2Argument(argument.up, meta))
 			} else if argument.pegRule == ruleCOLON {
 				// convert identifier : value => set identifier value
 				//
-				functionName = []string{"set"}
-				arguments = append(arguments, Ast2Argument(functionArg, meta))
-			} else if argument.pegRule == ruleDOT {
-				// convert identifier . value => (identifier value)
-				//appendToFunctionName = true
+				arguments = append(arguments, firstArg)
+				firstArg = NewArgument(meta, argument.begin, argument.end, NewIdentifier("set"))
+			} else {
+				panic(fmt.Sprintf("unexpected argument %v", argument))
 			}
-
 		}
 	}
 
-	return NewCall(meta, node.begin, node.end, functionName, arguments, pipeTo)
+	return NewCall(meta, node.begin, node.end, firstArg, arguments, pipeTo)
 }
 
 // Ast2Argument converts an ast node to a function argument
@@ -103,7 +74,21 @@ func Ast2Call(node *node32, meta ScriptMetaData) Call {
 func Ast2Argument(node *node32, meta ScriptMetaData) Argument {
 	switch node.pegRule {
 	case ruleIdentifier:
-		return NewArgument(meta, node.begin, node.end, NewIdentifier(nodeText(node, meta.Content())))
+		txt := nodeText(node, meta.Content())
+
+		// can be followed by (DOT Identifier)
+		//
+		dot := node.next
+		if dot != nil && dot.pegRule == ruleDOT {
+			nextNode := dot.next
+			if nextNode != nil && nextNode.pegRule == ruleIdentifier {
+				return NewArgument(meta, node.begin, nextNode.end,
+					NewNameSpacedIdentifier([]string{txt, nodeText(nextNode, meta.Content())}))
+			}
+			panic(fmt.Sprintf("expect identifier after namespace separator: %v", node))
+		}
+
+		return NewArgument(meta, node.begin, node.end, NewIdentifier(txt))
 	case ruleStringLiteral:
 		txt := nodeText(node, meta.Content())
 		return NewArgument(meta, node.begin, node.end, NewStringLiteral(txt[1:len(txt)-1]))

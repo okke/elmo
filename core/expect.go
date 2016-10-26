@@ -66,7 +66,7 @@ func ExpectValue(t *testing.T, value Value) func(RunContext, Value) {
 
 	return func(context RunContext, blockResult Value) {
 		if !reflect.DeepEqual(blockResult, value) {
-			t.Errorf("expected (%v) but found (%v)", value, blockResult)
+			t.Errorf("expected value (%v) but found (%v)", value, blockResult)
 		}
 	}
 }
