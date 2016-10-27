@@ -67,7 +67,10 @@ func replReadMore(commandLine *liner.State, command string) string {
 	}
 	last := string(trimmed[len(trimmed)-1:])
 
-	for strings.Index("{}()[],;", last) != -1 {
+	var inMultiLine = false
+	var current = trimmed
+
+	for strings.Index("{}()[],;`", last) != -1 || strings.Count(trimmed, "`") == 1 || inMultiLine {
 
 		// TODO: 18okt2016 should check if character not with a string or a comment
 		//
@@ -75,10 +78,31 @@ func replReadMore(commandLine *liner.State, command string) string {
 		bDepth := strings.Count(trimmed, "{") - strings.Count(trimmed, "}")
 		lDepth := strings.Count(trimmed, "[") - strings.Count(trimmed, "]")
 
-		if fDepth > 0 || bDepth > 0 || lDepth > 0 {
+		wantMore := strings.Index(",;", last) != -1
+
+		// poor mans multi line parsing
+		//
+		if inMultiLine {
+			if (strings.Count(current, "`") % 2) == 1 {
+				inMultiLine = false
+			} else {
+				wantMore = true
+			}
+		} else {
+			if (strings.Count(current, "`") % 2) == 1 {
+				inMultiLine = true
+				wantMore = true
+			}
+		}
+
+		if fDepth > 0 || bDepth > 0 || lDepth > 0 || wantMore {
 			if next, err := commandLine.Prompt("    : " + strings.Repeat("\t", bDepth)); err == nil {
+				if next == "--" {
+					return trimmed
+				}
 				trimmed = trimmed + next
 				last = string(trimmed[len(trimmed)-1:])
+				current = next
 			}
 		} else {
 			return trimmed

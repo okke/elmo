@@ -1,6 +1,7 @@
 package elmo
 
 import (
+	"bytes"
 	"fmt"
 	"strconv"
 )
@@ -69,6 +70,44 @@ func Ast2Call(node *node32, meta ScriptMetaData) Call {
 	return NewCall(meta, node.begin, node.end, firstArg, arguments, pipeTo)
 }
 
+func escapeString(c rune) rune {
+	switch c {
+	case 't':
+		return '\t'
+	case 'n':
+		return '\n'
+	default:
+		return c
+	}
+}
+
+func escapeLongString(c rune) rune {
+	if c == '`' {
+		return '`'
+	}
+
+	panic(fmt.Sprintf("can not escape multi line string using %c", c))
+}
+
+func replaceEscapes(s string, esc rune, escape func(c rune) rune) string {
+	var buffer bytes.Buffer
+	escaped := false
+	for _, c := range s {
+		// do something with c
+		if c == esc && !escaped {
+			escaped = true
+		} else {
+			if escaped {
+				buffer.WriteRune(escape(c))
+				escaped = false
+			} else {
+				buffer.WriteRune(c)
+			}
+		}
+	}
+	return buffer.String()
+}
+
 // Ast2Argument converts an ast node to a function argument
 //
 func Ast2Argument(node *node32, meta ScriptMetaData) Argument {
@@ -91,7 +130,10 @@ func Ast2Argument(node *node32, meta ScriptMetaData) Argument {
 		return NewArgument(meta, node.begin, node.end, NewIdentifier(txt))
 	case ruleStringLiteral:
 		txt := nodeText(node, meta.Content())
-		return NewArgument(meta, node.begin, node.end, NewStringLiteral(txt[1:len(txt)-1]))
+		return NewArgument(meta, node.begin, node.end, NewStringLiteral(replaceEscapes(txt[1:len(txt)-1], '\\', escapeString)))
+	case ruleLongStringLiteral:
+		txt := nodeText(node, meta.Content())
+		return NewArgument(meta, node.begin, node.end, NewStringLiteral(replaceEscapes(txt[1:len(txt)-1], '`', escapeLongString)))
 	case ruleNumber:
 		txt := nodeText(node, meta.Content())
 

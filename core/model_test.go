@@ -5,6 +5,33 @@ import "testing"
 func dummyArgFromText(name string) Argument {
 	return NewArgument(NewScriptMetaData("test", "test"), 0, 0, NewIdentifier(name))
 }
+
+func TestLiteralStrings(t *testing.T) {
+	ParseTestAndRunBlock(t,
+		`"chipotle\tjalapeno"`, ExpectValue(t, NewStringLiteral("chipotle\tjalapeno")))
+
+	ParseTestAndRunBlock(t,
+		`"chipotle\njalapeno"`, ExpectValue(t, NewStringLiteral("chipotle\njalapeno")))
+
+	ParseTestAndRunBlock(t,
+		"\"chipotle\\\\jalapeno\"", ExpectValue(t, NewStringLiteral("chipotle\\jalapeno")))
+
+	ParseTestAndRunBlock(t,
+		`"chipotle\-jalapeno"`, ExpectValue(t, NewStringLiteral("chipotle-jalapeno")))
+
+	ParseTestAndRunBlock(t,
+		"`chipotle\njalapeno`", ExpectValue(t, NewStringLiteral("chipotle\njalapeno")))
+
+	ParseTestAndRunBlock(t,
+		"`chipotle\\\\jalapeno`", ExpectValue(t, NewStringLiteral("chipotle\\\\jalapeno")))
+
+	ParseTestAndRunBlock(t,
+		"`chipotle'jalapeno`", ExpectValue(t, NewStringLiteral("chipotle'jalapeno")))
+
+	ParseTestAndRunBlock(t,
+		"`chipotle``jalapeno`", ExpectValue(t, NewStringLiteral("chipotle`jalapeno")))
+}
+
 func TestFunctionCallWithBlock(t *testing.T) {
 	ParseTestAndRunBlock(t,
 		`f: (func arg {return (type $arg)})
