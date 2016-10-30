@@ -732,7 +732,7 @@ func (errorValue *errorValue) IsTraced() bool {
 }
 
 func (goFunction *goFunction) String() string {
-	return fmt.Sprintf("go:%s", goFunction.name)
+	return fmt.Sprintf("func(%s)", goFunction.name)
 }
 
 func (goFunction *goFunction) Type() Type {

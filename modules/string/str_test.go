@@ -274,4 +274,56 @@ func TestSplit(t *testing.T) {
 	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
 		`str: (load "string")
     str.split "chipotle;jalapeno;chilli" ";"`, elmo.ExpectValue(t, elmo.ParseAndRun(elmo.NewGlobalContext(), `["chipotle" "jalapeno" "chilli"]`)))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
+		`str: (load "string")
+    str.split "chipotle"`, elmo.ExpectValue(t, elmo.ParseAndRun(elmo.NewGlobalContext(), `["c" "h" "i" "p" "o" "t" "l" "e"]`)))
+}
+
+func TestStartsWith(t *testing.T) {
+
+	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
+		`str: (load "string")
+     str.startsWith`, elmo.ExpectErrorValueAt(t, 2))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
+		`str: (load "string")
+    str.startsWith (error "chipotle") "chipotle"`, elmo.ExpectErrorValueAt(t, 2))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
+		`str: (load "string")
+    str.startsWith "chipotle" (error "chipotle")`, elmo.ExpectErrorValueAt(t, 2))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
+		`str: (load "string")
+    str.startsWith "chipotle" "chi"`, elmo.ExpectValue(t, elmo.NewBooleanLiteral(true)))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
+		`str: (load "string")
+    str.startsWith "chipotle" "cho"`, elmo.ExpectValue(t, elmo.NewBooleanLiteral(false)))
+
+}
+
+func TestEndsWith(t *testing.T) {
+
+	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
+		`str: (load "string")
+     str.endsWith`, elmo.ExpectErrorValueAt(t, 2))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
+		`str: (load "string")
+    str.endsWith (error "chipotle") "chipotle"`, elmo.ExpectErrorValueAt(t, 2))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
+		`str: (load "string")
+    str.endsWith "chipotle" (error "chipotle")`, elmo.ExpectErrorValueAt(t, 2))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
+		`str: (load "string")
+    str.endsWith "chipotle" "tle"`, elmo.ExpectValue(t, elmo.NewBooleanLiteral(true)))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
+		`str: (load "string")
+    str.endsWith "chipotle" "tla"`, elmo.ExpectValue(t, elmo.NewBooleanLiteral(false)))
+
 }

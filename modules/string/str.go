@@ -22,7 +22,9 @@ func initModule(context elmo.RunContext) elmo.Value {
 		replace(),
 		find(),
 		count(),
-		split()})
+		split(),
+		endsWith(),
+		startsWith()})
 }
 
 func _len() elmo.NamedValue {
@@ -318,7 +320,7 @@ func count() elmo.NamedValue {
 func split() elmo.NamedValue {
 	return elmo.NewGoFunction("split", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
 
-		_, ok, err := elmo.CheckArguments(arguments, 2, 2, "split", "<string> <value>")
+		argLen, ok, err := elmo.CheckArguments(arguments, 1, 2, "split", "<string> <value>?")
 		if !ok {
 			return err
 		}
@@ -328,17 +330,67 @@ func split() elmo.NamedValue {
 			return str
 		}
 
-		sep := elmo.EvalArgument(context, arguments[1])
-		if sep.Type() == elmo.TypeError {
-			return sep
+		splitBy := ""
+		if argLen == 2 {
+			by := elmo.EvalArgument(context, arguments[1])
+			if by.Type() == elmo.TypeError {
+				return by
+			}
+			splitBy = by.String()
 		}
 
-		splitted := strings.Split(str.String(), sep.String())
+		splitted := strings.Split(str.String(), splitBy)
 		values := make([]elmo.Value, len(splitted))
 		for i, v := range splitted {
 			values[i] = elmo.NewStringLiteral(v)
 		}
 
 		return elmo.NewListValue(values)
+	})
+}
+
+func endsWith() elmo.NamedValue {
+	return elmo.NewGoFunction("endsWith", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+
+		_, ok, err := elmo.CheckArguments(arguments, 2, 2, "endsWith", "<string> <value>")
+		if !ok {
+			return err
+		}
+
+		str := elmo.EvalArgument(context, arguments[0])
+		if str.Type() == elmo.TypeError {
+			return str
+		}
+
+		suffix := elmo.EvalArgument(context, arguments[1])
+		if suffix.Type() == elmo.TypeError {
+			return suffix
+		}
+
+		return elmo.NewBooleanLiteral(strings.HasSuffix(str.String(), suffix.String()))
+
+	})
+}
+
+func startsWith() elmo.NamedValue {
+	return elmo.NewGoFunction("startsWith", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+
+		_, ok, err := elmo.CheckArguments(arguments, 2, 2, "startsWith", "<string> <value>")
+		if !ok {
+			return err
+		}
+
+		str := elmo.EvalArgument(context, arguments[0])
+		if str.Type() == elmo.TypeError {
+			return str
+		}
+
+		prefix := elmo.EvalArgument(context, arguments[1])
+		if prefix.Type() == elmo.TypeError {
+			return prefix
+		}
+
+		return elmo.NewBooleanLiteral(strings.HasPrefix(str.String(), prefix.String()))
+
 	})
 }
