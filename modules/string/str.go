@@ -20,7 +20,8 @@ func initModule(context elmo.RunContext) elmo.Value {
 		concat(),
 		trim(),
 		replace(),
-		find()})
+		find(),
+		count()})
 }
 
 func _len() elmo.NamedValue {
@@ -287,5 +288,30 @@ func find() elmo.NamedValue {
 		}
 
 		return elmo.NewIntegerLiteral(int64(strings.Index(value.String(), whatValue.String())))
+	})
+}
+
+func count() elmo.NamedValue {
+	return elmo.NewGoFunction("count", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+
+		_, ok, err := elmo.CheckArguments(arguments, 2, 2, "count", "<string> <value>")
+		if !ok {
+			return err
+		}
+
+		str := elmo.EvalArgument(context, arguments[0])
+		if str.Type() == elmo.TypeError {
+			return str
+		}
+
+		sep := elmo.EvalArgument(context, arguments[1])
+		if sep.Type() == elmo.TypeError {
+			return sep
+		}
+
+		fmt.Printf("count %v in %v", sep, str)
+
+		return elmo.NewIntegerLiteral(int64(strings.Count(str.String(), sep.String())))
+
 	})
 }

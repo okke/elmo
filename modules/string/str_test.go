@@ -233,3 +233,26 @@ func TestFind(t *testing.T) {
 		`str: (load "string")
      str.find all "galapeno" "peno"`, elmo.ExpectValue(t, elmo.ParseAndRun(elmo.NewGlobalContext(), "[4]")))
 }
+
+func TestCount(t *testing.T) {
+
+	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
+		`str: (load "string")
+     str.count`, elmo.ExpectErrorValueAt(t, 2))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
+		`str: (load "string")
+    str.count (error "chipotle") "chipotle"`, elmo.ExpectErrorValueAt(t, 2))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
+		`str: (load "string")
+    str.count "chipotle" (error "chipotle")`, elmo.ExpectErrorValueAt(t, 2))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
+		`str: (load "string")
+    str.count "chipotle" "chipotle"`, elmo.ExpectValue(t, elmo.NewIntegerLiteral(1)))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
+		`str: (load "string")
+    str.count "jalapeno" "a"`, elmo.ExpectValue(t, elmo.NewIntegerLiteral(2)))
+}
