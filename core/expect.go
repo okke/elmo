@@ -2,9 +2,33 @@ package elmo
 
 // ExpectValueSetTo expects a given variable is set to a given value
 import (
+	"fmt"
 	"reflect"
+	"runtime"
+	"strings"
 	"testing"
 )
+
+func getCallingFunc() string {
+	skip := 0
+
+	_, fn, line, ok := runtime.Caller(skip)
+
+	for ok {
+
+		splitted := strings.Split(fn, "/")
+		last := splitted[len(splitted)-1]
+		if strings.HasSuffix(last, "_test.go") {
+			return fmt.Sprintf("%v:%d", last, line)
+		}
+
+		skip = skip + 1
+		_, fn, line, ok = runtime.Caller(skip)
+	}
+
+	return "unknown calling function"
+
+}
 
 // ExpectValueSetTo returns a function that checks if a value is set in context
 //
@@ -20,10 +44,10 @@ func ExpectValueSetTo(t *testing.T, key string, value string) func(RunContext, V
 		result, found := context.Get(key)
 
 		if !found {
-			t.Errorf("expected %s to be set", key)
+			t.Errorf("expected %s to be set at %s", key, getCallingFunc())
 		} else {
 			if result.String() != value {
-				t.Errorf("expected %s to be set to (%s), found %s", key, value, result.String())
+				t.Errorf("expected %s to be set to (%s), found %s at %s", key, value, result.String(), getCallingFunc())
 			}
 		}
 	}
@@ -36,14 +60,14 @@ func ExpectErrorValueAt(t *testing.T, lineno int) func(RunContext, Value) {
 	return func(context RunContext, blockResult Value) {
 
 		if blockResult.Type() != TypeError {
-			t.Errorf("expected error but found %v", blockResult)
+			t.Errorf("expected error but found %v at %s", blockResult, getCallingFunc())
 			return
 		}
 
 		_, l := blockResult.(ErrorValue).At()
 
 		if l != lineno {
-			t.Errorf("expected error at line %d but found (%v) on line %d", lineno, blockResult.String(), l)
+			t.Errorf("expected error at line %d but found (%v) on line %d at %s", lineno, blockResult.String(), l, getCallingFunc())
 		}
 
 	}
@@ -55,7 +79,7 @@ func ExpectNothing(t *testing.T) func(RunContext, Value) {
 
 	return func(context RunContext, blockResult Value) {
 		if blockResult != Nothing {
-			t.Errorf("expected nothing but found %v", blockResult)
+			t.Errorf("expected nothing but found %v at %s", blockResult, getCallingFunc())
 		}
 	}
 }
@@ -66,7 +90,7 @@ func ExpectValue(t *testing.T, value Value) func(RunContext, Value) {
 
 	return func(context RunContext, blockResult Value) {
 		if !reflect.DeepEqual(blockResult, value) {
-			t.Errorf("expected value (%v) but found (%v)", value, blockResult)
+			t.Errorf("expected value %v but found %v at %s", value, blockResult, getCallingFunc())
 		}
 	}
 }
