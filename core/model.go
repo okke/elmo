@@ -816,6 +816,31 @@ func NewDictionaryWithBlock(context RunContext, block Block) Value {
 	return NewDictionaryValue(nil, subContext.Mapping())
 }
 
+// NewDictionaryFromList constructs a dictionary from a list of values
+// where the list is of the form [key value key value]
+//
+func NewDictionaryFromList(parent interface{}, values []Value) Value {
+
+	if (len(values) % 2) != 0 {
+		return NewErrorValue(fmt.Sprintf("can not create a dictionary from an odd number of elements using %v", values))
+	}
+
+	mapping := make(map[string]Value)
+
+	var key Value
+
+	for i, val := range values {
+		if i%2 == 0 {
+			key = val
+		} else {
+			mapping[key.String()] = val
+		}
+	}
+
+	return NewDictionaryValue(parent, mapping)
+
+}
+
 // NewInternalValue wraps a go value into an elmo value
 //
 func NewInternalValue(info TypeInfo, value interface{}) Value {

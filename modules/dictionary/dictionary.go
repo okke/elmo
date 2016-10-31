@@ -2,7 +2,6 @@ package dict
 
 import (
 	"fmt"
-	"math"
 	"sort"
 
 	"github.com/okke/elmo/core"
@@ -14,97 +13,61 @@ var Module = elmo.NewModule("dict", initModule)
 
 func initModule(context elmo.RunContext) elmo.Value {
 	return elmo.NewMappingForModule(context, []elmo.NamedValue{
-		keys(), knows(), dict(), new()})
-}
-
-func dict() elmo.NamedValue {
-	return elmo.NewGoFunction("dict", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
-
-		argLen, ok, err := elmo.CheckArguments(arguments, 0, math.MaxInt16, "dict", "<list> | <block> | <value>*")
-		if !ok {
-			return err
-		}
-
-		mapping := make(map[string]elmo.Value)
-
-		if argLen == 1 {
-			evaluated := elmo.EvalArgument(context, arguments[0])
-			if evaluated.Type() == elmo.TypeBlock {
-				return elmo.NewDictionaryWithBlock(context, evaluated.(elmo.Block))
-			}
-
-			if evaluated.Type() != elmo.TypeList {
-				return elmo.NewErrorValue(fmt.Sprintf("dict needs a list as argument. Can not create dictionary from %v", evaluated))
-			}
-
-			values := evaluated.Internal().([]elmo.Value)
-
-			if (len(values) % 2) != 0 {
-				return elmo.NewErrorValue("dict can not create a dictionary from an odd number of elements")
-			}
-
-			var key elmo.Value
-
-			for i, val := range values {
-				if i%2 == 0 {
-					key = val
-				} else {
-					mapping[key.String()] = val
-				}
-			}
-
-		} else {
-
-			if (argLen % 2) != 0 {
-				return elmo.NewErrorValue("dict can not create a dictionary from an odd number of elements")
-			}
-
-			var key elmo.Value
-
-			for i, arg := range arguments {
-				if i%2 == 0 {
-					key = elmo.EvalArgument(context, arg)
-				} else {
-					mapping[key.String()] = elmo.EvalArgument(context, arg)
-				}
-			}
-		}
-
-		return elmo.NewDictionaryValue(nil, mapping)
-	})
+		keys(), knows(), new()})
 }
 
 func new() elmo.NamedValue {
 	return elmo.NewGoFunction("new", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
 
-		argLen, ok, err := elmo.CheckArguments(arguments, 1, 2, "new", "<value>*")
+		argLen, ok, err := elmo.CheckArguments(arguments, 1, 2, "new", "<parent> <block|dictionary>")
 		if !ok {
 			return err
 		}
 
-		parent := elmo.EvalArgument(context, arguments[0])
+		if argLen == 1 {
 
-		if parent.Type() != elmo.TypeDictionary {
-			return elmo.NewErrorValue(fmt.Sprintf("new expects a dictionary, not %s", parent.String()))
-		}
+			// new without parent
+			//
+			dictValues := elmo.EvalArgument(context, arguments[0])
 
-		var mapping map[string]elmo.Value
-		if argLen == 2 {
-
-			dict := elmo.EvalArgument(context, arguments[1])
-
-			if dict.Type() != elmo.TypeBlock {
-				return elmo.NewErrorValue(fmt.Sprintf("new can not construct dictionary from %s", dict.String()))
+			if dictValues.Type() == elmo.TypeBlock {
+				return elmo.NewDictionaryWithBlock(context, dictValues.(elmo.Block))
 			}
 
-			dict = elmo.NewDictionaryWithBlock(context, dict.(elmo.Block))
+			if dictValues.Type() == elmo.TypeDictionary {
+				return elmo.NewDictionaryValue(nil, dictValues.Internal().(map[string]elmo.Value))
+			}
 
-			mapping = dict.Internal().(map[string]elmo.Value)
-		} else {
-			mapping = make(map[string]elmo.Value)
+			if dictValues.Type() == elmo.TypeList {
+				return elmo.NewDictionaryFromList(nil, dictValues.Internal().([]elmo.Value))
+			}
+
+			return elmo.NewErrorValue(fmt.Sprintf("can not create dictionary from %v", dictValues))
+
 		}
 
-		return elmo.NewDictionaryValue(parent, mapping)
+		parent := elmo.EvalArgumentOrSolveIdentifier(context, arguments[0])
+
+		if parent.Type() != elmo.TypeDictionary {
+			return elmo.NewErrorValue(fmt.Sprintf("invalid dictionary parent %v", parent))
+		}
+
+		dictValues := elmo.EvalArgument(context, arguments[1])
+
+		if dictValues.Type() == elmo.TypeBlock {
+			return elmo.NewDictionaryValue(parent, elmo.NewDictionaryWithBlock(context, dictValues.(elmo.Block)).Internal().(map[string]elmo.Value))
+		}
+
+		if dictValues.Type() == elmo.TypeDictionary {
+			return elmo.NewDictionaryValue(parent, dictValues.Internal().(map[string]elmo.Value))
+		}
+
+		if dictValues.Type() == elmo.TypeList {
+			return elmo.NewDictionaryFromList(parent, dictValues.Internal().([]elmo.Value))
+		}
+
+		return elmo.NewErrorValue(fmt.Sprintf("new can not construct dictionary from %s", dictValues.String()))
+
 	})
 }
 
