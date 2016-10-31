@@ -21,7 +21,6 @@ func TestType(t *testing.T) {
 	ParseTestAndRunBlock(t, `type 3`, ExpectValue(t, NewIdentifier("int")))
 	ParseTestAndRunBlock(t, `type 3.0`, ExpectValue(t, NewIdentifier("float")))
 	ParseTestAndRunBlock(t, `type []`, ExpectValue(t, NewIdentifier("list")))
-	ParseTestAndRunBlock(t, `type (dict [])`, ExpectValue(t, NewIdentifier("dict")))
 
 }
 
@@ -379,66 +378,6 @@ func TestListAccess(t *testing.T) {
    	 ll -4`, ExpectErrorValueAt(t, 2))
 }
 
-func TestDictionary(t *testing.T) {
-
-	ParseTestAndRunBlock(t,
-		`set d (dict 1 2 3 4)
-		 d 1`, ExpectValue(t, NewIntegerLiteral(2)))
-
-	ParseTestAndRunBlock(t,
-		`set d (dict [1 2 3 4])
- 		 d 1`, ExpectValue(t, NewIntegerLiteral(2)))
-
-	ParseTestAndRunBlock(t,
-		`set d (dict 1 2 3 4)
- 		 d 3`, ExpectValue(t, NewIntegerLiteral(4)))
-
-	ParseTestAndRunBlock(t,
-		`set d (dict [1 2 3 4])
-  		 d 3`, ExpectValue(t, NewIntegerLiteral(4)))
-
-	ParseTestAndRunBlock(t,
-		`set d (dict 1 2 3 4)
-  	 d 5`, ExpectNothing(t))
-
-	ParseTestAndRunBlock(t,
-		`set d (dict "1" 2 3 4)
-	   d 1`, ExpectValue(t, NewIntegerLiteral(2)))
-
-	ParseTestAndRunBlock(t,
-		`set d (dict a 2 b 4)
-	 	 d b`, ExpectValue(t, NewIntegerLiteral(4)))
-
-	ParseTestAndRunBlock(t,
-		`set l [a 2 b 4]
-		 set d (dict (l))
- 	 	 d b`, ExpectValue(t, NewIntegerLiteral(4)))
-}
-
-func TestDictionaryWithBlock(t *testing.T) {
-
-	ParseTestAndRunBlock(t,
-		`set d (dict {
-			set b 4
-		 })
- 	 	 d b`, ExpectValue(t, NewIntegerLiteral(4)))
-
-	ParseTestAndRunBlock(t,
-		`set val "chipotle"
-		 set d (dict {
- 			set b (val)
- 		 })
-  	 d b`, ExpectValue(t, NewStringLiteral("chipotle")))
-
-	ParseTestAndRunBlock(t,
-		`set val "chipotle"
- 		 set d (dict {
-  		set val "galapeno"
-			set b (val)
-  	 })
-   	 d b`, ExpectValue(t, NewStringLiteral("galapeno")))
-}
-
 func TestDictionaryInListAsBlock(t *testing.T) {
 
 	ParseTestAndRunBlock(t,
@@ -456,41 +395,42 @@ func TestDictionaryInListAsBlock(t *testing.T) {
 
 func TestMixin(t *testing.T) {
 	ParseTestAndRunBlock(t,
-		`mixin (dict a 2 b 4)
+		`d: {a: 2; b: 4}
+		 mixin $d
 	 	 b`, ExpectValue(t, NewIntegerLiteral(4)))
 
 	ParseTestAndRunBlock(t,
-		`mixin (dict {
-			set b "chipotle"
-		 })
+		`d: {b: "chipotle"}
+		 mixin $d
  	 	 b`, ExpectValue(t, NewStringLiteral("chipotle")))
 
 	ParseTestAndRunBlock(t,
-		`set hot_or_not (dict {
+		`hot_or_not: {
 			set chipotle (false)
 			set galapeno (true)
-		 })
-		 mixin (dict {
- 			mixin (hot_or_not)
- 		 })
+		 }
+		 well_tell_me: {
+		   mixin (hot_or_not)
+	   }
+		 mixin $well_tell_me
   	 chipotle`, ExpectValue(t, NewBooleanLiteral(false)))
 }
 
 func TestDictionaryAccessShortcut(t *testing.T) {
 	ParseTestAndRunBlock(t,
-		`io: (dict {
+		`io: {
 		  read: (func {
 		  	return "chipotle"
 		  })
-		})
+		}
 		io.read`, ExpectValue(t, NewStringLiteral("chipotle")))
 
 	ParseTestAndRunBlock(t,
-		`io: (dict {
+		`io: {
 			read: (func name {
 				return (name)
 			})
-		})
+		}
 		io.read "chipotle"`, ExpectValue(t, NewStringLiteral("chipotle")))
 
 	// Access shortcut can be on dictionaries only
@@ -510,25 +450,25 @@ func TestSetWithDictionaryAsBlock(t *testing.T) {
 
 func TestDictionaryFunctionsKnowDictionary(t *testing.T) {
 	ParseTestAndRunBlock(t,
-		`sauce: (dict {
+		`sauce: {
 		  hot: (func {
 		  	return "chipotle"
 		  })
 			same: (func {
 				return (this.hot)
 			})
-		})
+		}
 		sauce.same`, ExpectValue(t, NewStringLiteral("chipotle")))
 
 	ParseTestAndRunBlock(t,
-		`sauce: (dict {
+		`sauce: {
 		  hot: (func {
 		  	return "chipotle"
 		  })
 			same: (func {
 				return (this.hot)
 			})
-		})
+		}
 		sauce.same
 		this`, ExpectErrorValueAt(t, 10))
 
@@ -536,53 +476,15 @@ func TestDictionaryFunctionsKnowDictionary(t *testing.T) {
 		` soup: (func {
 				return (this.hot) # will fail, this is not defined
 		  })
-		  sauce: (dict {
-			hot: (func {
-				return "chipotle"
-			})
-			same: (func {
-				return (soup)
-			})
-		})
-		sauce.same`, ExpectErrorValueAt(t, 2))
-
-}
-
-func TestNewConstructsDictionary(t *testing.T) {
-	ParseTestAndRunBlock(t,
-		`peppers: {
-		  hot: (func {
-		  	return "chipotle"
-		  })
-		}
-		sauce: (new (peppers))
-		sauce.hot`, ExpectValue(t, NewStringLiteral("chipotle")))
-
-	ParseTestAndRunBlock(t,
-		`peppers: {
-		  hot: (func {
-		  	return "chipotle"
-		  })
-		}
-		sauce: (new (peppers) {
-		  same: (func {
-			  return (this.hot)
-		  })
-	  })
-		sauce.same`, ExpectValue(t, NewStringLiteral("chipotle")))
-
-	ParseTestAndRunBlock(t,
-		`peppers: {
-		  hot: (func {
-		  	return "chipotle"
-		  })
-		}
-		sauce: (new (peppers) {
-		  hot: (func {
-			  return "galapeno"
-		  })
-	  })
-		sauce.hot`, ExpectValue(t, NewStringLiteral("galapeno")))
+		  sauce: {
+			  hot: (func {
+				  return "chipotle"
+			  })
+			  same: (func {
+				  return (soup)
+			  })
+		  }
+		  sauce.same`, ExpectErrorValueAt(t, 2))
 }
 
 func TestLoad(t *testing.T) {

@@ -794,9 +794,26 @@ func NewListValue(values []Value) Value {
 }
 
 // NewDictionaryValue creates a new map of values
+// TODO: 31okt2016 introduce interface for map parents
 //
-func NewDictionaryValue(parent *dictValue, values map[string]Value) Value {
-	return &dictValue{baseValue: baseValue{info: typeInfoDictionary}, parent: parent, values: values}
+func NewDictionaryValue(parent interface{}, values map[string]Value) Value {
+	if parent == nil {
+		return &dictValue{baseValue: baseValue{info: typeInfoDictionary}, parent: nil, values: values}
+	}
+	return &dictValue{baseValue: baseValue{info: typeInfoDictionary}, parent: parent.(*dictValue), values: values}
+}
+
+// NewDictionaryWithBlock constructs a new dictionary by evaluating given block
+//
+func NewDictionaryWithBlock(context RunContext, block Block) Value {
+
+	// use NewRunContext so block will be evaluated within same scope
+	//
+	subContext := NewRunContext(context)
+
+	block.Run(subContext, NoArguments)
+
+	return NewDictionaryValue(nil, subContext.Mapping())
 }
 
 // NewInternalValue wraps a go value into an elmo value

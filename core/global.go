@@ -37,9 +37,7 @@ func NewGlobalContext() RunContext {
 	context.SetNamed(while())
 	context.SetNamed(until())
 	context.SetNamed(do())
-	context.SetNamed(dict())
 	context.SetNamed(mixin())
-	context.SetNamed(new())
 	context.SetNamed(load())
 	context.SetNamed(puts())
 	context.SetNamed(echo())
@@ -77,7 +75,7 @@ func ListConstructor(context RunContext, arguments []Argument) Value {
 		// [{...} {...} ...] constructions
 		//
 		if value.Type() == TypeBlock {
-			value = dictWithBlock(context, value.(Block))
+			value = NewDictionaryWithBlock(context, value.(Block))
 		}
 
 		values[i] = value
@@ -135,7 +133,7 @@ func set() NamedValue {
 			// convert block to dictionary
 			//
 			if value.Type() == TypeBlock {
-				value = dictWithBlock(context, value.(Block))
+				value = NewDictionaryWithBlock(context, value.(Block))
 			}
 
 			name := EvalArgument2String(context, arguments[0])
@@ -422,74 +420,6 @@ func do() NamedValue {
 	})
 }
 
-func dictWithBlock(context RunContext, block Block) Value {
-
-	// use NewRunContext so block will be evaluated within same scope
-	//
-	subContext := NewRunContext(context)
-
-	block.Run(subContext, NoArguments)
-
-	return NewDictionaryValue(nil, subContext.Mapping())
-}
-
-func dict() NamedValue {
-	return NewGoFunction("dict", func(context RunContext, arguments []Argument) Value {
-
-		argLen, ok, err := CheckArguments(arguments, 0, math.MaxInt16, "dict", "<list> | <block> | <value>*")
-		if !ok {
-			return err
-		}
-
-		mapping := make(map[string]Value)
-
-		if argLen == 1 {
-			evaluated := EvalArgument(context, arguments[0])
-			if evaluated.Type() == TypeBlock {
-				return dictWithBlock(context, evaluated.(Block))
-			}
-
-			if evaluated.Type() != TypeList {
-				return NewErrorValue(fmt.Sprintf("dict needs a list as argument. Can not create dictionary from %v", evaluated))
-			}
-
-			values := evaluated.Internal().([]Value)
-
-			if (len(values) % 2) != 0 {
-				return NewErrorValue("dict can not create a dictionary from an odd number of elements")
-			}
-
-			var key Value
-
-			for i, val := range values {
-				if i%2 == 0 {
-					key = val
-				} else {
-					mapping[key.String()] = val
-				}
-			}
-
-		} else {
-
-			if (argLen % 2) != 0 {
-				return NewErrorValue("dict can not create a dictionary from an odd number of elements")
-			}
-
-			var key Value
-
-			for i, arg := range arguments {
-				if i%2 == 0 {
-					key = EvalArgument(context, arg)
-				} else {
-					mapping[key.String()] = EvalArgument(context, arg)
-				}
-			}
-		}
-
-		return NewDictionaryValue(nil, mapping)
-	})
-}
-
 func mixin() NamedValue {
 	return NewGoFunction("mixin", func(context RunContext, arguments []Argument) Value {
 
@@ -519,40 +449,6 @@ func mixin() NamedValue {
 
 		return Nothing
 
-	})
-}
-
-func new() NamedValue {
-	return NewGoFunction("new", func(context RunContext, arguments []Argument) Value {
-
-		argLen, ok, err := CheckArguments(arguments, 1, 2, "new", "<value>*")
-		if !ok {
-			return err
-		}
-
-		parent := EvalArgument(context, arguments[0])
-
-		if parent.Type() != TypeDictionary {
-			return NewErrorValue(fmt.Sprintf("new expects a dictionary, not %s", parent.String()))
-		}
-
-		var mapping map[string]Value
-		if argLen == 2 {
-
-			dict := EvalArgument(context, arguments[1])
-
-			if dict.Type() != TypeBlock {
-				return NewErrorValue(fmt.Sprintf("new can not construct dictionary from %s", dict.String()))
-			}
-
-			dict = dictWithBlock(context, dict.(Block))
-
-			mapping = dict.(*dictValue).values
-		} else {
-			mapping = make(map[string]Value)
-		}
-
-		return NewDictionaryValue(parent.(*dictValue), mapping)
 	})
 }
 
