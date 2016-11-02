@@ -13,7 +13,7 @@ var Module = elmo.NewModule("dict", initModule)
 
 func initModule(context elmo.RunContext) elmo.Value {
 	return elmo.NewMappingForModule(context, []elmo.NamedValue{
-		keys(), knows(), new()})
+		keys(), knows(), get(), new()})
 }
 
 func new() elmo.NamedValue {
@@ -108,29 +108,58 @@ func keys() elmo.NamedValue {
 	})
 }
 
+func knowsOrGet(name string, context elmo.RunContext, arguments []elmo.Argument) (elmo.Value, bool) {
+	_, ok, err := elmo.CheckArguments(arguments, 2, 2, name, "<dictionary> <key>")
+	if !ok {
+		return err, false
+	}
+
+	// first argument of a dictionary function can be an identifier with the name of the dictionary
+	//
+	dict := elmo.EvalArgumentOrSolveIdentifier(context, arguments[0])
+
+	if dict.Type() != elmo.TypeDictionary {
+		return elmo.NewErrorValue(fmt.Sprintf("invalid call to %s, expect a dictionary as first argument", name)), false
+	}
+
+	key := elmo.EvalArgument(context, arguments[1])
+
+	return dict.(elmo.DictionaryValue).Resolve(key.String())
+
+}
+
 func knows() elmo.NamedValue {
 	return elmo.NewGoFunction("knows", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
 
-		_, ok, err := elmo.CheckArguments(arguments, 2, 2, "knows", "<dictionary> <key>")
-		if !ok {
-			return err
+		result, found := knowsOrGet("knows", context, arguments)
+		if found {
+			return elmo.True
 		}
 
-		// first argument of a dictionary function can be an identifier with the name of the dictionary
-		//
-		dict := elmo.EvalArgumentOrSolveIdentifier(context, arguments[0])
-
-		if dict.Type() != elmo.TypeDictionary {
-			return elmo.NewErrorValue("invalid call to keys, expect a dictionary as first argument: usage keys <dictionary>")
+		// result can be an error
+		if result.Type() == elmo.TypeError {
+			return result
 		}
 
-		key := elmo.EvalArgument2String(context, arguments[1])
+		return elmo.False
 
-		mapping := dict.Internal().(map[string]elmo.Value)
+	})
+}
 
-		_, found := mapping[key]
+func get() elmo.NamedValue {
+	return elmo.NewGoFunction("get", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
 
-		return elmo.NewBooleanLiteral(found)
+		result, found := knowsOrGet("get", context, arguments)
+		if found {
+			return result
+		}
+
+		// result can be an error
+		if result.Type() == elmo.TypeError {
+			return result
+		}
+
+		return elmo.Nothing
 
 	})
 }

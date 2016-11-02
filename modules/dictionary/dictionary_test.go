@@ -50,7 +50,7 @@ func TestNewWithoutParent(t *testing.T) {
 	elmo.ParseTestAndRunBlockWithinContext(t, dictContext(),
 		`d: (load "dict")
 		 l: [a 2 b 4]
-		 h: (d.new (l))
+		 h: (d.new $l)
  	 	 h b`, elmo.ExpectValue(t, elmo.NewIntegerLiteral(4)))
 
 	elmo.ParseTestAndRunBlockWithinContext(t, dictContext(),
@@ -64,7 +64,7 @@ func TestNewWithoutParent(t *testing.T) {
 		`d: (load "dict")
 		 val: "chipotle"
 		 h: (d.new {
- 			set b (val)
+ 			set b $val
  		 })
   	 h b`, elmo.ExpectValue(t, elmo.NewStringLiteral("chipotle")))
 
@@ -73,7 +73,7 @@ func TestNewWithoutParent(t *testing.T) {
 		 val: "chipotle"
  		 h: (d.new {
   		set val "galapeno"
-			set b (val)
+			set b $val
   	 })
    	 h b`, elmo.ExpectValue(t, elmo.NewStringLiteral("galapeno")))
 
@@ -84,7 +84,7 @@ func TestNewWithoutParent(t *testing.T) {
 		  	return "chipotle"
 		  })
 		}
-		sauce: (d.new (peppers))
+		sauce: (d.new $peppers)
 		sauce.hot`, elmo.ExpectValue(t, elmo.NewStringLiteral("chipotle")))
 }
 
@@ -102,7 +102,7 @@ func TestNewWithParent(t *testing.T) {
 	 			return "chipotle"
 	 		})
 	 	 }
-	 	 sauce: (d.new (peppers) "soup")`, elmo.ExpectErrorValueAt(t, 7))
+	 	 sauce: (d.new $peppers "soup")`, elmo.ExpectErrorValueAt(t, 7))
 
 	elmo.ParseTestAndRunBlockWithinContext(t, dictContext(),
 		`d: (load "dict")
@@ -111,7 +111,7 @@ func TestNewWithParent(t *testing.T) {
 		  	return "chipotle"
 		  })
 		 }
-		 sauce: (d.new (peppers) {
+		 sauce: (d.new $peppers {
 		   same: (func {
 		 	  return (this.hot)
 		   })
@@ -139,7 +139,7 @@ func TestNewWithParent(t *testing.T) {
  		  	return "chipotle"
  		  })
  		 }
- 		 sauce: (d.new (peppers) [same (func {return (this.hot)})])
+ 		 sauce: (d.new $peppers [same (func {return (this.hot)})])
  		 sauce.same`, elmo.ExpectValue(t, elmo.NewStringLiteral("chipotle")))
 
 	elmo.ParseTestAndRunBlockWithinContext(t, dictContext(),
@@ -177,7 +177,7 @@ func TestKeys(t *testing.T) {
         heat: 3
       }
     }
-		d.keys peppers`, elmo.ExpectValue(t, elmo.ParseAndRun(elmo.NewGlobalContext(), "[chipotle galapeno]")))
+		d.keys $peppers`, elmo.ExpectValue(t, elmo.ParseAndRun(elmo.NewGlobalContext(), "[chipotle galapeno]")))
 
 	// keys function should return keys in sorted order
 	//
@@ -191,7 +191,7 @@ func TestKeys(t *testing.T) {
         heat: 2
       }
     }
-    d.keys peppers`, elmo.ExpectValue(t, elmo.ParseAndRun(elmo.NewGlobalContext(), "[chipotle galapeno]")))
+    d.keys $peppers`, elmo.ExpectValue(t, elmo.ParseAndRun(elmo.NewGlobalContext(), "[chipotle galapeno]")))
 
 }
 
@@ -208,5 +208,53 @@ func TestKnows(t *testing.T) {
 	elmo.ParseTestAndRunBlockWithinContext(t, dictContext(),
 		`d: (load "dict")
     peppers: { chipotle: { heat: 2 } }
-		d.knows peppers chipotle`, elmo.ExpectValue(t, elmo.NewBooleanLiteral(true)))
+		d.knows $peppers chipotle`, elmo.ExpectValue(t, elmo.True))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, dictContext(),
+		`d: (load "dict")
+		peppers: { chipotle: { heat: 2 } }
+		d.knows $peppers jalapeno`, elmo.ExpectValue(t, elmo.False))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, dictContext(),
+		`d: (load "dict")
+		 peppers: {
+		  hot: "jalapeno"
+		 }
+		 snacks: (d.new (peppers) {
+		   lame: "chipotle"
+	   })
+		 d.knows $snacks hot`, elmo.ExpectValue(t, elmo.True))
+
+}
+
+func TestGet(t *testing.T) {
+
+	elmo.ParseTestAndRunBlockWithinContext(t, dictContext(),
+		`d: (load "dict")
+		 d.get`, elmo.ExpectErrorValueAt(t, 2))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, dictContext(),
+		`d: (load "dict")
+		 d.get "chipotle" chipotle`, elmo.ExpectErrorValueAt(t, 2))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, dictContext(),
+		`d: (load "dict")
+    peppers: { chipotle: "hot" }
+		d.get $peppers chipotle`, elmo.ExpectValue(t, elmo.NewStringLiteral("hot")))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, dictContext(),
+		`d: (load "dict")
+		peppers: { chipotle: "lame" }
+		d.get $peppers jalapeno`, elmo.ExpectValue(t, elmo.Nothing))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, dictContext(),
+		`d: (load "dict")
+		 peppers: {
+		  hot: "jalapeno"
+		 }
+		 snacks: (d.new (peppers) {
+		   lame: "chipotle"
+	   })
+		 d.get $snacks hot`, elmo.ExpectValue(t, elmo.NewStringLiteral("jalapeno")))
+
 }

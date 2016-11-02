@@ -203,6 +203,12 @@ type IncrementableValue interface {
 	Increment(Value) Value
 }
 
+// DictionaryValue represents a value that can be used as dictionary
+//
+type DictionaryValue interface {
+	Resolve(string) (Value, bool)
+}
+
 // MathValue represents a value that knows how to apply basic arithmetics
 //
 type MathValue interface {
@@ -665,24 +671,37 @@ func (dictValue *dictValue) Internal() interface{} {
 	return dictValue.values
 }
 
-func (dictValue *dictValue) Resolve(key string) Value {
+func (dictValue *dictValue) Resolve(key string) (Value, bool) {
 	value, found := dictValue.values[key]
 
 	if found {
-		return value
+		return value, true
 	}
 
 	if dictValue.parent != nil {
 		return dictValue.parent.Resolve(key)
 	}
 
-	return Nothing
+	return Nothing, false
+}
+
+func (dictValue *dictValue) Knows(key Value) bool {
+	_, found := dictValue.values[key.String()]
+	if found {
+		return true
+	}
+	if dictValue.parent != nil {
+		return dictValue.parent.Knows(key)
+	}
+
+	return false
 }
 
 func (dictValue *dictValue) Run(context RunContext, arguments []Argument) Value {
 
 	key := EvalArgument(context, arguments[0])
-	return dictValue.Resolve(key.String())
+	result, _ := dictValue.Resolve(key.String())
+	return result
 }
 
 func (errorValue *errorValue) String() string {
@@ -1043,11 +1062,11 @@ func (call *call) Run(context RunContext, additionalArguments []Argument) Value 
 				return call.pipeResult(context, call.addInfoWhenError(NewErrorValue(fmt.Sprintf("%s does not resolve to dictionary. found %v", call.Name(), value))))
 			}
 
-			inDictValue := value.(*dictValue).Resolve(functionNames[1])
+			inDictValue, found := value.(*dictValue).Resolve(functionNames[1])
 
-			if inDictValue == nil || inDictValue == Nothing {
-				inDictValue = value.(*dictValue).Resolve("?")
-				if inDictValue == nil || inDictValue == Nothing {
+			if !found {
+				inDictValue, found = value.(*dictValue).Resolve("?")
+				if !found {
 					return call.pipeResult(context, call.addInfoWhenError(NewErrorValue(fmt.Sprintf("could not find %s.%s", functionNames[0], functionNames[1]))))
 				}
 				useArguments = createArgumentsForMissingFunc(context, call, 1, useArguments)
