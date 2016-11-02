@@ -2,6 +2,7 @@ package dict
 
 import (
 	"fmt"
+	"math"
 	"sort"
 
 	"github.com/okke/elmo/core"
@@ -13,7 +14,7 @@ var Module = elmo.NewModule("dict", initModule)
 
 func initModule(context elmo.RunContext) elmo.Value {
 	return elmo.NewMappingForModule(context, []elmo.NamedValue{
-		keys(), knows(), get(), new()})
+		new(), keys(), knows(), get(), merge()})
 }
 
 func new() elmo.NamedValue {
@@ -81,22 +82,14 @@ func keys() elmo.NamedValue {
 
 		// first argument of a dictionary function can be an identifier with the name of the dictionary
 		//
-		dict := elmo.EvalArgumentOrSolveIdentifier(context, arguments[0])
+		dict, ok := elmo.EvalArgumentOrSolveIdentifier(context, arguments[0]).(elmo.DictionaryValue)
 
-		if dict.Type() != elmo.TypeDictionary {
+		if !ok {
 			return elmo.NewErrorValue("invalid call to keys, expect a dictionary as first argument: usage keys <dictionary>")
 		}
 
-		mapping := dict.Internal().(map[string]elmo.Value)
-
-		keyNames := make([]string, len(mapping))
-		keys := make([]elmo.Value, len(mapping))
-
-		i := 0
-		for k := range mapping {
-			keyNames[i] = k
-			i++
-		}
+		keyNames := dict.Keys()
+		keys := make([]elmo.Value, len(keyNames))
 
 		sort.Strings(keyNames)
 
@@ -116,15 +109,15 @@ func knowsOrGet(name string, context elmo.RunContext, arguments []elmo.Argument)
 
 	// first argument of a dictionary function can be an identifier with the name of the dictionary
 	//
-	dict := elmo.EvalArgumentOrSolveIdentifier(context, arguments[0])
+	dict, ok := elmo.EvalArgumentOrSolveIdentifier(context, arguments[0]).(elmo.DictionaryValue)
 
-	if dict.Type() != elmo.TypeDictionary {
+	if !ok {
 		return elmo.NewErrorValue(fmt.Sprintf("invalid call to %s, expect a dictionary as first argument", name)), false
 	}
 
 	key := elmo.EvalArgument(context, arguments[1])
 
-	return dict.(elmo.DictionaryValue).Resolve(key.String())
+	return dict.Resolve(key.String())
 
 }
 
@@ -165,6 +158,30 @@ func get() elmo.NamedValue {
 		}
 
 		return elmo.NewReturnValue([]elmo.Value{elmo.Nothing, elmo.False})
+
+	})
+}
+
+func merge() elmo.NamedValue {
+	return elmo.NewGoFunction("merge", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+		argLen, ok, err := elmo.CheckArguments(arguments, 2, math.MaxInt16, "merge", "<dictionary> <dictionary>+")
+		if !ok {
+			return err
+		}
+
+		dictionaries := make([]elmo.DictionaryValue, argLen)
+		for i, arg := range arguments {
+			evaluated := elmo.EvalArgument(context, arg)
+
+			dict, ok := evaluated.(elmo.DictionaryValue)
+			if ok {
+				dictionaries[i] = dict
+			} else if arg.Type() == elmo.TypeBlock {
+				dictionaries[i] = elmo.NewDictionaryWithBlock(context, evaluated.(elmo.Block)).(elmo.DictionaryValue)
+			}
+		}
+
+		return dictionaries[0].Merge(dictionaries[1:])
 
 	})
 }

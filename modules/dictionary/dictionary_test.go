@@ -258,3 +258,36 @@ func TestGet(t *testing.T) {
 		 d.get $snacks hot`, elmo.ExpectValues(t, elmo.NewStringLiteral("jalapeno"), elmo.True))
 
 }
+
+func TestMerge(t *testing.T) {
+
+	elmo.ParseTestAndRunBlockWithinContext(t, dictContext(),
+		`d: (load "dict")
+		 d.merge`, elmo.ExpectErrorValueAt(t, 2))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, dictContext(),
+		`d: (load "dict")
+ 		 d.merge {}`, elmo.ExpectErrorValueAt(t, 2))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, dictContext(),
+		`d: (load "dict")
+  	 d.merge {} {}`, elmo.ExpectValue(t, elmo.NewDictionaryValue(nil, map[string]elmo.Value{})))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, dictContext(),
+		`d: (load "dict")
+		 m1: {}
+		 m2: {}
+	 	 d.merge $m1 $m2`, elmo.ExpectValue(t, elmo.NewDictionaryValue(nil, map[string]elmo.Value{})))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, dictContext(),
+		`d: (load "dict")
+ 		 m1: {a:1}
+ 	 	 m2: (d.merge $m1 {b:2})
+		 m2.b`, elmo.ExpectValue(t, elmo.NewIntegerLiteral(2)))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, dictContext(),
+		`d: (load "dict")
+  	 m: (d.merge (d.new [a 1 b 2]) (d.new [b 3]))
+ 		 m.b`, elmo.ExpectValue(t, elmo.NewIntegerLiteral(3)))
+
+}

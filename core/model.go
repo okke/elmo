@@ -206,7 +206,9 @@ type IncrementableValue interface {
 // DictionaryValue represents a value that can be used as dictionary
 //
 type DictionaryValue interface {
+	Keys() []string
 	Resolve(string) (Value, bool)
+	Merge([]DictionaryValue) Value
 }
 
 // MathValue represents a value that knows how to apply basic arithmetics
@@ -671,6 +673,18 @@ func (dictValue *dictValue) Internal() interface{} {
 	return dictValue.values
 }
 
+func (dictValue *dictValue) Keys() []string {
+	keyNames := make([]string, len(dictValue.values))
+
+	i := 0
+	for k := range dictValue.values {
+		keyNames[i] = k
+		i++
+	}
+
+	return keyNames
+}
+
 func (dictValue *dictValue) Resolve(key string) (Value, bool) {
 	value, found := dictValue.values[key]
 
@@ -685,16 +699,25 @@ func (dictValue *dictValue) Resolve(key string) (Value, bool) {
 	return Nothing, false
 }
 
-func (dictValue *dictValue) Knows(key Value) bool {
-	_, found := dictValue.values[key.String()]
-	if found {
-		return true
-	}
-	if dictValue.parent != nil {
-		return dictValue.parent.Knows(key)
+func (dictValue *dictValue) Merge(withAll []DictionaryValue) Value {
+	newMap := make(map[string]Value)
+
+	for k, v := range dictValue.values {
+		newMap[k] = v
 	}
 
-	return false
+	for _, with := range withAll {
+		for _, k := range with.Keys() {
+
+			value, found := with.Resolve(k)
+			if !found {
+				return NewErrorValue(fmt.Sprintf("could not merge value %s", k))
+			}
+			newMap[k] = value
+		}
+	}
+
+	return NewDictionaryValue(dictValue.parent, newMap)
 }
 
 func (dictValue *dictValue) Run(context RunContext, arguments []Argument) Value {
