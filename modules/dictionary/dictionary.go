@@ -149,9 +149,14 @@ func knows() elmo.NamedValue {
 func get() elmo.NamedValue {
 	return elmo.NewGoFunction("get", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
 
+		// get can act as knows by returning multiple return values
+		//
+		// set result found (d.dict $dict key)
+		//
+
 		result, found := knowsOrGet("get", context, arguments)
 		if found {
-			return result
+			return elmo.NewReturnValue([]elmo.Value{result, elmo.True})
 		}
 
 		// result can be an error
@@ -159,7 +164,7 @@ func get() elmo.NamedValue {
 			return result
 		}
 
-		return elmo.Nothing
+		return elmo.NewReturnValue([]elmo.Value{elmo.Nothing, elmo.False})
 
 	})
 }

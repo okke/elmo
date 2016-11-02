@@ -240,12 +240,12 @@ func TestGet(t *testing.T) {
 	elmo.ParseTestAndRunBlockWithinContext(t, dictContext(),
 		`d: (load "dict")
     peppers: { chipotle: "hot" }
-		d.get $peppers chipotle`, elmo.ExpectValue(t, elmo.NewStringLiteral("hot")))
+		d.get $peppers chipotle`, elmo.ExpectValues(t, elmo.NewStringLiteral("hot"), elmo.True))
 
 	elmo.ParseTestAndRunBlockWithinContext(t, dictContext(),
 		`d: (load "dict")
 		peppers: { chipotle: "lame" }
-		d.get $peppers jalapeno`, elmo.ExpectValue(t, elmo.Nothing))
+		d.get $peppers jalapeno`, elmo.ExpectValues(t, elmo.Nothing, elmo.False))
 
 	elmo.ParseTestAndRunBlockWithinContext(t, dictContext(),
 		`d: (load "dict")
@@ -255,6 +255,6 @@ func TestGet(t *testing.T) {
 		 snacks: (d.new (peppers) {
 		   lame: "chipotle"
 	   })
-		 d.get $snacks hot`, elmo.ExpectValue(t, elmo.NewStringLiteral("jalapeno")))
+		 d.get $snacks hot`, elmo.ExpectValues(t, elmo.NewStringLiteral("jalapeno"), elmo.True))
 
 }

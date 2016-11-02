@@ -94,3 +94,15 @@ func ExpectValue(t *testing.T, value Value) func(RunContext, Value) {
 		}
 	}
 }
+
+// ExpectValues returns a function that expects evaluation returns specified values
+// as ReturnValue
+//
+func ExpectValues(t *testing.T, values ...Value) func(RunContext, Value) {
+
+	return func(context RunContext, blockResult Value) {
+		if !reflect.DeepEqual(blockResult, NewReturnValue(values)) {
+			t.Errorf("expected value %v but found %v at %s", values, blockResult, getCallingFunc())
+		}
+	}
+}
