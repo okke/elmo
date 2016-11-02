@@ -290,4 +290,9 @@ func TestMerge(t *testing.T) {
   	 m: (d.merge (d.new [a 1 b 2]) (d.new [b 3]))
  		 m.b`, elmo.ExpectValue(t, elmo.NewIntegerLiteral(3)))
 
+	elmo.ParseTestAndRunBlockWithinContext(t, dictContext(),
+		`d: (load "dict")
+   	 m: (d.merge (d.new [a 1 b 2]) (d.new [b 3]) (d.new [a 2 b 4]))
+  	 multiply $m.a $m.b`, elmo.ExpectValue(t, elmo.NewIntegerLiteral(8)))
+
 }
