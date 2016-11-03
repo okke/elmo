@@ -32,6 +32,7 @@ func NewGlobalContext() RunContext {
 	context.SetNamed(once())
 	context.SetNamed(incr())
 	context.SetNamed(_return())
+	context.SetNamed(ampersand())
 	context.SetNamed(_func())
 	context.SetNamed(_if())
 	context.SetNamed(while())
@@ -261,6 +262,21 @@ func _return() NamedValue {
 		context.Stop()
 
 		return result
+	})
+}
+
+func ampersand() NamedValue {
+	return NewGoFunction("&", func(context RunContext, arguments []Argument) Value {
+		// no argument checks are needed, ampersand (&) is an internal function
+		// part of elmo's syntax
+		//
+		name := EvalArgument(context, arguments[0])
+
+		if name.Type() == TypeIdentifier {
+			return name.(IdentifierValue).LookUp(context)
+		}
+
+		return NewErrorValue(fmt.Sprintf("could not resolve &%v", name))
 	})
 }
 

@@ -52,7 +52,12 @@ func Ast2Call(node *node32, meta ScriptMetaData) Call {
 
 	for idx, argument := range children {
 		if idx == 0 {
-			firstArg = Ast2Argument(argument.up, meta)
+			if argument.pegRule == ruleAMPERSAND {
+				firstArg = NewArgument(meta, argument.begin, argument.end, NewIdentifier(nodeText(argument, meta.Content())))
+			} else {
+				firstArg = Ast2Argument(argument.up, meta)
+			}
+
 		} else {
 			if argument.pegRule == ruleArgument {
 				arguments = append(arguments, Ast2Argument(argument.up, meta))

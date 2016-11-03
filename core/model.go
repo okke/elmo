@@ -197,6 +197,12 @@ type Value interface {
 	IsType(TypeInfo) bool
 }
 
+// IdentifierValue represents a value that can be lookedup
+//
+type IdentifierValue interface {
+	LookUp(RunContext) Value
+}
+
 // IncrementableValue represents a value that can be incremented
 //
 type IncrementableValue interface {
@@ -289,6 +295,38 @@ func (identifier *identifier) Type() Type {
 
 func (identifier *identifier) Internal() interface{} {
 	return identifier.value
+}
+
+func (identifier *identifier) LookUp(context RunContext) Value {
+
+	result, found := context.Get(identifier.value[0])
+	if !found {
+		return NewErrorValue(fmt.Sprintf("could not resolve %s", identifier.value[0]))
+	}
+
+	if result.Type() != TypeDictionary || len(identifier.value) == 1 {
+		return result
+	}
+
+	var dict = result.(DictionaryValue)
+	var lookup Value
+
+	for _, name := range identifier.value[1:] {
+		lookup, found = dict.Resolve(name)
+
+		if found {
+			if lookup.Type() != TypeDictionary {
+				return lookup
+			}
+
+			dict = lookup.(DictionaryValue)
+		} else {
+
+			return NewErrorValue(fmt.Sprintf("could not resolve %s", identifier.value[0]))
+
+		}
+	}
+	return lookup
 }
 
 func (stringLiteral *stringLiteral) String() string {
