@@ -37,7 +37,7 @@ func ExpectValueSetTo(t *testing.T, key string, value string) func(RunContext, V
 	return func(context RunContext, blockResult Value) {
 
 		if blockResult.Type() == TypeError {
-			t.Error(blockResult.(ErrorValue).Error())
+			t.Errorf("%v at %s", blockResult.(ErrorValue).Error(), getCallingFunc())
 			return
 		}
 

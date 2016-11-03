@@ -267,7 +267,7 @@ func _return() NamedValue {
 func _func() NamedValue {
 	return NewGoFunction("func", func(context RunContext, arguments []Argument) Value {
 
-		_, ok, err := CheckArguments(arguments, 1, math.MaxInt16, "func", "<identifier>* {...}")
+		argLen, ok, err := CheckArguments(arguments, 1, math.MaxInt16, "func", "<identifier>* {...}")
 		if !ok {
 			return err
 		}
@@ -275,6 +275,16 @@ func _func() NamedValue {
 		argNamesAsArgument := arguments[0 : len(arguments)-1]
 		block := arguments[len(arguments)-1]
 		argNames := make([]string, len(argNamesAsArgument))
+
+		if argLen == 1 && block.Type() != TypeBlock {
+			// block is not a block, maybe its an identifier that can be used
+			// to lookup a function insted of creating on
+			//
+			result, found := context.Get(EvalArgument2String(context, block))
+			if found && result.Type() == TypeGoFunction {
+				return result
+			}
+		}
 
 		for i, v := range argNamesAsArgument {
 			argNames[i] = EvalArgument2String(context, v)

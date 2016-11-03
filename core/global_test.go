@@ -133,7 +133,23 @@ func TestUserDefinedFunctionWithoutArguments(t *testing.T) {
 
 }
 
+func TestUserDefinedFunctionReUse(t *testing.T) {
+
+	ParseTestAndRunBlock(t,
+		`set fsauce (func chipotle)`, ExpectErrorValueAt(t, 1))
+
+	ParseTestAndRunBlock(t,
+		`fsauce: (func {
+			 return "chipotle"
+		 })
+		 fsoup: (func fsauce)
+		 set soup (fsoup)`, ExpectValueSetTo(t, "soup", "chipotle"))
+}
+
 func TestUserDefinedFunctionWithOneArgument(t *testing.T) {
+
+	ParseTestAndRunBlock(t,
+		`set fsauce (func 3)`, ExpectErrorValueAt(t, 1))
 
 	ParseTestAndRunBlock(t,
 		`set fsauce (func pepper {
