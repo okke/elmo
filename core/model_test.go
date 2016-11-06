@@ -134,6 +134,22 @@ func TestCallsAsCall(t *testing.T) {
 		 ($pepper) 2`, ExpectValue(t, NewIntegerLiteral(3)))
 }
 
+func TestDeepIdentifierLookup(t *testing.T) {
+	ParseTestAndRunBlock(t,
+		`m: {a: {b:3}}
+		 m.a.b`, ExpectValue(t, NewIntegerLiteral(3)))
+
+	ParseTestAndRunBlock(t,
+		`m: {a: {b:3}}
+ 		 i: $m.a.b
+		 i`, ExpectValue(t, NewIntegerLiteral(3)))
+
+	ParseTestAndRunBlock(t,
+		`m: {a: {b:3}}
+  	 i: (m.a.b)
+ 		 i`, ExpectValue(t, NewIntegerLiteral(3)))
+}
+
 func TestBlockWithoutCallsShouldReturnNothing(t *testing.T) {
 
 	result := NewBlock(nil, 0, 0, []Call{}).Run(NewRunContext(nil), []Argument{})

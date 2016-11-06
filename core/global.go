@@ -273,7 +273,10 @@ func ampersand() NamedValue {
 		name := EvalArgument(context, arguments[0])
 
 		if name.Type() == TypeIdentifier {
-			return name.(IdentifierValue).LookUp(context)
+			_, value, found := name.(IdentifierValue).LookUp(context)
+			if found {
+				return value
+			}
 		}
 
 		return NewErrorValue(fmt.Sprintf("could not resolve &%v", name))

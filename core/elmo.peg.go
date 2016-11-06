@@ -724,7 +724,7 @@ func (p *ElmoGrammar) Init() {
 			position, tokenIndex, depth = position24, tokenIndex24, depth24
 			return false
 		},
-		/* 4 Argument <- <((Identifier (DOT Identifier)?) / StringLiteral / LongStringLiteral / Number / FunctionCall / Block / List)> */
+		/* 4 Argument <- <((Identifier (DOT Identifier)*) / StringLiteral / LongStringLiteral / Number / FunctionCall / Block / List)> */
 		func() bool {
 			position28, tokenIndex28, depth28 := position, tokenIndex, depth
 			{
@@ -735,19 +735,19 @@ func (p *ElmoGrammar) Init() {
 					if !_rules[ruleIdentifier]() {
 						goto l31
 					}
+				l32:
 					{
-						position32, tokenIndex32, depth32 := position, tokenIndex, depth
+						position33, tokenIndex33, depth33 := position, tokenIndex, depth
 						if !_rules[ruleDOT]() {
-							goto l32
+							goto l33
 						}
 						if !_rules[ruleIdentifier]() {
-							goto l32
+							goto l33
 						}
-						goto l33
-					l32:
-						position, tokenIndex, depth = position32, tokenIndex32, depth32
+						goto l32
+					l33:
+						position, tokenIndex, depth = position33, tokenIndex33, depth33
 					}
-				l33:
 					goto l30
 				l31:
 					position, tokenIndex, depth = position30, tokenIndex30, depth30
@@ -794,7 +794,7 @@ func (p *ElmoGrammar) Init() {
 			position, tokenIndex, depth = position28, tokenIndex28, depth28
 			return false
 		},
-		/* 5 FunctionCall <- <((LPAR Line RPAR) / ((DOLLAR / AMPERSAND) Argument (DOT Argument)?))> */
+		/* 5 FunctionCall <- <((LPAR Line RPAR) / ((DOLLAR / AMPERSAND) Argument (DOT Argument)*))> */
 		func() bool {
 			position39, tokenIndex39, depth39 := position, tokenIndex, depth
 			{
@@ -830,19 +830,19 @@ func (p *ElmoGrammar) Init() {
 					if !_rules[ruleArgument]() {
 						goto l39
 					}
+				l45:
 					{
-						position45, tokenIndex45, depth45 := position, tokenIndex, depth
+						position46, tokenIndex46, depth46 := position, tokenIndex, depth
 						if !_rules[ruleDOT]() {
-							goto l45
+							goto l46
 						}
 						if !_rules[ruleArgument]() {
-							goto l45
+							goto l46
 						}
-						goto l46
-					l45:
-						position, tokenIndex, depth = position45, tokenIndex45, depth45
+						goto l45
+					l46:
+						position, tokenIndex, depth = position46, tokenIndex46, depth46
 					}
-				l46:
 				}
 			l41:
 				depth--

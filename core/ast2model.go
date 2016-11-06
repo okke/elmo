@@ -118,21 +118,26 @@ func replaceEscapes(s string, esc rune, escape func(c rune) rune) string {
 func Ast2Argument(node *node32, meta ScriptMetaData) Argument {
 	switch node.pegRule {
 	case ruleIdentifier:
-		txt := nodeText(node, meta.Content())
 
-		// can be followed by (DOT Identifier)
-		//
-		dot := node.next
-		if dot != nil && dot.pegRule == ruleDOT {
-			nextNode := dot.next
-			if nextNode != nil && nextNode.pegRule == ruleIdentifier {
-				return NewArgument(meta, node.begin, nextNode.end,
-					NewNameSpacedIdentifier([]string{txt, nodeText(nextNode, meta.Content())}))
+		parts := []string{}
+		begin := node.begin
+		end := node.end
+		next := node
+
+		for next != nil {
+			end = next.end
+			parts = append(parts, nodeText(next, meta.Content()))
+
+			dot := next.next
+			if dot != nil && dot.pegRule == ruleDOT {
+				next = dot.next
+			} else {
+				next = nil
 			}
-			panic(fmt.Sprintf("expect identifier after namespace separator: %v", node))
 		}
 
-		return NewArgument(meta, node.begin, node.end, NewIdentifier(txt))
+		return NewArgument(meta, begin, end, NewNameSpacedIdentifier(parts))
+
 	case ruleStringLiteral:
 		txt := nodeText(node, meta.Content())
 		return NewArgument(meta, node.begin, node.end, NewStringLiteral(replaceEscapes(txt[1:len(txt)-1], '\\', escapeString)))

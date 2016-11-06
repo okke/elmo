@@ -200,7 +200,7 @@ type Value interface {
 // IdentifierValue represents a value that can be lookedup
 //
 type IdentifierValue interface {
-	LookUp(RunContext) Value
+	LookUp(RunContext) (DictionaryValue, Value, bool)
 }
 
 // IncrementableValue represents a value that can be incremented
@@ -297,15 +297,19 @@ func (identifier *identifier) Internal() interface{} {
 	return identifier.value
 }
 
-func (identifier *identifier) LookUp(context RunContext) Value {
+func (identifier *identifier) LookUp(context RunContext) (DictionaryValue, Value, bool) {
 
 	result, found := context.Get(identifier.value[0])
 	if !found {
-		return NewErrorValue(fmt.Sprintf("could not resolve %s", identifier.value[0]))
+		return nil, NewErrorValue(fmt.Sprintf("could not resolve %v", identifier)), false
 	}
 
-	if result.Type() != TypeDictionary || len(identifier.value) == 1 {
-		return result
+	if len(identifier.value) == 1 {
+		return nil, result, true
+	}
+
+	if result.Type() != TypeDictionary {
+		return nil, NewErrorValue(fmt.Sprintf("%s is not a dictionary", identifier.value[0])), false
 	}
 
 	var dict = result.(DictionaryValue)
@@ -316,17 +320,17 @@ func (identifier *identifier) LookUp(context RunContext) Value {
 
 		if found {
 			if lookup.Type() != TypeDictionary {
-				return lookup
+				return dict, lookup, true
 			}
 
 			dict = lookup.(DictionaryValue)
 		} else {
 
-			return NewErrorValue(fmt.Sprintf("could not resolve %s", identifier.value[0]))
+			return dict, NewErrorValue(fmt.Sprintf("could not resolve %v", identifier)), false
 
 		}
 	}
-	return lookup
+	return dict, lookup, true
 }
 
 func (stringLiteral *stringLiteral) String() string {
@@ -1050,7 +1054,7 @@ func (call *call) pipeResult(context RunContext, value Value) Value {
 
 }
 
-func createArgumentsForMissingFunc(context RunContext, call *call, nameIndex int, arguments []Argument) []Argument {
+func createArgumentsForMissingFunc(context RunContext, call *call, arguments []Argument) []Argument {
 	// pass evaluated arguments to the 'func missing' function
 	// as a list of values
 	//
@@ -1062,7 +1066,7 @@ func createArgumentsForMissingFunc(context RunContext, call *call, nameIndex int
 	// and pass the original function name as first argument
 	//
 	return []Argument{
-		NewArgument(call.meta, call.astNode.begin, call.astNode.end, NewIdentifier(call.firstArgument.Value().(*identifier).value[nameIndex])),
+		NewArgument(call.meta, call.astNode.begin, call.astNode.end, NewIdentifier(call.firstArgument.Value().(*identifier).value[len(call.firstArgument.Value().(*identifier).value)-1])),
 		NewArgument(call.meta, call.astNode.begin, call.astNode.end, NewListValue(values))}
 }
 
@@ -1072,22 +1076,24 @@ func (call *call) Run(context RunContext, additionalArguments []Argument) Value 
 		return call.pipeResult(context, call.addInfoWhenError(call.function(context, call.Arguments())))
 	}
 
+	var inDict DictionaryValue
 	var value Value
 	var found bool
-	var functionNames []string
 	var useArguments []Argument
+
+	var function IdentifierValue
 
 	switch call.firstArgument.Type() {
 	case TypeCall:
 		value = call.firstArgument.Value().(Runnable).Run(context, []Argument{})
 		if value.Type() == TypeIdentifier {
-			functionNames = value.(*identifier).value
-			value, found = context.Get(functionNames[0])
+			function = value.(IdentifierValue)
+			inDict, value, found = function.LookUp(context)
 		}
 		found = true
 	case TypeIdentifier:
-		functionNames = call.firstArgument.Value().(*identifier).value
-		value, found = context.Get(functionNames[0])
+		function = call.firstArgument.Value().(IdentifierValue)
+		inDict, value, found = function.LookUp(context)
 	default:
 		value = call.firstArgument.Value()
 		found = true
@@ -1103,9 +1109,14 @@ func (call *call) Run(context RunContext, additionalArguments []Argument) Value 
 	// when call can not be resolved, try to find the 'func missing' function
 	//
 	if !found {
-		value, found = context.Get("?")
+		if inDict == nil {
+			value, found = context.Get("?")
+		} else {
+			value, found = inDict.Resolve("?")
+		}
+
 		if found {
-			useArguments = createArgumentsForMissingFunc(context, call, 0, useArguments)
+			useArguments = createArgumentsForMissingFunc(context, call, useArguments)
 		}
 	}
 
@@ -1115,32 +1126,16 @@ func (call *call) Run(context RunContext, additionalArguments []Argument) Value 
 			return call.pipeResult(context, call.addInfoWhenError(NewErrorValue(fmt.Sprintf("call to %s results in invalid nil value", call.Name()))))
 		}
 
-		if len(functionNames) > 1 {
-
-			// call to a.b style of function name. a should be resolvable to a dictionary and b
-			// can be something in that dictionary
-			if value.Type() != TypeDictionary {
-				return call.pipeResult(context, call.addInfoWhenError(NewErrorValue(fmt.Sprintf("%s does not resolve to dictionary. found %v", call.Name(), value))))
-			}
-
-			inDictValue, found := value.(*dictValue).Resolve(functionNames[1])
-
-			if !found {
-				inDictValue, found = value.(*dictValue).Resolve("?")
-				if !found {
-					return call.pipeResult(context, call.addInfoWhenError(NewErrorValue(fmt.Sprintf("could not find %s.%s", functionNames[0], functionNames[1]))))
+		if inDict != nil {
+			this := context.This()
+			context.SetThis(inDict.(Value))
+			defer func() {
+				if this == nil {
+					context.SetThis(nil)
+				} else {
+					context.SetThis(this.(Value))
 				}
-				useArguments = createArgumentsForMissingFunc(context, call, 1, useArguments)
-			}
-
-			if inDictValue.Type() == TypeGoFunction {
-				context.SetThis(value)
-				result := call.addInfoWhenError(inDictValue.(Runnable).Run(context, useArguments))
-				context.SetThis(Nothing)
-				return call.pipeResult(context, result)
-			}
-
-			return call.pipeResult(context, call.addInfoWhenError(inDictValue))
+			}()
 		}
 
 		if value.Type() == TypeGoFunction {

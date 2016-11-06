@@ -12,7 +12,7 @@ PipedOutput <- PIPE Line
 
 EndOfLine <- PCOMMA / NewLine
 
-Argument <- Identifier (DOT Identifier)?
+Argument <- Identifier (DOT Identifier)*
            / StringLiteral
            / LongStringLiteral
            / Number
@@ -20,7 +20,7 @@ Argument <- Identifier (DOT Identifier)?
            / Block
            / List
 
-FunctionCall <- (LPAR Line RPAR) / ((DOLLAR/AMPERSAND) Argument (DOT Argument)?)
+FunctionCall <- (LPAR Line RPAR) / ((DOLLAR/AMPERSAND) Argument (DOT Argument)*)
 
 Block <- LCURLY (NewLine)* (Line)* RCURLY
 
