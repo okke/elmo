@@ -136,18 +136,18 @@ func TestCallsAsCall(t *testing.T) {
 
 func TestDeepIdentifierLookup(t *testing.T) {
 	ParseTestAndRunBlock(t,
-		`m: {a: {b:3}}
-		 m.a.b`, ExpectValue(t, NewIntegerLiteral(3)))
+		`c: {h: {i: {p: {o: {t: {l: {e: "sauce"}}}}}}}
+		 c.h.i.p.o.t.l.e`, ExpectValue(t, NewStringLiteral("sauce")))
 
 	ParseTestAndRunBlock(t,
-		`m: {a: {b:3}}
- 		 i: $m.a.b
-		 i`, ExpectValue(t, NewIntegerLiteral(3)))
+		`c: {h: {i: {p: {o: {t: {l: {e: "sauce"}}}}}}}
+ 		 i: $c.h.i.p.o.t.l.e
+		 i`, ExpectValue(t, NewStringLiteral("sauce")))
 
 	ParseTestAndRunBlock(t,
-		`m: {a: {b:3}}
-  	 i: (m.a.b)
- 		 i`, ExpectValue(t, NewIntegerLiteral(3)))
+		`c: {h: {i: {p: {o: {t: {l: {e: "sauce"}}}}}}}
+  	 i: (c.h.i.p.o.t.l.e)
+ 		 i`, ExpectValue(t, NewStringLiteral("sauce")))
 }
 
 func TestBlockWithoutCallsShouldReturnNothing(t *testing.T) {
