@@ -1188,7 +1188,8 @@ func NewCallWithFunction(meta ScriptMetaData, begin uint32, end uint32, function
 type block struct {
 	astNode
 	baseValue
-	calls []Call
+	capturedContext RunContext
+	calls           []Call
 }
 
 // Block is a list of function calls
@@ -1198,7 +1199,9 @@ type Block interface {
 	Value
 	// Block can be executed
 	Runnable
+
 	Calls() []Call
+	CopyWithinContext(RunContext) Block
 }
 
 func (block *block) Calls() []Call {
@@ -1208,9 +1211,15 @@ func (block *block) Calls() []Call {
 func (block *block) Run(context RunContext, arguments []Argument) Value {
 	var result Value = Nothing
 
+	joined := context
+	if block.capturedContext != nil {
+		joined = joined.Join(block.capturedContext)
+	}
+
 	for _, call := range block.calls {
-		result = call.Run(context, []Argument{})
-		if context.isStopped() {
+		result = call.Run(joined, []Argument{})
+		if joined.isStopped() {
+			context.Stop()
 			break
 		}
 		if result.Type() == TypeError {
@@ -1233,6 +1242,10 @@ func (block *block) Internal() interface{} {
 	return errors.New("Internal() not implemented on block")
 }
 
+func (b *block) CopyWithinContext(context RunContext) Block {
+	return &block{astNode: b.astNode, baseValue: b.baseValue, calls: b.calls, capturedContext: context}
+}
+
 // NewBlock contsruct a new block of function calls
 //
 func NewBlock(meta ScriptMetaData, begin uint32, end uint32, calls []Call) Block {
@@ -1245,6 +1258,10 @@ func EvalArgument(context RunContext, argument Argument) Value {
 
 	if argument.Type() == TypeCall {
 		return argument.Value().(Runnable).Run(context, NoArguments)
+	}
+
+	if argument.Type() == TypeBlock {
+		return argument.Value().(Block).CopyWithinContext(context)
 	}
 
 	return argument.Value()

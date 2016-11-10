@@ -8,6 +8,7 @@ type runContext struct {
 	scriptName Value
 	modules    map[string]Module
 	parent     RunContext
+	joined     RunContext
 	stopped    bool
 }
 
@@ -31,6 +32,7 @@ type RunContext interface {
 	Module(name string) (Module, bool)
 	Stop()
 	isStopped() bool
+	Join(with RunContext) RunContext
 }
 
 func (runContext *runContext) Set(key string, value Value) {
@@ -107,6 +109,13 @@ func (runContext *runContext) Get(key string) (Value, bool) {
 		return value, true
 	}
 
+	if runContext.joined != nil {
+		value, found := runContext.joined.Get(key)
+		if found {
+			return value, true
+		}
+	}
+
 	if runContext.parent != nil {
 		return runContext.parent.Get(key)
 	}
@@ -119,10 +128,14 @@ func (runContext *runContext) Keys() []string {
 	for k := range runContext.properties {
 		keys = append(keys, k)
 	}
-	if runContext.parent == nil {
-		return keys
+	if runContext.parent != nil {
+		keys = append(keys, runContext.parent.Keys()...)
 	}
-	return append(keys, runContext.parent.Keys()...)
+	if runContext.joined != nil {
+		keys = append(keys, runContext.joined.Keys()...)
+	}
+
+	return keys
 }
 
 func (runContext *runContext) Parent() RunContext {
@@ -143,6 +156,12 @@ func (runContext *runContext) Stop() {
 
 func (runContext *runContext) isStopped() bool {
 	return runContext.stopped
+}
+
+func (rc *runContext) Join(with RunContext) RunContext {
+	copy := &runContext{parent: rc.parent, properties: rc.properties, this: rc.this, scriptName: rc.scriptName, modules: rc.modules}
+	copy.joined = with
+	return copy
 }
 
 // NewRunContext constructs a new run context

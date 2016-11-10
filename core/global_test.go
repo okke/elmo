@@ -170,6 +170,29 @@ func TestUserDefinedFunctionReUse(t *testing.T) {
 		`fsoup: &fsauce.a`, ExpectErrorValueAt(t, 1))
 }
 
+func TestUserDefinedFunctionInFunction(t *testing.T) {
+
+	ParseTestAndRunBlock(t,
+		`sauce: (func {
+			 pepper: "chipotle"
+			 return (func {
+				 return $pepper
+			 })
+		 })
+		 soup: (sauce)
+		 soup`, ExpectValue(t, NewStringLiteral("chipotle")))
+
+	ParseTestAndRunBlock(t,
+		`sauce: (func pepper {
+			 pepper: "jalapeno"
+ 			 return (func {
+ 				 return $pepper
+ 			 })
+ 		 })
+ 		 soup: (sauce "chipotle")
+ 		 soup`, ExpectValue(t, NewStringLiteral("jalapeno")))
+}
+
 func TestUserDefinedFunctionWithOneArgument(t *testing.T) {
 
 	ParseTestAndRunBlock(t,

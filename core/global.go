@@ -292,14 +292,14 @@ func _func() NamedValue {
 		}
 
 		argNamesAsArgument := arguments[0 : len(arguments)-1]
-		block := arguments[len(arguments)-1]
+		block := EvalArgument(context, arguments[len(arguments)-1])
 		argNames := make([]string, len(argNamesAsArgument))
 
 		if argLen == 1 && block.Type() != TypeBlock {
 			// block is not a block, maybe its an identifier that can be used
 			// to lookup a function insted of creating on
 			//
-			result, found := context.Get(EvalArgument2String(context, block))
+			result, found := context.Get(EvalArgument2String(context, arguments[len(arguments)-1]))
 			if found && result.Type() == TypeGoFunction {
 				return result
 			}
@@ -333,7 +333,7 @@ func _func() NamedValue {
 				subContext.Set(argNames[i], EvalArgument(innerContext, v))
 			}
 
-			return block.Value().(Block).Run(subContext, NoArguments)
+			return block.(Block).Run(subContext, NoArguments)
 		})
 
 	})
