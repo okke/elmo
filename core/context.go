@@ -45,7 +45,7 @@ func (runContext *runContext) Remove(key string) {
 
 func (runContext *runContext) Mixin(value Value) Value {
 	if value.Type() != TypeDictionary {
-		return NewErrorValue(fmt.Sprintf("mixin can only mix in dictionaries, not %s", value.String()))
+		return NewErrorValue(fmt.Sprintf("can only mix in dictionaries, not %s", value.String()))
 	}
 
 	for k, v := range value.Internal().(map[string]Value) {

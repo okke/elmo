@@ -4,7 +4,7 @@ import "testing"
 
 func TestLoaderLoadsFromWorkingDir(t *testing.T) {
 
-	loader := NewLoader(NewGlobalContext(), []string{"../examples/basics"})
+	loader := NewLoader(NewGlobalContext(), []string{"./loader_testdata"})
 
 	notFound := loader.Load("chipotles")
 	if notFound.Type() != TypeError {
@@ -56,7 +56,7 @@ func TestLoaderDoesNotLoadFileWhichCanNotLoadOtherFile(t *testing.T) {
 		t.Errorf("could load undefined-script: %v", value)
 	}
 
-	if value.String() != "error at ./loader_testdata/undefined-script.mo at line 1: mixin can only mix in dictionaries, not error: could not find szechuan" {
+	if value.String() != "error at ./loader_testdata/undefined-script.mo at line 1: can only mix in dictionaries, not error: could not find szechuan" {
 		t.Errorf("expected a different value, found %v", value)
 	}
 

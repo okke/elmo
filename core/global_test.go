@@ -107,6 +107,22 @@ func TestSetValueOnceIntoGlobalContext(t *testing.T) {
 		 once chipotle "jar"`, ExpectValueSetTo(t, "chipotle", "sauce"))
 }
 
+func TestDefined(t *testing.T) {
+
+	ParseTestAndRunBlock(t,
+		`defined`, ExpectErrorValueAt(t, 1))
+
+	ParseTestAndRunBlock(t,
+		`defined chipotle`, ExpectValue(t, False))
+
+	ParseTestAndRunBlock(t,
+		`defined 3`, ExpectValue(t, False))
+
+	ParseTestAndRunBlock(t,
+		`set chipotle "sauce"
+     defined chipotle`, ExpectValue(t, True))
+}
+
 func TestUserDefinedFunctionWithoutArguments(t *testing.T) {
 
 	ParseTestAndRunBlock(t,
@@ -567,6 +583,48 @@ func TestLoad(t *testing.T) {
 		 yy.nop`, ExpectNothing(t))
 }
 
+func TestEvalWithBlock(t *testing.T) {
+	ParseTestAndRunBlock(t,
+		`eval`, ExpectErrorValueAt(t, 1))
+
+	ParseTestAndRunBlock(t,
+		`eval {
+			"chipotle"
+		 }`, ExpectValue(t, NewStringLiteral("chipotle")))
+
+	ParseTestAndRunBlock(t,
+		`pepper: (func block {
+	 		return (eval $block)
+	 	 })
+		 pepper {
+		   "chipotle"
+		 }`, ExpectValue(t, NewStringLiteral("chipotle")))
+
+	ParseTestAndRunBlock(t,
+		`eval {
+			pepper: "chipotle"
+		 } {
+		 	$pepper
+		 }`, ExpectValue(t, NewStringLiteral("chipotle")))
+
+	ParseTestAndRunBlock(t,
+		`sauce: (func block {
+		 		return (eval {pepper:"chipotle"} $block)
+		 })
+		 sauce {
+		 	$pepper
+		 }`, ExpectValue(t, NewStringLiteral("chipotle")))
+
+	ParseTestAndRunBlock(t,
+		`sauce: (func ingredient block {
+	 		 return (eval {$ingredient:"chipotle"} $block)
+	 	 })
+	 	 sauce pepper {
+		   assert (defined pepper)
+	 		 $pepper
+	 	 }`, ExpectValue(t, NewStringLiteral("chipotle")))
+}
+
 func TestEq(t *testing.T) {
 	ParseTestAndRunBlock(t, `eq 1 1`, ExpectValue(t, True))
 	ParseTestAndRunBlock(t, `eq 1 0`, ExpectValue(t, False))
@@ -757,6 +815,7 @@ func TestModulo(t *testing.T) {
 
 func TestAssert(t *testing.T) {
 	ParseTestAndRunBlock(t, `assert`, ExpectErrorValueAt(t, 1))
+	ParseTestAndRunBlock(t, `assert (false)`, ExpectErrorValueAt(t, 1))
 	ParseTestAndRunBlock(t, `assert (true) "everything fine"`, ExpectValue(t, True))
 	ParseTestAndRunBlock(t, `assert (false) "things got really messy"`, ExpectErrorValueAt(t, 1))
 	ParseTestAndRunBlock(t, `assert "chipotle" "things got really messy"`, ExpectErrorValueAt(t, 1))

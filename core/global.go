@@ -29,6 +29,7 @@ func NewGlobalContext() RunContext {
 	context.SetNamed(_type())
 	context.SetNamed(set())
 	context.SetNamed(get())
+	context.SetNamed(defined())
 	context.SetNamed(once())
 	context.SetNamed(incr())
 	context.SetNamed(_return())
@@ -40,6 +41,7 @@ func NewGlobalContext() RunContext {
 	context.SetNamed(do())
 	context.SetNamed(mixin())
 	context.SetNamed(load())
+	context.SetNamed(eval())
 	context.SetNamed(puts())
 	context.SetNamed(echo())
 	context.SetNamed(sleep())
@@ -153,12 +155,44 @@ func get() NamedValue {
 			return err
 		}
 
-		result, found := context.Get(EvalArgument2String(context, arguments[0]))
+		identifier := EvalArgument(context, arguments[0])
+
+		if identifier.Type() != TypeIdentifier {
+			return NewErrorValue(fmt.Sprintf("can not get non identifier %v", arguments[0]))
+		}
+
+		_, result, found := identifier.(IdentifierValue).LookUp(context)
+
 		if found {
 			return result
 		}
 
 		return Nothing
+
+	})
+}
+
+func defined() NamedValue {
+	return NewGoFunction("defined", func(context RunContext, arguments []Argument) Value {
+
+		_, ok, err := CheckArguments(arguments, 1, 1, "defined", "<identifier>")
+		if !ok {
+			return err
+		}
+
+		identifier := EvalArgument(context, arguments[0])
+
+		if identifier.Type() != TypeIdentifier {
+			return False
+		}
+
+		_, _, found := identifier.(IdentifierValue).LookUp(context)
+
+		if found {
+			return True
+		}
+
+		return False
 
 	})
 }
@@ -467,9 +501,6 @@ func mixin() NamedValue {
 				return result
 			}
 
-			for k, v := range dict.Internal().(map[string]Value) {
-				context.Set(k, v)
-			}
 		}
 
 		if argLen == 1 {
@@ -555,6 +586,34 @@ func load() NamedValue {
 		}
 
 		return context.Mixin(loaded)
+	})
+}
+
+func eval() NamedValue {
+	return NewGoFunction("eval", func(context RunContext, arguments []Argument) Value {
+		argLen, ok, err := CheckArguments(arguments, 1, 2, "eval", "<dict>? <block>")
+		if !ok {
+			return err
+		}
+
+		var blockContext = context.CreateSubContext()
+		var blockArg = 0
+
+		if argLen == 2 {
+			blockArg = 1
+			dict := EvalArgument(context, arguments[0])
+			if dict.Type() == TypeBlock {
+				dict = NewDictionaryWithBlock(context, dict.(Block))
+			}
+			blockContext.Mixin(dict)
+		}
+
+		result := EvalArgumentWithBlock(blockContext, arguments[blockArg])
+		if result.Type() == TypeBlock {
+			return result.(Block).Run(blockContext, []Argument{})
+		}
+		return result
+
 	})
 }
 
@@ -823,7 +882,7 @@ func modulo() NamedValue {
 func assert() NamedValue {
 	return NewGoFunction("assert", func(context RunContext, arguments []Argument) Value {
 
-		_, ok, err := CheckArguments(arguments, 2, 2, "assert", "<boolean> <error>")
+		argLen, ok, err := CheckArguments(arguments, 1, 2, "assert", "<boolean> <error>?")
 		if !ok {
 			return err
 		}
@@ -834,7 +893,12 @@ func assert() NamedValue {
 				return True
 			}
 
-			return NewErrorValue(EvalArgument2String(context, arguments[1]))
+			if argLen == 2 {
+				return NewErrorValue(EvalArgument2String(context, arguments[1]))
+			}
+
+			return NewErrorValue("assertion failed")
+
 		}
 
 		return NewErrorValue("assert: first argument does not evaluate to a boolean value")
