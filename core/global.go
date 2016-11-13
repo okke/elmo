@@ -606,6 +606,11 @@ func eval() NamedValue {
 				dict = NewDictionaryWithBlock(context, dict.(Block))
 			}
 			blockContext.Mixin(dict)
+
+			// ensure mixed in key/value pairs are not overriding
+			// local context
+			//
+			blockContext = blockContext.CreateSubContext()
 		}
 
 		result := EvalArgumentWithBlock(blockContext, arguments[blockArg])

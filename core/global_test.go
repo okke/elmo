@@ -623,6 +623,31 @@ func TestEvalWithBlock(t *testing.T) {
 		   assert (defined pepper)
 	 		 $pepper
 	 	 }`, ExpectValue(t, NewStringLiteral("chipotle")))
+
+	ParseTestAndRunBlock(t,
+		`sauce: (func block {
+		 		 return (eval $block)
+		 })
+		 soup: (func {
+		 	 pepper: "chipotle"
+		 	 sauce {
+		 		 $pepper
+		 	 }
+		 })
+		 soup`, ExpectValue(t, NewStringLiteral("chipotle")))
+
+	ParseTestAndRunBlock(t,
+		`sauce: (func block {
+		   return (eval {pepper:"jalapeno"} $block)
+		 })
+		 soup: (func {
+			 pepper: "chipotle"
+			 sauce {
+	 			$pepper
+	 		 }
+		 })
+		 soup`, ExpectValue(t, NewStringLiteral("chipotle")))
+
 }
 
 func TestEq(t *testing.T) {
