@@ -1,6 +1,7 @@
 package elmo
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"math"
@@ -184,6 +185,7 @@ type GoFunction func(RunContext, []Argument) Value
 type goFunction struct {
 	baseValue
 	name  string
+	help  Value
 	value GoFunction
 }
 
@@ -231,6 +233,12 @@ type MathValue interface {
 //
 type ComparableValue interface {
 	Compare(Value) (int, ErrorValue)
+}
+
+// HelpValue represents a value with help
+//
+type HelpValue interface {
+	Help() Value
 }
 
 // ErrorValue represents an Error
@@ -835,6 +843,13 @@ func (goFunction *goFunction) Run(context RunContext, arguments []Argument) Valu
 	return goFunction.value(context, arguments)
 }
 
+func (goFunction *goFunction) Help() Value {
+	if goFunction.help == nil {
+		return Nothing
+	}
+	return goFunction.help
+}
+
 // NewIdentifier creates a new identifier value
 //
 func NewIdentifier(value string) Value {
@@ -937,10 +952,32 @@ func NewErrorValue(msg string) ErrorValue {
 	return &errorValue{baseValue: baseValue{info: typeInfoError}, msg: msg}
 }
 
+// TODO: 13nov2016 move to utility package?
+//
+func stringToText(s string) string {
+	splitted := strings.Split(s, "\n")
+	var buf bytes.Buffer
+	for i, v := range splitted {
+		buf.WriteString(strings.Trim(v, " \t"))
+		if i < (len(splitted) - 1) {
+			buf.WriteString("\n")
+		}
+	}
+	return buf.String()
+}
+
 // NewGoFunction creates a new go function
 //
 func NewGoFunction(name string, value GoFunction) NamedValue {
-	return &goFunction{baseValue: baseValue{info: typeInfoGoFunction}, name: name, value: value}
+
+	splitted := strings.Split(name, "/")
+	actualName := splitted[0]
+	var help Value = Nothing
+	if len(splitted) > 1 {
+		help = NewStringLiteral(stringToText(splitted[1]))
+	}
+
+	return &goFunction{baseValue: baseValue{info: typeInfoGoFunction}, name: actualName, help: help, value: value}
 }
 
 // NewReturnValue creates a new list of values

@@ -97,316 +97,475 @@ func CheckArguments(arguments []Argument, min int, max int, fname string, usage 
 }
 
 func _type() NamedValue {
-	return NewGoFunction("type", func(context RunContext, arguments []Argument) Value {
-		_, ok, err := CheckArguments(arguments, 1, 1, "type", "<value>")
-		if !ok {
-			return err
-		}
-		return EvalArgument(context, arguments[0]).Info().Name()
-	})
+	return NewGoFunction(`type/Get type information of a runtime value.
+		Usage: type value
+
+		Examples:
+
+		> a:3
+		> type a
+		will result in identifier
+
+		> type $a
+		will result in int`,
+
+		func(context RunContext, arguments []Argument) Value {
+			_, ok, err := CheckArguments(arguments, 1, 1, "type", "<value>")
+			if !ok {
+				return err
+			}
+			return EvalArgument(context, arguments[0]).Info().Name()
+		})
 }
 
 func set() NamedValue {
-	return NewGoFunction("set", func(context RunContext, arguments []Argument) Value {
+	return NewGoFunction(`set/Set a variable
+		Usage: set <symbol> <value>
+		Alternative usage: set <symbol>* value
+		Returns: value that has been assigned to the denoted variable
 
-		argLen, ok, err := CheckArguments(arguments, 2, math.MaxInt16, "set", "<identifier>* value")
-		if !ok {
-			return err
-		}
+		Examples:
 
-		var value = EvalArgument(context, arguments[argLen-1])
+		> set a 3
+		> a
+		will result in 3
+		> set b (set c 3)
+		> b
+		will result in 3
+		> c
+		will result in 3
 
-		// value can evaluate to a multiple return so will result
-		// in multiple assignments
-		if value.Type() == TypeReturn {
-			returnedValues := value.(*returnValue).values
-			returnedLength := len(returnedValues)
+    Alternative example using a function that returns multiple values:
+		> set f (func { return 1 2 })
+		> set a b $f
+		> a
+		will result in 1
+		> b
+		will result in 2
 
-			for i := 0; i < (argLen-1) && i < returnedLength; i++ {
-				name := EvalArgument2String(context, arguments[i])
-				context.Set(name, returnedValues[i])
-			}
-		} else {
+		Note, instead of using set, it's possible to use the ':' shortcut like:
+		> a: 3
+		or
+		> f: (func {....})`,
 
-			_, ok, err := CheckArguments(arguments, 2, 2, "set", "<identifier> value")
+		func(context RunContext, arguments []Argument) Value {
+
+			argLen, ok, err := CheckArguments(arguments, 2, math.MaxInt16, "set", "<identifier>* value")
 			if !ok {
 				return err
 			}
 
-			// convert block to dictionary
-			//
-			if value.Type() == TypeBlock {
-				value = NewDictionaryWithBlock(context, value.(Block))
+			var value = EvalArgument(context, arguments[argLen-1])
+
+			// value can evaluate to a multiple return so will result
+			// in multiple assignments
+			if value.Type() == TypeReturn {
+				returnedValues := value.(*returnValue).values
+				returnedLength := len(returnedValues)
+
+				for i := 0; i < (argLen-1) && i < returnedLength; i++ {
+					name := EvalArgument2String(context, arguments[i])
+					context.Set(name, returnedValues[i])
+				}
+			} else {
+
+				_, ok, err := CheckArguments(arguments, 2, 2, "set", "<identifier> value")
+				if !ok {
+					return err
+				}
+
+				// convert block to dictionary
+				//
+				if value.Type() == TypeBlock {
+					value = NewDictionaryWithBlock(context, value.(Block))
+				}
+
+				name := EvalArgument2String(context, arguments[0])
+				context.Set(name, value)
 			}
 
-			name := EvalArgument2String(context, arguments[0])
-			context.Set(name, value)
-		}
-
-		return value
-	})
+			return value
+		})
 }
 
 func get() NamedValue {
-	return NewGoFunction("get", func(context RunContext, arguments []Argument) Value {
+	return NewGoFunction(`get/Gets a the value of a variable
+		Usage: get <symbol>
+		Returns: content of variable denoted by symbol
 
-		_, ok, err := CheckArguments(arguments, 1, 1, "get", "<identifier>")
-		if !ok {
-			return err
-		}
+		Examples:
 
-		identifier := EvalArgument(context, arguments[0])
+		> a: 3
+		> get a
+		will result in 3
 
-		if identifier.Type() != TypeIdentifier {
-			return NewErrorValue(fmt.Sprintf("can not get non identifier %v", arguments[0]))
-		}
+		> b: (get a)
+		> b
+		will result in 3
 
-		_, result, found := identifier.(IdentifierValue).LookUp(context)
+		Note, the usage of get is most of the times unnecessary. using $ or (...)
+		will do the same
+		> a: 3
+		> a
+		> b: $a
+		> c: (b)`,
 
-		if found {
-			return result
-		}
+		func(context RunContext, arguments []Argument) Value {
 
-		return Nothing
+			_, ok, err := CheckArguments(arguments, 1, 1, "get", "<identifier>")
+			if !ok {
+				return err
+			}
 
-	})
+			identifier := EvalArgument(context, arguments[0])
+
+			if identifier.Type() != TypeIdentifier {
+				return NewErrorValue(fmt.Sprintf("can not get non identifier %v", arguments[0]))
+			}
+
+			_, result, found := identifier.(IdentifierValue).LookUp(context)
+
+			if found {
+				return result
+			}
+
+			return Nothing
+
+		})
 }
 
 func defined() NamedValue {
-	return NewGoFunction("defined", func(context RunContext, arguments []Argument) Value {
+	return NewGoFunction(`defined/Check if a variable is defined
+		Usage: defined <symbol>
+		Returns: true or false
 
-		_, ok, err := CheckArguments(arguments, 1, 1, "defined", "<identifier>")
-		if !ok {
-			return err
-		}
+		Examples:
 
-		identifier := EvalArgument(context, arguments[0])
+		> a: 3
+		> defined a
+		will result in true
+		> defined b
+		will result in false
 
-		if identifier.Type() != TypeIdentifier {
+		Example combining it with assert:
+		> assert (defined a)`,
+
+		func(context RunContext, arguments []Argument) Value {
+
+			_, ok, err := CheckArguments(arguments, 1, 1, "defined", "<identifier>")
+			if !ok {
+				return err
+			}
+
+			identifier := EvalArgument(context, arguments[0])
+
+			if identifier.Type() != TypeIdentifier {
+				return False
+			}
+
+			_, _, found := identifier.(IdentifierValue).LookUp(context)
+
+			if found {
+				return True
+			}
+
 			return False
-		}
 
-		_, _, found := identifier.(IdentifierValue).LookUp(context)
-
-		if found {
-			return True
-		}
-
-		return False
-
-	})
+		})
 }
 
 func once() NamedValue {
-	return NewGoFunction("once", func(context RunContext, arguments []Argument) Value {
+	return NewGoFunction(`once/Sets a variable only once
+		Usage: once <symbol> <value>
+		Returns value that was set
 
-		_, ok, err := CheckArguments(arguments, 2, 2, "once", "once <identifier>")
-		if !ok {
-			return err
-		}
+		Examples:
 
-		name := EvalArgument2String(context, arguments[0])
+		> once a 1
+		> once a 2
+		> a
+		will result in 1`,
 
-		existing, found := context.Get(name)
-		if !found {
-			existing = EvalArgument(context, arguments[1])
-			context.Set(name, existing)
-		}
+		func(context RunContext, arguments []Argument) Value {
 
-		return existing
-	})
+			_, ok, err := CheckArguments(arguments, 2, 2, "once", "<identifier> <value>")
+			if !ok {
+				return err
+			}
+
+			name := EvalArgument2String(context, arguments[0])
+
+			existing, found := context.Get(name)
+			if !found {
+				existing = EvalArgument(context, arguments[1])
+				context.Set(name, existing)
+			}
+
+			return existing
+		})
 }
 
 func incr() NamedValue {
-	return NewGoFunction("incr", func(context RunContext, arguments []Argument) Value {
+	return NewGoFunction(`incr/Increments variable with 1 or given value
+		Usage: incr <symbol> <value>?
+		Returns: incremented value
 
-		argLen, ok, err := CheckArguments(arguments, 1, 2, "incr", "<identifier> <value>?")
-		if !ok {
-			return err
-		}
+		Examples:
 
-		arg0 := EvalArgument(context, arguments[0])
+		> a: 1
+		> incr a
+		> a
+		will result in 2
+		> incr a 3
+		> a
+		will result in 5
 
-		var incrValue = One
-		if argLen == 2 {
-			incrValue = EvalArgument(context, arguments[1])
-		}
+		Note, symbol must be an integer or floating point variable.
+		> s: "chipotle"
+		> incr s
+		will result in an error`,
 
-		var currentValue Value
-		var found bool
-		if arg0.Type() == TypeIdentifier {
-			currentValue, found = context.Get(arg0.String())
-		} else {
-			currentValue, found = arg0, true
-		}
+		func(context RunContext, arguments []Argument) Value {
 
-		if found {
-
-			_, isIncrementable := currentValue.(IncrementableValue)
-			if isIncrementable {
-
-				newValue := currentValue.(IncrementableValue).Increment(incrValue)
-
-				if arg0.Type() == TypeIdentifier {
-					context.Set(arg0.String(), newValue)
-				}
-
-				return newValue
+			argLen, ok, err := CheckArguments(arguments, 1, 2, "incr", "<identifier> <value>?")
+			if !ok {
+				return err
 			}
 
-			return NewErrorValue("invalid call to incr, expected variable that can be incremented")
+			arg0 := EvalArgument(context, arguments[0])
 
-		}
+			var incrValue = One
+			if argLen == 2 {
+				incrValue = EvalArgument(context, arguments[1])
+			}
 
-		_, ok = incrValue.(IncrementableValue)
-		if !ok {
-			return NewErrorValue("invalid call to incr, expected a value that can be incremented")
-		}
+			var currentValue Value
+			var found bool
+			if arg0.Type() == TypeIdentifier {
+				currentValue, found = context.Get(arg0.String())
+			} else {
+				currentValue, found = arg0, true
+			}
 
-		// not found so set it to initial value
-		//
-		context.Set(arg0.String(), incrValue)
-		return incrValue
+			if found {
 
-	})
+				_, isIncrementable := currentValue.(IncrementableValue)
+				if isIncrementable {
+
+					newValue := currentValue.(IncrementableValue).Increment(incrValue)
+
+					if arg0.Type() == TypeIdentifier {
+						context.Set(arg0.String(), newValue)
+					}
+
+					return newValue
+				}
+
+				return NewErrorValue("invalid call to incr, expected variable that can be incremented")
+
+			}
+
+			_, ok = incrValue.(IncrementableValue)
+			if !ok {
+				return NewErrorValue("invalid call to incr, expected a value that can be incremented")
+			}
+
+			// not found so set it to initial value
+			//
+			context.Set(arg0.String(), incrValue)
+			return incrValue
+
+		})
 }
 
 func _return() NamedValue {
-	return NewGoFunction("return", func(context RunContext, arguments []Argument) Value {
+	return NewGoFunction(`return/Stops processing and returns a value to caller
+		Usage return <value>*
+		Returns: returned value as value or as a multiple return value
 
-		argLen := len(arguments)
+		Examples:
+		> f: (func {return 1})
+		> f
+		will result in 1
+		> f: (func {return 1 2})
+		> f
+		will result in a multiple return value <[1 2]> that can be assigned like
+		> set a b (f)
+		> a
+		will result in 1
+		> b
+		will result in 2`,
 
-		// return expects exactly 1 argument
-		//
-		var result Value
+		func(context RunContext, arguments []Argument) Value {
 
-		switch argLen {
-		case 0:
-			result = Nothing
-		case 1:
-			result = EvalArgument(context, arguments[0])
-		default:
-			values := make([]Value, len(arguments))
-			for i, arg := range arguments {
-				values[i] = EvalArgument(context, arg)
+			argLen := len(arguments)
+
+			var result Value
+
+			switch argLen {
+			case 0:
+				result = Nothing
+			case 1:
+				result = EvalArgument(context, arguments[0])
+			default:
+				values := make([]Value, len(arguments))
+				for i, arg := range arguments {
+					values[i] = EvalArgument(context, arg)
+				}
+				result = NewReturnValue(values)
 			}
-			result = NewReturnValue(values)
-		}
 
-		context.Stop()
+			context.Stop()
 
-		return result
-	})
+			return result
+		})
 }
 
 func ampersand() NamedValue {
-	return NewGoFunction("&", func(context RunContext, arguments []Argument) Value {
-		// no argument checks are needed, ampersand (&) is an internal function
-		// part of elmo's syntax
-		//
-		name := EvalArgument(context, arguments[0])
+	return NewGoFunction("&/Internal function, can't be used",
+		func(context RunContext, arguments []Argument) Value {
+			// no argument checks are needed, ampersand (&) is an internal function
+			// part of elmo's syntax
+			//
+			name := EvalArgument(context, arguments[0])
 
-		if name.Type() == TypeIdentifier {
-			_, value, found := name.(IdentifierValue).LookUp(context)
-			if found {
-				return value
+			if name.Type() == TypeIdentifier {
+				_, value, found := name.(IdentifierValue).LookUp(context)
+				if found {
+					return value
+				}
 			}
-		}
 
-		return NewErrorValue(fmt.Sprintf("could not resolve &%v", name))
-	})
+			return NewErrorValue(fmt.Sprintf("could not resolve &%v", name))
+		})
 }
 
 func _func() NamedValue {
-	return NewGoFunction("func", func(context RunContext, arguments []Argument) Value {
+	return NewGoFunction(`func/Create a new function
+		Usage: func <symbol>* {...}
+		Returns: a new function
 
-		argLen, ok, err := CheckArguments(arguments, 1, math.MaxInt16, "func", "<identifier>* {...}")
-		if !ok {
-			return err
-		}
+		Given symbols denote function parameter names.
 
-		argNamesAsArgument := arguments[0 : len(arguments)-1]
-		block := EvalArgument(context, arguments[len(arguments)-1])
-		argNames := make([]string, len(argNamesAsArgument))
+		Examples:
 
-		if argLen == 1 && block.Type() != TypeBlock {
-			// block is not a block, maybe its an identifier that can be used
-			// to lookup a function insted of creating on
-			//
-			result, found := context.Get(EvalArgument2String(context, arguments[len(arguments)-1]))
-			if found && result.Type() == TypeGoFunction {
-				return result
-			}
-		}
+		> func a {...}
+		will create a function that accepts one parameter called 'a'
+		> func a { return $a }
+		will create an echo function`,
 
-		for i, v := range argNamesAsArgument {
-			argNames[i] = EvalArgument2String(context, v)
-		}
+		func(context RunContext, arguments []Argument) Value {
 
-		if block.Type() != TypeBlock {
-			return NewErrorValue("invalid call to func, last parameter must be a block: usage func <identifier> <identifier>* {...}")
-		}
-
-		return NewGoFunction("user_defined_function", func(innerContext RunContext, innerArguments []Argument) Value {
-
-			if len(argNames) != len(innerArguments) {
-				return NewErrorValue(fmt.Sprintf("invalid call to user defined function: expect %d parameters instead of %d", len(argNames), len(innerArguments)))
+			argLen, ok, err := CheckArguments(arguments, 1, math.MaxInt16, "func", "<identifier>* {...}")
+			if !ok {
+				return err
 			}
 
-			cloneFrom := innerContext
-			if cloneFrom.Parent() != nil {
-				cloneFrom = cloneFrom.Parent()
-			}
-			subContext := cloneFrom.CreateSubContext()
+			argNamesAsArgument := arguments[0 : len(arguments)-1]
+			block := EvalArgument(context, arguments[len(arguments)-1])
+			argNames := make([]string, len(argNamesAsArgument))
 
-			if innerContext.This() != nil {
-				subContext.Set("this", innerContext.This())
+			if argLen == 1 && block.Type() != TypeBlock {
+				// block is not a block, maybe its an identifier that can be used
+				// to lookup a function insted of creating on
+				//
+				result, found := context.Get(EvalArgument2String(context, arguments[len(arguments)-1]))
+				if found && result.Type() == TypeGoFunction {
+					return result
+				}
 			}
 
-			for i, v := range innerArguments {
-				subContext.Set(argNames[i], EvalArgument(innerContext, v))
+			for i, v := range argNamesAsArgument {
+				argNames[i] = EvalArgument2String(context, v)
 			}
 
-			return block.(Block).Run(subContext, NoArguments)
+			if block.Type() != TypeBlock {
+				return NewErrorValue("invalid call to func, last parameter must be a block: usage func <identifier> <identifier>* {...}")
+			}
+
+			return NewGoFunction("user_defined_function", func(innerContext RunContext, innerArguments []Argument) Value {
+
+				if len(argNames) != len(innerArguments) {
+					return NewErrorValue(fmt.Sprintf("invalid call to user defined function: expect %d parameters instead of %d", len(argNames), len(innerArguments)))
+				}
+
+				cloneFrom := innerContext
+				if cloneFrom.Parent() != nil {
+					cloneFrom = cloneFrom.Parent()
+				}
+				subContext := cloneFrom.CreateSubContext()
+
+				if innerContext.This() != nil {
+					subContext.Set("this", innerContext.This())
+				}
+
+				for i, v := range innerArguments {
+					subContext.Set(argNames[i], EvalArgument(innerContext, v))
+				}
+
+				return block.(Block).Run(subContext, NoArguments)
+			})
+
 		})
-
-	})
 }
 
 func _if() NamedValue {
-	return NewGoFunction("if", func(context RunContext, arguments []Argument) Value {
+	return NewGoFunction(`if/Conditionally execute (a block of) code
+	  Usage: if <condition> {...} (else {...})?
+		Returns: value of executed (block of) code
 
-		argLen, ok, err := CheckArguments(arguments, 2, math.MaxInt16, "if", "<condition> {...} (else {...})?")
-		if !ok {
-			return err
-		}
+		Examples:
 
-		condition := EvalArgument(context, arguments[0])
-		if condition.Type() != TypeBoolean {
-			return NewErrorValue("if condition does not evaluate to a boolean value")
-		}
+		> if (eq $a $b) "equal"
+		> if (eq $a $b) {
+		>   "equals"
+		> }
 
-		if condition.(*booleanLiteral).value {
-			return EvalArgumentWithBlock(context, arguments[1])
-		}
+		> if (eq $a $b) "equal" else "different"
+		> if (eq $a $b) {
+		>  ...
+		> } else {
+		>  ...
+		> }
 
-		// condition not true, check else part
-		//
-		switch argLen {
-		case 2:
-			return Nothing
-		case 3:
-			return EvalArgumentWithBlock(context, arguments[2])
-		case 4:
-			if arguments[2].Value().String() == "else" {
-				return EvalArgumentWithBlock(context, arguments[3])
+		Note, the result of a call to if can be assigned to a variable
+
+		> e: (if (eq $a $b) "equal" else "different")
+		> puts $e`,
+
+		func(context RunContext, arguments []Argument) Value {
+
+			argLen, ok, err := CheckArguments(arguments, 2, math.MaxInt16, "if", "<condition> {...} (else {...})?")
+			if !ok {
+				return err
 			}
-			return NewErrorValue("invalid call to if, expected else as 3rd argument")
-		default:
-			return NewErrorValue("invalid call to if, too many arguments")
-		}
 
-	})
+			condition := EvalArgument(context, arguments[0])
+			if condition.Type() != TypeBoolean {
+				return NewErrorValue("if condition does not evaluate to a boolean value")
+			}
+
+			if condition.(*booleanLiteral).value {
+				return EvalArgumentWithBlock(context, arguments[1])
+			}
+
+			// condition not true, check else part
+			//
+			switch argLen {
+			case 2:
+				return Nothing
+			case 3:
+				return EvalArgumentWithBlock(context, arguments[2])
+			case 4:
+				if arguments[2].Value().String() == "else" {
+					return EvalArgumentWithBlock(context, arguments[3])
+				}
+				return NewErrorValue("invalid call to if, expected else as 3rd argument")
+			default:
+				return NewErrorValue("invalid call to if, too many arguments")
+			}
+
+		})
 }
 
 func createLoop(name string, stopCondition bool) func(context RunContext, arguments []Argument) Value {
@@ -437,156 +596,267 @@ func createLoop(name string, stopCondition bool) func(context RunContext, argume
 }
 
 func while() NamedValue {
-	return NewGoFunction("while", createLoop("while", true))
+	return NewGoFunction(`while/Repeat (a block of) code while a given condition is true
+	  Usage: while <condition> {...}
+		Returns: result of given code or nil when code is not executed
+
+		Examples:
+
+		> a: 1
+		> while (lt $a 10) { incr a }
+
+		Note, the result of while can be assigned to a variable.
+
+		>  c: (while (lt $a 10) { incr a; incr b })`,
+
+		createLoop("while", true))
 }
 
 func until() NamedValue {
-	return NewGoFunction("until", createLoop("until", false))
+	return NewGoFunction(`until/Repeat (a block of) code until a given condition is true
+	  Usage: until <condition> {...}
+		Returns: result of given code  or nil when code is not executed
+
+		Examples:
+
+		> a: 1
+		> until (eq $a 10) { incr a }
+
+		Note, the result of while can be assigned to a variable.
+
+		>  c: (until (eq $a 10) { incr a; incr b })`, createLoop("until", false))
 }
 
 func do() NamedValue {
-	return NewGoFunction("do", func(context RunContext, arguments []Argument) Value {
+	return NewGoFunction(`do/Special variant of while and until
+		Usage: do {...} (while|until) <condition>
+		Returns: value of executed code
 
-		_, ok, err := CheckArguments(arguments, 3, 3, "do", "{} while|until <condition>")
-		if !ok {
-			return err
-		}
+		Example:
 
-		result := EvalArgumentWithBlock(context, arguments[0])
+		> a: 1
+		> do {puts $a; incr a} while (lt $a 10)
+		> a: 1
+		> do {puts $a; incr a} until (eq $a 10)`,
 
-		// while => true, until => false
-		//
-		var stopCondition bool
-		switch arguments[1].Value().String() {
-		case "while":
-			stopCondition = true
-		case "until":
-			stopCondition = false
-		default:
-			return NewErrorValue("expected while or until condition in do loop")
-		}
+		func(context RunContext, arguments []Argument) Value {
 
-		for {
-			condition := EvalArgument(context, arguments[2])
-			if condition.Type() != TypeBoolean {
-				return NewErrorValue("condition does not evaluate to a boolean value")
+			_, ok, err := CheckArguments(arguments, 3, 3, "do", "{} while|until <condition>")
+			if !ok {
+				return err
 			}
-			if !(condition.(*booleanLiteral).value == stopCondition) {
-				return result
-			}
-			result = EvalArgumentWithBlock(context, arguments[0])
-			if result.Type() == TypeError {
-				return result
-			}
-		}
 
-	})
+			result := EvalArgumentWithBlock(context, arguments[0])
+
+			// while => true, until => false
+			//
+			var stopCondition bool
+			switch arguments[1].Value().String() {
+			case "while":
+				stopCondition = true
+			case "until":
+				stopCondition = false
+			default:
+				return NewErrorValue("expected while or until condition in do loop")
+			}
+
+			for {
+				condition := EvalArgument(context, arguments[2])
+				if condition.Type() != TypeBoolean {
+					return NewErrorValue("condition does not evaluate to a boolean value")
+				}
+				if !(condition.(*booleanLiteral).value == stopCondition) {
+					return result
+				}
+				result = EvalArgumentWithBlock(context, arguments[0])
+				if result.Type() == TypeError {
+					return result
+				}
+			}
+
+		})
 }
 
 func mixin() NamedValue {
-	return NewGoFunction("mixin", func(context RunContext, arguments []Argument) Value {
+	return NewGoFunction(`mixin/Mixin all key value pairs of a given dictionary as variables
+		Usage: mixin <dictionary>*
 
-		argLen, ok, err := CheckArguments(arguments, 0, math.MaxInt16, "mixin", "<value>*")
-		if !ok {
-			return err
-		}
+		Examples:
 
-		var dict Value
-		for _, arg := range arguments {
-			dict = EvalArgument(context, arg)
+		> d: {
+		>  key: "value"
+		>  value: "key"
+		> }
+		> mixin $d
+		> key
+		will result in value
+		> value
+		will result in key
 
-			result := context.Mixin(dict)
+		Mixin can be used in combination with load to load functions directly introduce
+		current scope
 
-			if result.Type() == TypeError {
-				return result
+		> mixin (load sys)
+
+		Mixin can also be used to populate dictionaries
+
+		> e: {
+		>  mixin $d
+		> }
+		> e.key
+		will result in "value"`,
+
+		func(context RunContext, arguments []Argument) Value {
+
+			argLen, ok, err := CheckArguments(arguments, 0, math.MaxInt16, "mixin", "<value>*")
+			if !ok {
+				return err
 			}
 
-		}
+			var dict Value
+			for _, arg := range arguments {
+				dict = EvalArgument(context, arg)
 
-		if argLen == 1 {
-			return dict
-		}
+				result := context.Mixin(dict)
 
-		return Nothing
+				if result.Type() == TypeError {
+					return result
+				}
 
-	})
+			}
+
+			if argLen == 1 {
+				return dict
+			}
+
+			return Nothing
+
+		})
 }
 
 func puts() NamedValue {
-	return NewGoFunction("puts", func(context RunContext, arguments []Argument) Value {
-		if len(arguments) == 1 {
-			fmt.Printf("%s\n", EvalArgument(context, arguments[0]))
-		} else {
-			line := ""
-			for _, arg := range arguments {
-				line = fmt.Sprintf("%s%s", line, EvalArgument(context, arg))
-			}
-			fmt.Printf("%s\n", line)
-		}
+	return NewGoFunction(`puts/Write values to stdout
+		Usage puts <value>*
+		Returns: nil
 
-		return Nothing
-	})
+		Examples:
+		> puts "chipotle"
+		will print chipotle
+		> puts 1 2 3
+		will print 123`,
+
+		func(context RunContext, arguments []Argument) Value {
+			if len(arguments) == 1 {
+				fmt.Printf("%s\n", EvalArgument(context, arguments[0]))
+			} else {
+				line := ""
+				for _, arg := range arguments {
+					line = fmt.Sprintf("%s%s", line, EvalArgument(context, arg))
+				}
+				fmt.Printf("%s\n", line)
+			}
+
+			return Nothing
+		})
 }
 
 func echo() NamedValue {
-	return NewGoFunction("echo", func(context RunContext, arguments []Argument) Value {
-		_, ok, err := CheckArguments(arguments, 1, 1, "echo", "<value>")
-		if !ok {
-			return err
-		}
+	return NewGoFunction(`echo/Returns given value
+		Usage: echo <value>
+		Returns: given value
 
-		return EvalArgument(context, arguments[0])
-	})
+		Example:
+
+		> a: 1
+		> b: (echo a)
+		is the same as
+		> b: $a
+		and also the same as
+		> b: (a)`,
+
+		func(context RunContext, arguments []Argument) Value {
+			_, ok, err := CheckArguments(arguments, 1, 1, "echo", "<value>")
+			if !ok {
+				return err
+			}
+
+			return EvalArgument(context, arguments[0])
+		})
 }
 
 func sleep() NamedValue {
-	return NewGoFunction("sleep", func(context RunContext, arguments []Argument) Value {
+	return NewGoFunction(`sleep/Pause for given number of milliseconds
+		Usage: sleep <number>
+		Returns: nil
 
-		_, ok, err := CheckArguments(arguments, 1, 1, "sleep", "<number>")
-		if !ok {
-			return err
-		}
+		Example:
 
-		duration := EvalArgument(context, arguments[0])
+		> sleep 1000
+		will pause for one second`,
 
-		if duration.Type() != TypeInteger {
-			return NewErrorValue("invalid call to sleep, expected integer parameter: usage sleep <milliseconds>")
-		}
+		func(context RunContext, arguments []Argument) Value {
 
-		sleepTime := time.Duration(duration.(*integerLiteral).value)
-		time.Sleep(time.Millisecond * sleepTime)
+			_, ok, err := CheckArguments(arguments, 1, 1, "sleep", "<number>")
+			if !ok {
+				return err
+			}
 
-		return Nothing
-	})
+			duration := EvalArgument(context, arguments[0])
+
+			if duration.Type() != TypeInteger {
+				return NewErrorValue("invalid call to sleep, expected integer parameter: usage sleep <milliseconds>")
+			}
+
+			sleepTime := time.Duration(duration.(*integerLiteral).value)
+			time.Sleep(time.Millisecond * sleepTime)
+
+			return Nothing
+		})
 }
 
 func load() NamedValue {
-	return NewGoFunction("load", func(context RunContext, arguments []Argument) Value {
+	return NewGoFunction(`load/Loads given module or script
+		Usage: load <module|script>
+		Returns: A dictionary containing loaded variables
 
-		_, ok, err := CheckArguments(arguments, 1, 1, "load", "<package name>")
-		if !ok {
-			return err
-		}
+		Example:
 
-		name := EvalArgument2String(context, arguments[0])
+		> str: (load string)
+		> str.len "chipotle"
 
-		module, found := context.Module(name)
+		> helper: (load "include/functions")
 
-		if found {
-			content := module.Content(context)
-			return content
-		}
+		Last example will load the script 'incude/functions.mo' that should be
+		located relatively from the current script
 
-		loader := NewLoader(context, []string{})
+		Note, the ".mo" extension is implied and should not be specified`,
 
-		loaded := loader.Load(name)
+		func(context RunContext, arguments []Argument) Value {
 
-		if loaded == nil {
-			return NewErrorValue(fmt.Sprintf("could not find module %s", name))
-		}
+			_, ok, err := CheckArguments(arguments, 1, 1, "load", "<package name>")
+			if !ok {
+				return err
+			}
 
-		return context.Mixin(loaded)
-	})
+			name := EvalArgument2String(context, arguments[0])
+
+			module, found := context.Module(name)
+
+			if found {
+				content := module.Content(context)
+				return content
+			}
+
+			loader := NewLoader(context, []string{})
+
+			loaded := loader.Load(name)
+
+			if loaded == nil {
+				return NewErrorValue(fmt.Sprintf("could not find module %s", name))
+			}
+
+			return context.Mixin(loaded)
+		})
 }
 
 func eval() NamedValue {
@@ -924,11 +1194,36 @@ func _error() NamedValue {
 }
 
 func help() NamedValue {
-	return NewGoFunction("help", func(context RunContext, arguments []Argument) Value {
+	return NewGoFunction("help/Get help. Usage 'help' or 'help identifier'", func(context RunContext, arguments []Argument) Value {
 
-		_, ok, err := CheckArguments(arguments, 0, 0, "help", "")
+		argLen, ok, err := CheckArguments(arguments, 0, 1, "help", "")
 		if !ok {
 			return err
+		}
+
+		// get help for a specific function
+		//
+		if argLen == 1 {
+
+			identifier := EvalArgument(context, arguments[0])
+
+			if identifier.Type() == TypeIdentifier {
+
+				_, result, found := identifier.(IdentifierValue).LookUp(context)
+
+				if found {
+					help, ok := result.(HelpValue)
+					if ok {
+						return help.Help()
+					}
+					return result
+				}
+			}
+
+			// no help available
+			//
+			return Nothing
+
 		}
 
 		keys := context.Keys()

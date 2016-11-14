@@ -850,3 +850,11 @@ func TestError(t *testing.T) {
 	ParseTestAndRunBlock(t, `error`, ExpectErrorValueAt(t, 1))
 	ParseTestAndRunBlock(t, `error "chipotle"`, ExpectErrorValueAt(t, 1))
 }
+
+func TestHelp(t *testing.T) {
+	ParseTestAndRunBlock(t,
+		`type (help)`, ExpectValue(t, NewIdentifier("list")))
+
+	ParseTestAndRunBlock(t,
+		`help help`, ExpectValue(t, NewStringLiteral("Get help. Usage 'help' or 'help identifier'")))
+}
