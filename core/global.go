@@ -693,7 +693,7 @@ func mixin() NamedValue {
 		> value
 		will result in key
 
-		Mixin can be used in combination with load to load functions directly introduce
+		Mixin can be used in combination with load to load functions directly into
 		current scope
 
 		> mixin (load sys)
@@ -765,7 +765,7 @@ func echo() NamedValue {
 		Usage: echo <value>
 		Returns: given value
 
-		Example:
+		Examples:
 
 		> a: 1
 		> b: (echo a)
@@ -819,7 +819,7 @@ func load() NamedValue {
 		Usage: load <module|script>
 		Returns: A dictionary containing loaded variables
 
-		Example:
+		Examples:
 
 		> str: (load string)
 		> str.len "chipotle"
@@ -860,57 +860,114 @@ func load() NamedValue {
 }
 
 func eval() NamedValue {
-	return NewGoFunction("eval", func(context RunContext, arguments []Argument) Value {
-		argLen, ok, err := CheckArguments(arguments, 1, 2, "eval", "<dict>? <block>")
-		if !ok {
-			return err
-		}
+	return NewGoFunction(`eval/Evaluate a block of code
+		Usage: eval <dict>? <block>
+		Returns: evaluation result
 
-		var blockContext = context.CreateSubContext()
-		var blockArg = 0
+		Example:
 
-		if argLen == 2 {
-			blockArg = 1
-			dict := EvalArgument(context, arguments[0])
-			if dict.Type() == TypeBlock {
-				dict = NewDictionaryWithBlock(context, dict.(Block))
+		> eval {
+		>   puts "in block"
+	  > }
+
+		Example with additional variables:
+
+		> context: {a:1; b:2}
+		> eval $context {
+		>   puts $a "," $b
+	  > }
+
+		Eval is escpecially handy to execute blocks that are passed to a function
+
+		> pepper: (func block {
+	 	>   return (eval $block)
+	 	> })
+
+		> pepper {
+		>  "chipotle"
+		> }
+		`,
+
+		func(context RunContext, arguments []Argument) Value {
+
+			argLen, ok, err := CheckArguments(arguments, 1, 2, "eval", "<dict>? <block>")
+			if !ok {
+				return err
 			}
-			blockContext.Mixin(dict)
 
-			// ensure mixed in key/value pairs are not overriding
-			// local context
-			//
-			blockContext = blockContext.CreateSubContext()
-		}
+			var blockContext = context.CreateSubContext()
+			var blockArg = 0
 
-		result := EvalArgumentWithBlock(blockContext, arguments[blockArg])
-		if result.Type() == TypeBlock {
-			return result.(Block).Run(blockContext, []Argument{})
-		}
-		return result
+			if argLen == 2 {
+				blockArg = 1
+				dict := EvalArgument(context, arguments[0])
+				if dict.Type() == TypeBlock {
+					dict = NewDictionaryWithBlock(context, dict.(Block))
+				}
+				blockContext.Mixin(dict)
 
-	})
+				// ensure mixed in key/value pairs are not overriding
+				// local context
+				//
+				blockContext = blockContext.CreateSubContext()
+			}
+
+			result := EvalArgumentWithBlock(blockContext, arguments[blockArg])
+			if result.Type() == TypeBlock {
+				return result.(Block).Run(blockContext, []Argument{})
+			}
+			return result
+
+		})
 }
 
 func eq() NamedValue {
-	return NewGoFunction("eq", func(context RunContext, arguments []Argument) Value {
+	return NewGoFunction(`eq/Checks if two arguments are the same
+		Usage: eq <value> <value>
+		Returns: true (equal) or false (differ)
 
-		_, ok, err := CheckArguments(arguments, 2, 2, "eq", "<value> <value>")
-		if !ok {
-			return err
-		}
+		Examples:
 
-		if reflect.DeepEqual(EvalArgument(context, arguments[0]), EvalArgument(context, arguments[1])) {
-			return True
-		}
+		> eq 1 1
+		will result in true
+		> eq 1 2
+		will result in false
 
-		return False
+		> sauce: (func {return nil})
+		> eq $nil $sauce
+		will result in true`,
 
-	})
+		func(context RunContext, arguments []Argument) Value {
+
+			_, ok, err := CheckArguments(arguments, 2, 2, "eq", "<value> <value>")
+			if !ok {
+				return err
+			}
+
+			if reflect.DeepEqual(EvalArgument(context, arguments[0]), EvalArgument(context, arguments[1])) {
+				return True
+			}
+
+			return False
+
+		})
 }
 
 func ne() NamedValue {
-	return NewGoFunction("ne", func(context RunContext, arguments []Argument) Value {
+	return NewGoFunction(`ne/Checks if two arguments are different
+		Usage: ne <value> <value>
+		Returns: true (differ) or false (same)
+
+		Examples:
+
+		> ne 1 2
+		will result in true
+		> ne 1 1
+		will result in false
+
+		> sauce: (func {return $nil})
+		> ne $nil $sauce
+		will result in false`, func(context RunContext, arguments []Argument) Value {
 
 		_, ok, err := CheckArguments(arguments, 2, 2, "ne", "<value> <value>")
 		if !ok {
@@ -937,28 +994,48 @@ func compareValues(v1 Value, v2 Value, f func(int) Value) Value {
 }
 
 func gt() NamedValue {
-	return NewGoFunction("gt", func(context RunContext, arguments []Argument) Value {
+	return NewGoFunction(`gt/Checks if first argument is greater than second argument
+		Usage: gt <value> <value>
+		Returns: true (greater than) or false (less or equal)
 
-		_, ok, err := CheckArguments(arguments, 2, 2, "gt", "<value> <value>")
-		if !ok {
-			return err
-		}
+		Examples:
 
-		v1 := EvalArgument(context, arguments[0])
-		v2 := EvalArgument(context, arguments[1])
+		> gt 2 1
+		will result in true
+		> gt 2 2
+		will result in false`,
 
-		return compareValues(v1, v2, func(result int) Value {
-			if result == 1 {
-				return True
+		func(context RunContext, arguments []Argument) Value {
+
+			_, ok, err := CheckArguments(arguments, 2, 2, "gt", "<value> <value>")
+			if !ok {
+				return err
 			}
-			return False
-		})
 
-	})
+			v1 := EvalArgument(context, arguments[0])
+			v2 := EvalArgument(context, arguments[1])
+
+			return compareValues(v1, v2, func(result int) Value {
+				if result == 1 {
+					return True
+				}
+				return False
+			})
+
+		})
 }
 
 func gte() NamedValue {
-	return NewGoFunction("gte", func(context RunContext, arguments []Argument) Value {
+	return NewGoFunction(`gte/Checks if first argument is greater than or equal to second argument
+		Usage: gte <value> <value>
+		Returns: true (greater than or equal) or false (less than)
+
+		Examples:
+
+		> gte 2 1
+		will result in true
+		> gte 2 2
+		will result in true`, func(context RunContext, arguments []Argument) Value {
 
 		_, ok, err := CheckArguments(arguments, 2, 2, "gte", "<value> <value>")
 		if !ok {
@@ -979,7 +1056,16 @@ func gte() NamedValue {
 }
 
 func lt() NamedValue {
-	return NewGoFunction("lt", func(context RunContext, arguments []Argument) Value {
+	return NewGoFunction(`lt/Checks if first argument is less than second argument
+		Usage: lt <value> <value>
+		Returns: true (less than) or false (greater or equal)
+
+		Examples:
+
+		> lt 1 2
+		will result in true
+		> lt 2 2
+		will result in false`, func(context RunContext, arguments []Argument) Value {
 
 		_, ok, err := CheckArguments(arguments, 2, 2, "lt", "<value> <value>")
 		if !ok {
@@ -1000,7 +1086,16 @@ func lt() NamedValue {
 }
 
 func lte() NamedValue {
-	return NewGoFunction("lte", func(context RunContext, arguments []Argument) Value {
+	return NewGoFunction(`lte/Checks if first argument is greater than or equal to second argument
+		Usage: lte <value> <value>
+		Returns: true (less than or equal) or false (greater than)
+
+		Examples:
+
+		> lte 2 1
+		will result in true
+		> lte 2 2
+		will result in true`, func(context RunContext, arguments []Argument) Value {
 
 		_, ok, err := CheckArguments(arguments, 2, 2, "lte", "<value> <value>")
 		if !ok {
@@ -1021,49 +1116,100 @@ func lte() NamedValue {
 }
 
 func and() NamedValue {
-	return NewGoFunction("and", func(context RunContext, arguments []Argument) Value {
+	return NewGoFunction(`and/Logical and operation on multiple boolean values
+		Usage: and <boolean>*
+		Returns: true (all arguments are true) or false (at least one argument is false)
 
-		argLen := len(arguments)
+		Examples:
 
-		for i := 0; i < argLen; i++ {
-			condition := EvalArgument(context, arguments[i])
-			if condition.Type() != TypeBoolean {
-				return NewErrorValue("and condition does not evaluate to a boolean value")
+		> and (eq 1 1) (eq 2 2)
+		will result in true
+		> and (eq 1 1) (eq 1 2)
+		will result in false
+		> and $true $true $false
+		will result in false
+
+		Note, 'and' uses lazy evaluation: as soon as an argument is false, it will
+		stop evaluating and it will return false.
+
+		> and $false (eval {puts soep; true})
+		will do nothing and will result in false
+		> and $true (eval {puts "chipotle"; true})
+		will evaluate the second argument and will write chipotle to stdout`,
+
+		func(context RunContext, arguments []Argument) Value {
+
+			argLen := len(arguments)
+
+			for i := 0; i < argLen; i++ {
+				condition := EvalArgument(context, arguments[i])
+				if condition.Type() != TypeBoolean {
+					return NewErrorValue("and condition does not evaluate to a boolean value")
+				}
+
+				if !condition.(*booleanLiteral).value {
+					return False
+				}
 			}
 
-			if !condition.(*booleanLiteral).value {
-				return False
-			}
-		}
+			return True
 
-		return True
-
-	})
+		})
 }
 
 func or() NamedValue {
-	return NewGoFunction("or", func(context RunContext, arguments []Argument) Value {
+	return NewGoFunction(`or/Logical or operation on multiple boolean values
+		Usage: or <boolean>*
+		Returns: true (at least one arguments is true) or false (all arguments are false)
 
-		argLen := len(arguments)
+		Examples:
 
-		for i := 0; i < argLen; i++ {
-			condition := EvalArgument(context, arguments[i])
-			if condition.Type() != TypeBoolean {
-				return NewErrorValue("or condition does not evaluate to a boolean value")
+		> or (eq 1 2) (eq 2 2)
+		will result in true
+		> or (eq 1 3) (eq 1 2)
+		will result in false
+		> or $true $true $false
+		will result in true
+
+		Note, 'or' uses lazy evaluation: as soon as an argument is true, it will
+		stop evaluating and it will return true.
+
+		> or $true (eval {puts soep; true})
+		will do nothing and will result in true
+		> or $false (eval {puts "chipotle"; true})
+		will evaluate the second argument and will write chipotle to stdout`,
+
+		func(context RunContext, arguments []Argument) Value {
+
+			argLen := len(arguments)
+
+			for i := 0; i < argLen; i++ {
+				condition := EvalArgument(context, arguments[i])
+				if condition.Type() != TypeBoolean {
+					return NewErrorValue("or condition does not evaluate to a boolean value")
+				}
+
+				if condition.(*booleanLiteral).value {
+					return True
+				}
 			}
 
-			if condition.(*booleanLiteral).value {
-				return True
-			}
-		}
+			return False
 
-		return False
-
-	})
+		})
 }
 
 func not() NamedValue {
-	return NewGoFunction("not", func(context RunContext, arguments []Argument) Value {
+	return NewGoFunction(`not/reverses a boolean value
+		Usage: not <boolean>
+		Returns inverted boolean value
+
+		Examples:
+
+		> not $true
+		will result in false
+		> not (eq 1 2)
+		will result in true`, func(context RunContext, arguments []Argument) Value {
 
 		_, ok, err := CheckArguments(arguments, 1, 1, "not", "<boolean>")
 		if !ok {
@@ -1105,92 +1251,178 @@ func arithmeticOperation(context RunContext, arguments []Argument, name string, 
 }
 
 func plus() NamedValue {
-	return NewGoFunction("plus", func(context RunContext, arguments []Argument) Value {
+	return NewGoFunction(`plus/Add two numbers
+		Usage: plus <number> <number>
+		Returns: the sum of the two numbers
 
-		return arithmeticOperation(context, arguments, "plus", func(v1 Value, v2 Value) Value {
-			return v1.(MathValue).Plus(v2)
+		Examples:
+
+		> plus 1 2
+		will result in 3
+		> plus 1.0 2.0
+		will result in 3.000000`,
+
+		func(context RunContext, arguments []Argument) Value {
+
+			return arithmeticOperation(context, arguments, "plus", func(v1 Value, v2 Value) Value {
+				return v1.(MathValue).Plus(v2)
+			})
+
 		})
-
-	})
 }
 
 func minus() NamedValue {
-	return NewGoFunction("minus", func(context RunContext, arguments []Argument) Value {
+	return NewGoFunction(`minus/Subtracts two numbers
+		Usage: minus <number> <number>
+		Returns: the subtraction of the two numbers
 
-		return arithmeticOperation(context, arguments, "minus", func(v1 Value, v2 Value) Value {
-			return v1.(MathValue).Minus(v2)
+		Examples:
+
+		> minus 2 1
+		will result in 1
+		> minus 2.0 1.0
+		will result in 1.000000`,
+
+		func(context RunContext, arguments []Argument) Value {
+
+			return arithmeticOperation(context, arguments, "minus", func(v1 Value, v2 Value) Value {
+				return v1.(MathValue).Minus(v2)
+			})
+
 		})
-
-	})
 }
 
 func multiply() NamedValue {
-	return NewGoFunction("multiply", func(context RunContext, arguments []Argument) Value {
+	return NewGoFunction(`multiply/Multiplies two numbers
+		Usage: multiply <number> <number>
+		Returns: the product of the two numbers
 
-		return arithmeticOperation(context, arguments, "multiply", func(v1 Value, v2 Value) Value {
-			return v1.(MathValue).Multiply(v2)
+		Examples:
+
+		> multiply 3 4
+		will result in 12
+		> multiply 0.5 10
+		will result in 5.000000`,
+
+		func(context RunContext, arguments []Argument) Value {
+
+			return arithmeticOperation(context, arguments, "multiply", func(v1 Value, v2 Value) Value {
+				return v1.(MathValue).Multiply(v2)
+			})
+
 		})
-
-	})
 }
 
 func divide() NamedValue {
-	return NewGoFunction("divide", func(context RunContext, arguments []Argument) Value {
+	return NewGoFunction(`divide/divides two numbers
+		Usage: devide <number> <number>
+		Returns: the division result
 
-		return arithmeticOperation(context, arguments, "divide", func(v1 Value, v2 Value) Value {
-			return v1.(MathValue).Divide(v2)
+		Examples:
+
+		> divide 6 3
+		will result in 2
+		> divide 7 3
+		will result in 2
+		> divide 7.0 3
+		will result in 2.333333
+
+		Note, dividing by zero will result in an error`,
+
+		func(context RunContext, arguments []Argument) Value {
+
+			return arithmeticOperation(context, arguments, "divide", func(v1 Value, v2 Value) Value {
+				return v1.(MathValue).Divide(v2)
+			})
+
 		})
-
-	})
 }
 
 func modulo() NamedValue {
-	return NewGoFunction("modulo", func(context RunContext, arguments []Argument) Value {
+	return NewGoFunction(`modulo/calculates the remainder of a division
+		Usage: modulo <number> <integer>
+		Returns: the division result
 
-		return arithmeticOperation(context, arguments, "modulo", func(v1 Value, v2 Value) Value {
-			return v1.(MathValue).Modulo(v2)
+		Examples:
+
+		> modulo 6 3
+		will result in 0
+		> modulo 7 3
+		will result in 1
+		> divide 7.5 3
+		will result in 1.500000
+
+		Note the second argument must be a non 0 integer, otherwise an error will be returned`,
+
+		func(context RunContext, arguments []Argument) Value {
+
+			return arithmeticOperation(context, arguments, "modulo", func(v1 Value, v2 Value) Value {
+				return v1.(MathValue).Modulo(v2)
+			})
+
 		})
-
-	})
 }
 
 func assert() NamedValue {
-	return NewGoFunction("assert", func(context RunContext, arguments []Argument) Value {
+	return NewGoFunction(`assert/Evaluate a boolean value and return an error when false
+		Usage: assert <boolean> <error>?
+		Returns: true or an error
 
-		argLen, ok, err := CheckArguments(arguments, 1, 2, "assert", "<boolean> <error>?")
-		if !ok {
-			return err
-		}
+		Examples:
 
-		check := EvalArgument(context, arguments[0])
-		if check != nil && check.Type() == TypeBoolean {
-			if check.(*booleanLiteral).value {
-				return True
+		> assert $false
+		will result in an error
+		> assert $false "Told you so"
+		will result in an error with "Told you so" as error message
+		> assert (defined a)
+		will result in an error when a is not defined`,
+
+		func(context RunContext, arguments []Argument) Value {
+
+			argLen, ok, err := CheckArguments(arguments, 1, 2, "assert", "<boolean> <error>?")
+			if !ok {
+				return err
 			}
 
-			if argLen == 2 {
-				return NewErrorValue(EvalArgument2String(context, arguments[1]))
+			check := EvalArgument(context, arguments[0])
+			if check != nil && check.Type() == TypeBoolean {
+				if check.(*booleanLiteral).value {
+					return True
+				}
+
+				if argLen == 2 {
+					return NewErrorValue(EvalArgument2String(context, arguments[1]))
+				}
+
+				return NewErrorValue("assertion failed")
+
 			}
 
-			return NewErrorValue("assertion failed")
-
-		}
-
-		return NewErrorValue("assert: first argument does not evaluate to a boolean value")
-	})
+			return NewErrorValue("assert: first argument does not evaluate to a boolean value")
+		})
 }
 
 func _error() NamedValue {
-	return NewGoFunction("error", func(context RunContext, arguments []Argument) Value {
+	return NewGoFunction(`error/constructs an error with a user defined message
+		Usage: error <message>
+		Returns: a user defined error
 
-		_, ok, err := CheckArguments(arguments, 1, 1, "error", "<message>")
-		if !ok {
-			return err
-		}
+		Example:
+		> error "chipotle not hot enought error"
+		will result in an error
 
-		return NewErrorValue(EvalArgument2String(context, arguments[0]))
+		Note, givens message value is evaluated to a string`,
 
-	})
+		func(context RunContext, arguments []Argument) Value {
+
+			_, ok, err := CheckArguments(arguments, 1, 1, "error", "<message>")
+			if !ok {
+				return err
+			}
+
+			return NewErrorValue(EvalArgument2String(context, arguments[0]))
+
+		})
 }
 
 func help() NamedValue {
@@ -1233,7 +1465,7 @@ func help() NamedValue {
 		for _, key := range keys {
 			value, _ := context.Get(key)
 			if value.Type() == TypeGoFunction {
-				result = append(result, NewStringLiteral(key))
+				result = append(result, NewIdentifier(key))
 			} else if value.Type() == TypeDictionary {
 
 				subkeys := []string{}
@@ -1246,7 +1478,7 @@ func help() NamedValue {
 				for _, subkey := range subkeys {
 					subValue, _ := value.Internal().(map[string]Value)[subkey]
 					if subValue.Type() == TypeGoFunction {
-						result = append(result, NewStringLiteral(key+"."+subkey))
+						result = append(result, NewNameSpacedIdentifier([]string{key, subkey}))
 					}
 				}
 			}
