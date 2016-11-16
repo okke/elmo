@@ -1,10 +1,12 @@
 package elmo
 
 import (
+	"bytes"
 	"fmt"
 	"math"
 	"reflect"
 	"sort"
+	"strings"
 	"time"
 )
 
@@ -442,17 +444,29 @@ func ampersand() NamedValue {
 
 func _func() NamedValue {
 	return NewGoFunction(`func/Create a new function
-		Usage: func <symbol>* {...}
+		Usage: func <help>? <symbol>* {...}
 		Returns: a new function
+
+		When first argument is a string, this value will be used as help text
 
 		Given symbols denote function parameter names.
 
 		Examples:
 
-		> func a {...}
-		will create a function that accepts one parameter called 'a'
+		> func a {}
+		will create a function that accepts one parameter called 'a' (and does nothing)
 		> func a { return $a }
-		will create an echo function`,
+		will create an echo function
+
+		Note, function can be used once they are assigned to a variable
+
+		> f: (func a { return $a })
+
+		Example with help text:
+
+		> f: (func a "we need more chipotles" {})
+		> help f
+		will result in "we need more chipotles"`,
 
 		func(context RunContext, arguments []Argument) Value {
 
@@ -461,7 +475,17 @@ func _func() NamedValue {
 				return err
 			}
 
-			argNamesAsArgument := arguments[0 : len(arguments)-1]
+			argStart := 0
+			fname := "user_defined_function"
+			if arguments[0].Type() == TypeString {
+				if argLen == 1 {
+					return NewErrorValue("func with help should at least have a body also")
+				}
+				fname = fmt.Sprintf("user_defined_function/%s", EvalArgument2String(context, arguments[0]))
+				argStart = 1
+			}
+
+			argNamesAsArgument := arguments[argStart : len(arguments)-1]
 			block := EvalArgument(context, arguments[len(arguments)-1])
 			argNames := make([]string, len(argNamesAsArgument))
 
@@ -483,7 +507,7 @@ func _func() NamedValue {
 				return NewErrorValue("invalid call to func, last parameter must be a block: usage func <identifier> <identifier>* {...}")
 			}
 
-			return NewGoFunction("user_defined_function", func(innerContext RunContext, innerArguments []Argument) Value {
+			return NewGoFunction(fname, func(innerContext RunContext, innerArguments []Argument) Value {
 
 				if len(argNames) != len(innerArguments) {
 					return NewErrorValue(fmt.Sprintf("invalid call to user defined function: expect %d parameters instead of %d", len(argNames), len(innerArguments)))
@@ -1425,10 +1449,22 @@ func _error() NamedValue {
 		})
 }
 
-func help() NamedValue {
-	return NewGoFunction("help/Get help. Usage 'help' or 'help identifier'", func(context RunContext, arguments []Argument) Value {
+func formatHelp(s string) string {
+	splitted := strings.Split(s, "\n")
+	var buf bytes.Buffer
+	for i, v := range splitted {
+		buf.WriteString(strings.Trim(v, " \t"))
+		if i < (len(splitted) - 1) {
+			buf.WriteString("\n")
+		}
+	}
+	return buf.String()
+}
 
-		argLen, ok, err := CheckArguments(arguments, 0, 1, "help", "")
+func help() NamedValue {
+	return NewGoFunction("help/Get help. Usage 'help' or 'help symbol'", func(context RunContext, arguments []Argument) Value {
+
+		argLen, ok, err := CheckArguments(arguments, 0, 1, "help", "<symbol>?")
 		if !ok {
 			return err
 		}
@@ -1446,7 +1482,7 @@ func help() NamedValue {
 				if found {
 					help, ok := result.(HelpValue)
 					if ok {
-						return help.Help()
+						return NewStringLiteral(formatHelp(help.Help().String()))
 					}
 					return result
 				}

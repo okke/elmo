@@ -1,7 +1,6 @@
 package elmo
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 	"math"
@@ -952,20 +951,6 @@ func NewErrorValue(msg string) ErrorValue {
 	return &errorValue{baseValue: baseValue{info: typeInfoError}, msg: msg}
 }
 
-// TODO: 13nov2016 move to utility package?
-//
-func stringToText(s string) string {
-	splitted := strings.Split(s, "\n")
-	var buf bytes.Buffer
-	for i, v := range splitted {
-		buf.WriteString(strings.Trim(v, " \t"))
-		if i < (len(splitted) - 1) {
-			buf.WriteString("\n")
-		}
-	}
-	return buf.String()
-}
-
 // NewGoFunction creates a new go function
 //
 func NewGoFunction(name string, value GoFunction) NamedValue {
@@ -974,7 +959,7 @@ func NewGoFunction(name string, value GoFunction) NamedValue {
 	actualName := splitted[0]
 	var help Value = Nothing
 	if len(splitted) > 1 {
-		help = NewStringLiteral(stringToText(splitted[1]))
+		help = NewStringLiteral(splitted[1])
 	}
 
 	return &goFunction{baseValue: baseValue{info: typeInfoGoFunction}, name: actualName, help: help, value: value}

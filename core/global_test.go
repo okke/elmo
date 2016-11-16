@@ -260,6 +260,31 @@ func TestPipeToUserDefinedFunction(t *testing.T) {
      fsauce "chipotle" | injar`, ExpectValue(t, NewListValue([]Value{NewStringLiteral("chipotle")})))
 }
 
+func TestUserDefinedFunctionWithHelp(t *testing.T) {
+
+	ParseTestAndRunBlock(t,
+		`fsauce: (func "sauce from heaven")`, ExpectErrorValueAt(t, 1))
+
+	ParseTestAndRunBlock(t,
+		`fsauce: (func "sauce from heaven" {
+
+		 })
+		 help fsauce`, ExpectValue(t, NewStringLiteral("sauce from heaven")))
+
+	ParseTestAndRunBlock(t,
+		`fsauce: (func "sauce from heaven" chipotle {
+			return $chipotle
+		 })
+		 help fsauce`, ExpectValue(t, NewStringLiteral("sauce from heaven")))
+
+	ParseTestAndRunBlock(t,
+		`fsauce: (func "sauce from heaven" chipotle {
+	 		return $chipotle
+	 	 })
+	 	 fsauce "jalapeno"`, ExpectValue(t, NewStringLiteral("jalapeno")))
+
+}
+
 func TestIfWithoutElse(t *testing.T) {
 
 	ParseTestAndRunBlock(t,
@@ -852,9 +877,20 @@ func TestError(t *testing.T) {
 }
 
 func TestHelp(t *testing.T) {
+
+	ParseTestAndRunBlock(t,
+		`help help help`, ExpectErrorValueAt(t, 1))
+
 	ParseTestAndRunBlock(t,
 		`type (help)`, ExpectValue(t, NewIdentifier("list")))
 
 	ParseTestAndRunBlock(t,
-		`help help`, ExpectValue(t, NewStringLiteral("Get help. Usage 'help' or 'help identifier'")))
+		`help help`, ExpectValue(t, NewStringLiteral("Get help. Usage 'help' or 'help symbol'")))
+
+	ParseTestAndRunBlock(t,
+		`chipotle: (func `+"`"+`not so hot pepper
+			from mexico
+			 love it`+"`"+` {})
+		 help chipotle`, ExpectValue(t, NewStringLiteral("not so hot pepper\nfrom mexico\nlove it")))
+
 }
