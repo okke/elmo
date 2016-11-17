@@ -1,6 +1,6 @@
-MIT License
+# MIT License
 
-Copyright (c) 2016 Okke van 't Verlaat
+Copyright (c) 2016 **Okke van 't Verlaat**
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -20,11 +20,13 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
+# Included/used OS Code
+
 This Software could not exist without the following great pieces of open source code:
 
-github.com/peterh/liner, a very easy to use line input library 
+* https://github.com/peterh/liner, a very easy to use line input library 
 See https://github.com/peterh/liner/blob/master/COPYING
 
-https://github.com/pointlander/peg, A wonderful parser generator
+* https://github.com/pointlander/peg, A wonderful parser generator
 See https://github.com/pointlander/peg/blob/master/LICENSE
 
