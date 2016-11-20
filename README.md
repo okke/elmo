@@ -5,11 +5,13 @@
 
 Note, Elmo is 'brand new', far from complete and still under heavy development. But feel free to experiment with it. Or even help developing it.
 
-## documentation links
+## Documentation
 
 [introduction](/doc/introduction.md)
 
-## quick start
+[manual](/doc/manual.md)
+
+## Quick start
 
 Install elmo using Go:
 

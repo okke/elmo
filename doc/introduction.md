@@ -1,10 +1,10 @@
-# background
+# Background
 
 Learn a new language every year. It's the Pragmatic programmers advice every programmer should take under serious consideration. Don't get stuck in eating mac and cheese every day of the week just because it smells comfy. And given that advice, why not go one step further. Write your own language, maybe not every year, but once in a while. Just because it's fun, because it can be brainteasing, because it's a very good learning experience and just because other programmers can learn your language when looking for a new language to learn. I started to learn Go a few years ago but never found the opportunity to really learn the real tricks and trades. So looking for a reason to do serious software development with Go, I decided to create Elmo. It's combining my passion for software engineering, programming languages and my passion to explore new things.
 
-From a design point of view, Elmo is a pretty simple language. On purpose. The first scripting language that came across my path, I'm talking years ago, was Tcl. Pronounce as 'tickle'. A simple language with a huge potential. A lovely glue between hardcore c and c++ components. After Tcl many other languages have crossed my path and a few of them, including Go, really made me smile. That's why simplicity, glueing code and creating big smiles are the main objectives of Elmo. And note, Elmo is not designed for speed. It's glue, not nitro.
+From a design point of view, Elmo is a pretty simple language. On purpose. The first scripting language that came across my path, I'm talking years ago, was Tcl. Pronounce as 'tickle'. A simple language with a huge potential. A lovely glue between hard to write c and c++ components. After Tcl many other languages have crossed my path and a few of them, including Go, really made me smile. That's why simplicity, glueing code and creating big smiles are the main objectives of Elmo. And note, Elmo is not designed for speed. It's glue, not nitro.
 
-# getting to know Elmo
+# Getting to know Elmo
 
 Everything in Elmo is a function that can be called like calling commands. Every call start with a symbol, a function name, followed by zero or more arguments that are separated by spaces. A very simple example:
 
@@ -60,7 +60,15 @@ $say "don't do this at home"
 (say) "chipotles for president!"
 ```
 
-Elmo's core types are symbols, strings, numbers, functions, lists, dictionaries and code blocks.
+Functions can pipe their result to another function that uses the result as its first argument.
+
+```elmo
+plus 3 4 | multiply 5
+
+eq $a 5 |or (eq $a 4) |or (eq $a 3)
+```
+
+Elmo's core types are symbols, strings, numbers, functions, lists, dictionaries, and errors.
 
 ```elmo
 symbol: pepper
@@ -73,5 +81,31 @@ dict: {
   name: "jalapeno"
   hotness: 3
 }
+err: (error "something went horribly wrong")
 puts $dict.name, " eats ", (f $integer), " ", $string, " for breakfast"
 ```
+
+Elmo's build in function are organized in modules that can be loaded into current scope. Modules return dictionaries with functions.
+
+```elmo
+str: (load string)
+len: (str.len "chipotle")
+puts "chipotle has " $len " characters"
+```
+
+Elmo scripts can be organized using the same loading concept.
+
+```elmo
+# in math.mo
+#
+square: (func x {return (multiply $x $x)})
+```
+
+```elmo
+# in main.mo
+#
+math: (load "math.mo")
+puts "The square of 11 is " (math.square 11)
+```
+
+For more features, see the [manual](manual.md)
