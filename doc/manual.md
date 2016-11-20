@@ -2,4 +2,6 @@
 
 [Working with strings](strings.md)
 
+[Working with functions](functions.md)
+
 TODO: add more topics
