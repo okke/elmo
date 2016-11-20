@@ -18,12 +18,12 @@ chilli`
 
 Double quoted strings can contain contain special escape charaters. The following characters are supported:
 
-|escape|character|
-|-|-|
-|\t|tab|
-|\n|newline|
-|\"|quote|
-|\\|backslash|
+| escape | character |
+| --- | --- |
+| \t | tab |
+| \n | newline |
+| \" | quote |
+| \\ | backslash |
 
 A simple example:
 
@@ -44,7 +44,7 @@ Strings, like most things in Elmo, act as functions. Sound strange? Well, it's n
 #
 char1: ("chipotle" 3)
 
-# do the same using a variables
+# do the same using a variable
 #
 pepper: "chipotle"
 char2: (pepper 3)
