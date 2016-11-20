@@ -150,6 +150,13 @@ func TestDeepIdentifierLookup(t *testing.T) {
  		 i`, ExpectValue(t, NewStringLiteral("sauce")))
 }
 
+func TestPipeMultipleReturnValues(t *testing.T) {
+	ParseTestAndRunBlock(t,
+		`f: (func {return 3 4})
+		 g: (func x y {return (multiply $x $y)})
+		 f |g`, ExpectValue(t, NewIntegerLiteral(12)))
+}
+
 func TestBlockWithoutCallsShouldReturnNothing(t *testing.T) {
 
 	result := NewBlock(nil, 0, 0, []Call{}).Run(NewRunContext(nil), []Argument{})

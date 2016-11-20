@@ -1072,8 +1072,16 @@ func (call *call) pipeResult(context RunContext, value Value) Value {
 		return value
 	}
 
-	return call.pipe.Run(context, []Argument{&argument{value: value}})
+	if value.Type() == TypeReturn {
+		values := value.(*returnValue).values
+		arguments := make([]Argument, len(values))
+		for i, v := range values {
+			arguments[i] = &argument{value: v}
+		}
+		return call.pipe.Run(context, arguments)
+	}
 
+	return call.pipe.Run(context, []Argument{&argument{value: value}})
 }
 
 func createArgumentsForMissingFunc(context RunContext, call *call, arguments []Argument) []Argument {
