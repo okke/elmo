@@ -6,8 +6,9 @@ Elmo treats functions as first class citizens of the language. Almost Everything
 is a function. And functions can be assigned to variables and can be passed to
 other functions.
 
-Functions are created using the build in 'func' function. 'func' Takes the names
-of function arguments as arguments followed by a block of code. Simple examples look like:
+Functions are created using the build in 'func' function. It takes the names
+of function arguments as arguments followed by a block of code. A simple examples
+looks like:
 
 ```elmo
 f: (func {
@@ -21,12 +22,12 @@ square: (func x {
 ```
 
 As soon as a return statement is found, execution will halt and the value specified
-by the return statement is return to the caller.
+by the return statement is returned to the caller.
 
 ## Pipe function results
 
 Elmo supports piping of function calls. This means that the result of a function
-is used as argument for the next function. One of the best usages is to build
+is used as an argument for the next function. One of the best examples of this feature building
 complex boolean expression without having function calls in functions calls in functions calls.
 
 ```elmo
@@ -44,11 +45,15 @@ b: (func a b c {
 
 Elmo supports multiple return values. So a function can return multiple values
 to its caller. Multiple return values can be used to assign multiple variables
-using one set construction.
+using one call to 'set'.
 
 ```elmo
+# create a function thta returns two values
+#
 f: (func x {return (plus $x 1) (plus $x 2)})
 
+# call it and assign the result to multiple variables
+#
 set a b (f 3)
 
 assert (eq $a 4 |and (eq $b 5))  
@@ -57,7 +62,7 @@ assert (eq $a 4 |and (eq $b 5))
 Note, when dealing with multiple return values, the ":" shortcut does not work.
 
 Multiple return values can also be used in pipes to other functions. All returned
-values are used as arguments to following function.
+values are used as arguments to the next function.
 
 ```elmo
 string: (load string)
@@ -89,8 +94,8 @@ val: (apply 5 (func x {
 ```
 
 In this case, a function is created at the moment it is needed. But there also
-the situation where the function that need to be past, already exists and assigned
-to a variable. In that case, one would like to use this variable and not recreate
+the situation where the function that need to be passed, already exists and assigned
+to a variable. In that case, one would like to use this variable and does not want to recreate
 the function. Using the variables symbol won't work. This will pass the symbol,
 not the content of the variable. And using the $ shortcut won't work either. This
 will evaluate the function and pass the result.
@@ -125,7 +130,7 @@ result: apply 5 &square
 assert (eq $result 25)
 ```
 
-And of course, these & constructions can be used in (multiple) return values
+And of course, these '&' constructions can be used in (multiple) return values
 and can be piped to other functions.
 
 ```elmo

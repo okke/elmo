@@ -4,4 +4,6 @@
 
 [Working with functions](functions.md)
 
+[Embedding Elmo](embedding.md)
+
 TODO: add more topics
