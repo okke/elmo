@@ -20,8 +20,8 @@ func initModule(context elmo.RunContext) elmo.Value {
 func new() elmo.NamedValue {
 	return elmo.NewGoFunction("new", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
 
-		argLen, ok, err := elmo.CheckArguments(arguments, 1, 2, "new", "<parent> <block|dictionary>")
-		if !ok {
+		argLen, err := elmo.CheckArguments(arguments, 1, 2, "new", "<parent> <block|dictionary>")
+		if err != nil {
 			return err
 		}
 
@@ -75,8 +75,8 @@ func new() elmo.NamedValue {
 func keys() elmo.NamedValue {
 	return elmo.NewGoFunction("keys", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
 
-		_, ok, err := elmo.CheckArguments(arguments, 1, 1, "keys", "<dictionary>")
-		if !ok {
+		_, err := elmo.CheckArguments(arguments, 1, 1, "keys", "<dictionary>")
+		if err != nil {
 			return err
 		}
 
@@ -102,8 +102,8 @@ func keys() elmo.NamedValue {
 }
 
 func knowsOrGet(name string, context elmo.RunContext, arguments []elmo.Argument) (elmo.Value, bool) {
-	_, ok, err := elmo.CheckArguments(arguments, 2, 2, name, "<dictionary> <key>")
-	if !ok {
+	_, err := elmo.CheckArguments(arguments, 2, 2, name, "<dictionary> <key>")
+	if err != nil {
 		return err, false
 	}
 
@@ -164,8 +164,8 @@ func get() elmo.NamedValue {
 
 func merge() elmo.NamedValue {
 	return elmo.NewGoFunction("merge", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
-		argLen, ok, err := elmo.CheckArguments(arguments, 2, math.MaxInt16, "merge", "<dictionary> <dictionary>+")
-		if !ok {
+		argLen, err := elmo.CheckArguments(arguments, 2, math.MaxInt16, "merge", "<dictionary> <dictionary>+")
+		if err != nil {
 			return err
 		}
 

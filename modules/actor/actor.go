@@ -19,8 +19,8 @@ const currentActorKey = "-actor"
 func _new() elmo.NamedValue {
 	return elmo.NewGoFunction("new", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
 
-		_, ok, err := elmo.CheckArguments(arguments, 1, 1, "new", "{...}")
-		if !ok {
+		_, err := elmo.CheckArguments(arguments, 1, 1, "new", "{...}")
+		if err != nil {
 			return err
 		}
 
@@ -54,8 +54,8 @@ func _new() elmo.NamedValue {
 func send() elmo.NamedValue {
 	return elmo.NewGoFunction("send", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
 
-		argLen, ok, err := elmo.CheckArguments(arguments, 1, 2, "send", "actor <message>?")
-		if !ok {
+		argLen, err := elmo.CheckArguments(arguments, 1, 2, "send", "actor <message>?")
+		if err != nil {
 			return err
 		}
 
@@ -82,8 +82,8 @@ func send() elmo.NamedValue {
 func receive() elmo.NamedValue {
 	return elmo.NewGoFunction("receive", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
 
-		_, ok, err := elmo.CheckArguments(arguments, 0, 0, "receive", "")
-		if !ok {
+		_, err := elmo.CheckArguments(arguments, 0, 0, "receive", "")
+		if err != nil {
 			return err
 		}
 
@@ -100,8 +100,8 @@ func receive() elmo.NamedValue {
 func current() elmo.NamedValue {
 	return elmo.NewGoFunction("current", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
 
-		_, ok, err := elmo.CheckArguments(arguments, 0, 0, "current", "")
-		if !ok {
+		_, err := elmo.CheckArguments(arguments, 0, 0, "current", "")
+		if err != nil {
 			return err
 		}
 

@@ -90,12 +90,12 @@ func ListConstructor(context RunContext, arguments []Argument) Value {
 
 // CheckArguments checks number of arguments
 //
-func CheckArguments(arguments []Argument, min int, max int, fname string, usage string) (int, bool, ErrorValue) {
+func CheckArguments(arguments []Argument, min int, max int, fname string, usage string) (int, ErrorValue) {
 	argLen := len(arguments)
 	if argLen < min || argLen > max {
-		return argLen, false, NewErrorValue(fmt.Sprintf("Invalid call to %s. Usage: %s %s", fname, fname, usage))
+		return argLen, NewErrorValue(fmt.Sprintf("Invalid call to %s. Usage: %s %s", fname, fname, usage))
 	}
-	return argLen, true, nil
+	return argLen, nil
 }
 
 func _type() NamedValue {
@@ -112,8 +112,8 @@ func _type() NamedValue {
 		will result in int`,
 
 		func(context RunContext, arguments []Argument) Value {
-			_, ok, err := CheckArguments(arguments, 1, 1, "type", "<value>")
-			if !ok {
+			_, err := CheckArguments(arguments, 1, 1, "type", "<value>")
+			if err != nil {
 				return err
 			}
 			return EvalArgument(context, arguments[0]).Info().Name()
@@ -152,8 +152,8 @@ func set() NamedValue {
 
 		func(context RunContext, arguments []Argument) Value {
 
-			argLen, ok, err := CheckArguments(arguments, 2, math.MaxInt16, "set", "<identifier>* value")
-			if !ok {
+			argLen, err := CheckArguments(arguments, 2, math.MaxInt16, "set", "<identifier>* value")
+			if err != nil {
 				return err
 			}
 
@@ -171,8 +171,8 @@ func set() NamedValue {
 				}
 			} else {
 
-				_, ok, err := CheckArguments(arguments, 2, 2, "set", "<identifier> value")
-				if !ok {
+				_, err := CheckArguments(arguments, 2, 2, "set", "<identifier> value")
+				if err != nil {
 					return err
 				}
 
@@ -214,8 +214,8 @@ func get() NamedValue {
 
 		func(context RunContext, arguments []Argument) Value {
 
-			_, ok, err := CheckArguments(arguments, 1, 1, "get", "<identifier>")
-			if !ok {
+			_, err := CheckArguments(arguments, 1, 1, "get", "<identifier>")
+			if err != nil {
 				return err
 			}
 
@@ -254,8 +254,8 @@ func defined() NamedValue {
 
 		func(context RunContext, arguments []Argument) Value {
 
-			_, ok, err := CheckArguments(arguments, 1, 1, "defined", "<identifier>")
-			if !ok {
+			_, err := CheckArguments(arguments, 1, 1, "defined", "<identifier>")
+			if err != nil {
 				return err
 			}
 
@@ -290,8 +290,8 @@ func once() NamedValue {
 
 		func(context RunContext, arguments []Argument) Value {
 
-			_, ok, err := CheckArguments(arguments, 2, 2, "once", "<identifier> <value>")
-			if !ok {
+			_, err := CheckArguments(arguments, 2, 2, "once", "<identifier> <value>")
+			if err != nil {
 				return err
 			}
 
@@ -329,8 +329,8 @@ func incr() NamedValue {
 
 		func(context RunContext, arguments []Argument) Value {
 
-			argLen, ok, err := CheckArguments(arguments, 1, 2, "incr", "<identifier> <value>?")
-			if !ok {
+			argLen, err := CheckArguments(arguments, 1, 2, "incr", "<identifier> <value>?")
+			if err != nil {
 				return err
 			}
 
@@ -367,7 +367,7 @@ func incr() NamedValue {
 
 			}
 
-			_, ok = incrValue.(IncrementableValue)
+			_, ok := incrValue.(IncrementableValue)
 			if !ok {
 				return NewErrorValue("invalid call to incr, expected a value that can be incremented")
 			}
@@ -470,8 +470,8 @@ func _func() NamedValue {
 
 		func(context RunContext, arguments []Argument) Value {
 
-			argLen, ok, err := CheckArguments(arguments, 1, math.MaxInt16, "func", "<identifier>* {...}")
-			if !ok {
+			argLen, err := CheckArguments(arguments, 1, math.MaxInt16, "func", "<identifier>* {...}")
+			if err != nil {
 				return err
 			}
 
@@ -559,8 +559,8 @@ func _if() NamedValue {
 
 		func(context RunContext, arguments []Argument) Value {
 
-			argLen, ok, err := CheckArguments(arguments, 2, math.MaxInt16, "if", "<condition> {...} (else {...})?")
-			if !ok {
+			argLen, err := CheckArguments(arguments, 2, math.MaxInt16, "if", "<condition> {...} (else {...})?")
+			if err != nil {
 				return err
 			}
 
@@ -595,8 +595,8 @@ func _if() NamedValue {
 func createLoop(name string, stopCondition bool) func(context RunContext, arguments []Argument) Value {
 	return func(context RunContext, arguments []Argument) Value {
 
-		_, ok, err := CheckArguments(arguments, 2, 2, name, "<condition> {...}")
-		if !ok {
+		_, err := CheckArguments(arguments, 2, 2, name, "<condition> {...}")
+		if err != nil {
 			return err
 		}
 
@@ -665,8 +665,8 @@ func do() NamedValue {
 
 		func(context RunContext, arguments []Argument) Value {
 
-			_, ok, err := CheckArguments(arguments, 3, 3, "do", "{} while|until <condition>")
-			if !ok {
+			_, err := CheckArguments(arguments, 3, 3, "do", "{} while|until <condition>")
+			if err != nil {
 				return err
 			}
 
@@ -732,8 +732,8 @@ func mixin() NamedValue {
 
 		func(context RunContext, arguments []Argument) Value {
 
-			argLen, ok, err := CheckArguments(arguments, 0, math.MaxInt16, "mixin", "<value>*")
-			if !ok {
+			argLen, err := CheckArguments(arguments, 0, math.MaxInt16, "mixin", "<value>*")
+			if err != nil {
 				return err
 			}
 
@@ -799,8 +799,8 @@ func echo() NamedValue {
 		> b: (a)`,
 
 		func(context RunContext, arguments []Argument) Value {
-			_, ok, err := CheckArguments(arguments, 1, 1, "echo", "<value>")
-			if !ok {
+			_, err := CheckArguments(arguments, 1, 1, "echo", "<value>")
+			if err != nil {
 				return err
 			}
 
@@ -820,8 +820,8 @@ func sleep() NamedValue {
 
 		func(context RunContext, arguments []Argument) Value {
 
-			_, ok, err := CheckArguments(arguments, 1, 1, "sleep", "<number>")
-			if !ok {
+			_, err := CheckArguments(arguments, 1, 1, "sleep", "<number>")
+			if err != nil {
 				return err
 			}
 
@@ -857,8 +857,8 @@ func load() NamedValue {
 
 		func(context RunContext, arguments []Argument) Value {
 
-			_, ok, err := CheckArguments(arguments, 1, 1, "load", "<package name>")
-			if !ok {
+			_, err := CheckArguments(arguments, 1, 1, "load", "<package name>")
+			if err != nil {
 				return err
 			}
 
@@ -914,8 +914,8 @@ func eval() NamedValue {
 
 		func(context RunContext, arguments []Argument) Value {
 
-			argLen, ok, err := CheckArguments(arguments, 1, 2, "eval", "<dict>? <block>")
-			if !ok {
+			argLen, err := CheckArguments(arguments, 1, 2, "eval", "<dict>? <block>")
+			if err != nil {
 				return err
 			}
 
@@ -963,8 +963,8 @@ func eq() NamedValue {
 
 		func(context RunContext, arguments []Argument) Value {
 
-			_, ok, err := CheckArguments(arguments, 2, 2, "eq", "<value> <value>")
-			if !ok {
+			_, err := CheckArguments(arguments, 2, 2, "eq", "<value> <value>")
+			if err != nil {
 				return err
 			}
 
@@ -993,8 +993,8 @@ func ne() NamedValue {
 		> ne $nil $sauce
 		will result in false`, func(context RunContext, arguments []Argument) Value {
 
-		_, ok, err := CheckArguments(arguments, 2, 2, "ne", "<value> <value>")
-		if !ok {
+		_, err := CheckArguments(arguments, 2, 2, "ne", "<value> <value>")
+		if err != nil {
 			return err
 		}
 		if reflect.DeepEqual(EvalArgument(context, arguments[0]), EvalArgument(context, arguments[1])) {
@@ -1031,8 +1031,8 @@ func gt() NamedValue {
 
 		func(context RunContext, arguments []Argument) Value {
 
-			_, ok, err := CheckArguments(arguments, 2, 2, "gt", "<value> <value>")
-			if !ok {
+			_, err := CheckArguments(arguments, 2, 2, "gt", "<value> <value>")
+			if err != nil {
 				return err
 			}
 
@@ -1061,8 +1061,8 @@ func gte() NamedValue {
 		> gte 2 2
 		will result in true`, func(context RunContext, arguments []Argument) Value {
 
-		_, ok, err := CheckArguments(arguments, 2, 2, "gte", "<value> <value>")
-		if !ok {
+		_, err := CheckArguments(arguments, 2, 2, "gte", "<value> <value>")
+		if err != nil {
 			return err
 		}
 
@@ -1091,8 +1091,8 @@ func lt() NamedValue {
 		> lt 2 2
 		will result in false`, func(context RunContext, arguments []Argument) Value {
 
-		_, ok, err := CheckArguments(arguments, 2, 2, "lt", "<value> <value>")
-		if !ok {
+		_, err := CheckArguments(arguments, 2, 2, "lt", "<value> <value>")
+		if err != nil {
 			return err
 		}
 
@@ -1121,8 +1121,8 @@ func lte() NamedValue {
 		> lte 2 2
 		will result in true`, func(context RunContext, arguments []Argument) Value {
 
-		_, ok, err := CheckArguments(arguments, 2, 2, "lte", "<value> <value>")
-		if !ok {
+		_, err := CheckArguments(arguments, 2, 2, "lte", "<value> <value>")
+		if err != nil {
 			return err
 		}
 
@@ -1235,8 +1235,8 @@ func not() NamedValue {
 		> not (eq 1 2)
 		will result in true`, func(context RunContext, arguments []Argument) Value {
 
-		_, ok, err := CheckArguments(arguments, 1, 1, "not", "<boolean>")
-		if !ok {
+		_, err := CheckArguments(arguments, 1, 1, "not", "<boolean>")
+		if err != nil {
 			return err
 		}
 
@@ -1254,8 +1254,8 @@ func not() NamedValue {
 }
 
 func arithmeticOperation(context RunContext, arguments []Argument, name string, f func(Value, Value) Value) Value {
-	_, ok, err := CheckArguments(arguments, 2, 2, name, "<value> <value>")
-	if !ok {
+	_, err := CheckArguments(arguments, 2, 2, name, "<value> <value>")
+	if err != nil {
 		return err
 	}
 
@@ -1403,8 +1403,8 @@ func assert() NamedValue {
 
 		func(context RunContext, arguments []Argument) Value {
 
-			argLen, ok, err := CheckArguments(arguments, 1, 2, "assert", "<boolean> <error>?")
-			if !ok {
+			argLen, err := CheckArguments(arguments, 1, 2, "assert", "<boolean> <error>?")
+			if err != nil {
 				return err
 			}
 
@@ -1439,8 +1439,8 @@ func _error() NamedValue {
 
 		func(context RunContext, arguments []Argument) Value {
 
-			_, ok, err := CheckArguments(arguments, 1, 1, "error", "<message>")
-			if !ok {
+			_, err := CheckArguments(arguments, 1, 1, "error", "<message>")
+			if err != nil {
 				return err
 			}
 
@@ -1464,8 +1464,8 @@ func formatHelp(s string) string {
 func help() NamedValue {
 	return NewGoFunction("help/Get help. Usage 'help' or 'help symbol'", func(context RunContext, arguments []Argument) Value {
 
-		argLen, ok, err := CheckArguments(arguments, 0, 1, "help", "<symbol>?")
-		if !ok {
+		argLen, err := CheckArguments(arguments, 0, 1, "help", "<symbol>?")
+		if err != nil {
 			return err
 		}
 

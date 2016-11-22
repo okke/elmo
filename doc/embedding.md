@@ -49,8 +49,8 @@ string multiple times. Chipotle looks like:
 func chipotle() elmo.NamedValue {
 	return elmo.NewGoFunction("chipotle", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
 
-		argLen, ok, err := elmo.CheckArguments(arguments, 0, 1, "chipotle", "<string>")
-		if !ok {
+		argLen, err := elmo.CheckArguments(arguments, 0, 1, "chipotle", "<string>")
+		if err != nil {
 			return err
 		}
 

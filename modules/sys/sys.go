@@ -17,8 +17,8 @@ func initModule(context elmo.RunContext) elmo.Value {
 //
 func undefined() elmo.NamedValue {
 	return elmo.NewGoFunction("?", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
-		_, ok, err := elmo.CheckArguments(arguments, 2, 2, "?", "<name> <args>")
-		if !ok {
+		_, err := elmo.CheckArguments(arguments, 2, 2, "?", "<name> <args>")
+		if err != nil {
 			return err
 		}
 
@@ -47,8 +47,8 @@ func undefined() elmo.NamedValue {
 
 func _exec() elmo.NamedValue {
 	return elmo.NewGoFunction("exec", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
-		_, ok, err := elmo.CheckArguments(arguments, 1, 1, "exec", "<command>")
-		if !ok {
+		_, err := elmo.CheckArguments(arguments, 1, 1, "exec", "<command>")
+		if err != nil {
 			return err
 		}
 

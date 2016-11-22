@@ -48,8 +48,8 @@ func _new() elmo.NamedValue {
 func _len() elmo.NamedValue {
 	return elmo.NewGoFunction("len", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
 
-		_, ok, err := elmo.CheckArguments(arguments, 1, 1, "len", "<list>")
-		if !ok {
+		_, err := elmo.CheckArguments(arguments, 1, 1, "len", "<list>")
+		if err != nil {
 			return err
 		}
 
@@ -69,8 +69,8 @@ func _len() elmo.NamedValue {
 func at() elmo.NamedValue {
 	return elmo.NewGoFunction("at", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
 
-		_, ok, err := elmo.CheckArguments(arguments, 2, 3, "at", "<list> <from> <to>?")
-		if !ok {
+		_, err := elmo.CheckArguments(arguments, 2, 3, "at", "<list> <from> <to>?")
+		if err != nil {
 			return err
 		}
 
@@ -90,8 +90,8 @@ func at() elmo.NamedValue {
 func _append() elmo.NamedValue {
 	return elmo.NewGoFunction("append", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
 
-		argLen, ok, err := elmo.CheckArguments(arguments, 2, math.MaxInt16, "append", "<list> <value>*")
-		if !ok {
+		argLen, err := elmo.CheckArguments(arguments, 2, math.MaxInt16, "append", "<list> <value>*")
+		if err != nil {
 			return err
 		}
 
@@ -116,8 +116,8 @@ func _append() elmo.NamedValue {
 func prepend() elmo.NamedValue {
 	return elmo.NewGoFunction("prepend", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
 
-		argLen, ok, err := elmo.CheckArguments(arguments, 2, math.MaxInt16, "prepend", "<list> <value>*")
-		if !ok {
+		argLen, err := elmo.CheckArguments(arguments, 2, math.MaxInt16, "prepend", "<list> <value>*")
+		if err != nil {
 			return err
 		}
 
