@@ -1015,6 +1015,12 @@ func NewArgument(meta ScriptMetaData, begin uint32, end uint32, value Value) Arg
 	return &argument{astNode: astNode{meta: meta, begin: begin, end: end}, value: value}
 }
 
+// NewDynamicArgument constructs a new function argument without script info
+//
+func NewDynamicArgument(value Value) Argument {
+	return &argument{value: value}
+}
+
 //
 // ---[CALL]-------------------------------------------------------------------
 //

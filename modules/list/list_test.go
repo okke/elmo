@@ -117,6 +117,10 @@ func TestEach(t *testing.T) {
 
 	elmo.ParseTestAndRunBlockWithinContext(t, listContext(),
 		`list: (load "list")
+		 [1 2 3] |list.each v soep`, elmo.ExpectErrorValueAt(t, 2))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, listContext(),
+		`list: (load "list")
     l: [1 2 3]
     list.each l v {
 		  once result []
@@ -147,6 +151,11 @@ func TestEach(t *testing.T) {
 			list.each l v {
 				incr index (stepsize)
 			}`, elmo.ExpectValue(t, elmo.NewIntegerLiteral(297)))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, listContext(),
+		`list: (load "list")
+		 f: (func x {return $x})
+	 	 [1 2 3] |list.each &f`, elmo.ExpectValue(t, elmo.NewIntegerLiteral(3)))
 
 }
 
@@ -188,6 +197,11 @@ func TestMap(t *testing.T) {
 	 		}`, elmo.ExpectValue(t, elmo.ParseAndRun(elmo.NewGlobalContext(), "[[0 a] [1 b] [2 c]]")))
 
 	elmo.ParseTestAndRunBlockWithinContext(t, listContext(),
+		`list: (load list)
+		 f: (func i {return (multiply $i $i)})
+		 [1 2 3] |list.map &f`, elmo.ExpectValue(t, elmo.ParseAndRun(elmo.NewGlobalContext(), "[1 4 9]")))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, listContext(),
 		`list: (load "list")
 			l: [a b c]
 			list.map l v i {
@@ -219,4 +233,15 @@ func TestFilter(t *testing.T) {
 		 list.filter [1 2 3] v {
 				ne (v) 2
 		 }`, elmo.ExpectValue(t, elmo.ParseAndRun(elmo.NewGlobalContext(), "[1 3]")))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, listContext(),
+		`list: (load "list")
+	 	 list.filter [2 1 0] v i {
+	 	   ne $v $i
+	 	 }`, elmo.ExpectValue(t, elmo.ParseAndRun(elmo.NewGlobalContext(), "[2 0]")))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, listContext(),
+		`list: (load "list")
+		 f: (func v {return (ne (v) 2)})
+	 	 list.filter [1 2 3] &f`, elmo.ExpectValue(t, elmo.ParseAndRun(elmo.NewGlobalContext(), "[1 3]")))
 }

@@ -138,32 +138,47 @@ func prepend() elmo.NamedValue {
 	})
 }
 
-func getValueIndexAndBlock(context elmo.RunContext, arguments []elmo.Argument) (elmo.Value, string, string, elmo.Argument, bool) {
+func getValueIndexAndBlock(context elmo.RunContext, arguments []elmo.Argument) (elmo.Value, string, string, elmo.Value, bool) {
 
 	argLen := len(arguments)
 
-	if argLen < 3 || argLen > 4 {
+	if argLen < 2 || argLen > 4 {
 		return nil, "", "", nil, false
 	}
 
 	list := elmo.EvalArgumentOrSolveIdentifier(context, arguments[0])
+
+	if argLen == 2 {
+		// eg. each list function_ref
+		//
+		return list, "", "", elmo.EvalArgument(context, arguments[argLen-1]), true
+	}
 
 	valueName := elmo.EvalArgument2String(context, arguments[1])
 	var indexName string
 	if argLen == 4 {
 		indexName = elmo.EvalArgument2String(context, arguments[2])
 	}
-	block := arguments[argLen-1]
+	block := elmo.EvalArgument(context, arguments[argLen-1])
 
 	return list, valueName, indexName, block, true
 }
 
-func runInBlock(context elmo.RunContext, valueName string, value elmo.Value, indexName string, index int, block elmo.Argument) elmo.Value {
-	context.Set(valueName, value)
-	if indexName != "" {
-		context.Set(indexName, elmo.NewIntegerLiteral(int64(index)))
+func runInBlock(context elmo.RunContext, valueName string, value elmo.Value, indexName string, index int, block elmo.Value) elmo.Value {
+
+	if block.Type() == elmo.TypeBlock {
+		context.Set(valueName, value)
+		if indexName != "" {
+			context.Set(indexName, elmo.NewIntegerLiteral(int64(index)))
+		}
+		return block.(elmo.Block).Run(context, elmo.NoArguments)
 	}
-	return block.Value().(elmo.Block).Run(context, elmo.NoArguments)
+
+	if block.Type() == elmo.TypeGoFunction {
+		return block.(elmo.Runnable).Run(context, []elmo.Argument{elmo.NewDynamicArgument(value)})
+	}
+
+	return elmo.NewErrorValue(fmt.Sprintf("invalid block %v", block))
 }
 
 func each() elmo.NamedValue {
