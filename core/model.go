@@ -240,6 +240,12 @@ type HelpValue interface {
 	Help() Value
 }
 
+// MutableValue represents a value that can be mutated
+//
+type MutableValue interface {
+	Mutate(value interface{})
+}
+
 // ErrorValue represents an Error
 //
 type ErrorValue interface {
@@ -696,6 +702,10 @@ func (listValue *listValue) Run(context RunContext, arguments []Argument) Value 
 	}
 
 	return NewErrorValue("too many arguments for list access")
+}
+
+func (listValue *listValue) Mutate(value interface{}) {
+	listValue.values = value.([]Value)
 }
 
 func (returnValue *returnValue) String() string {

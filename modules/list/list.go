@@ -17,7 +17,9 @@ func initModule(context elmo.RunContext) elmo.Value {
 		_len(),
 		at(),
 		_append(),
+		mutableAppend(),
 		prepend(),
+		mutablePrepend(),
 		each(),
 		_map(),
 		filter()})
@@ -87,8 +89,8 @@ func at() elmo.NamedValue {
 	})
 }
 
-func _append() elmo.NamedValue {
-	return elmo.NewGoFunction("append", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+func appendAndOptionallyChange(name string, change bool) elmo.NamedValue {
+	return elmo.NewGoFunction(name, func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
 
 		argLen, err := elmo.CheckArguments(arguments, 2, math.MaxInt16, "append", "<list> <value>*")
 		if err != nil {
@@ -108,14 +110,29 @@ func _append() elmo.NamedValue {
 			internal = append(internal, elmo.EvalArgument(context, arguments[i]))
 		}
 
+		if change {
+			mutable, ok := list.(elmo.MutableValue)
+			if !ok {
+				return elmo.NewErrorValue(fmt.Sprintf("can not mutate %v", list))
+			}
+			mutable.Mutate(internal)
+		}
+
 		return elmo.NewListValue(internal)
 
 	})
 }
 
-func prepend() elmo.NamedValue {
-	return elmo.NewGoFunction("prepend", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+func _append() elmo.NamedValue {
+	return appendAndOptionallyChange("append", false)
+}
 
+func mutableAppend() elmo.NamedValue {
+	return appendAndOptionallyChange("append!", true)
+}
+
+func prependAndOptionallyChange(name string, change bool) elmo.NamedValue {
+	return elmo.NewGoFunction(name, func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
 		argLen, err := elmo.CheckArguments(arguments, 2, math.MaxInt16, "prepend", "<list> <value>*")
 		if err != nil {
 			return err
@@ -134,8 +151,24 @@ func prepend() elmo.NamedValue {
 			internal = append([]elmo.Value{elmo.EvalArgument(context, arguments[i])}, internal...)
 		}
 
+		if change {
+			mutable, ok := list.(elmo.MutableValue)
+			if !ok {
+				return elmo.NewErrorValue(fmt.Sprintf("can not mutate %v", list))
+			}
+			mutable.Mutate(internal)
+		}
+
 		return elmo.NewListValue(internal)
 	})
+}
+
+func prepend() elmo.NamedValue {
+	return prependAndOptionallyChange("prepend", false)
+}
+
+func mutablePrepend() elmo.NamedValue {
+	return prependAndOptionallyChange("prepend!", true)
 }
 
 func getValueIndexAndBlock(context elmo.RunContext, arguments []elmo.Argument) (elmo.Value, string, string, elmo.Value, bool) {

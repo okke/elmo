@@ -96,6 +96,13 @@ func TestAppend(t *testing.T) {
     l: [1 2 3]
     l: (list.append l 4 )
 		l`, elmo.ExpectValue(t, elmo.ParseAndRun(elmo.NewGlobalContext(), "[1 2 3 4]")))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, listContext(),
+		`list: (load "list")
+	   l: [1 2 3]
+	   list.append! $l 4
+		 l`, elmo.ExpectValue(t, elmo.ParseAndRun(elmo.NewGlobalContext(), "[1 2 3 4]")))
+
 }
 
 func TestPrepend(t *testing.T) {
@@ -111,6 +118,12 @@ func TestPrepend(t *testing.T) {
     l: [1 2 3]
     l: (list.prepend l 4 5 6)
 		l`, elmo.ExpectValue(t, elmo.ParseAndRun(elmo.NewGlobalContext(), "[6 5 4 1 2 3]")))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, listContext(),
+		`list: (load "list")
+		l: [1 2 3]
+		list.prepend! l 4 5 6
+	  l`, elmo.ExpectValue(t, elmo.ParseAndRun(elmo.NewGlobalContext(), "[6 5 4 1 2 3]")))
 }
 
 func TestEach(t *testing.T) {

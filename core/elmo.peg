@@ -49,9 +49,9 @@ NewLine <- ([\n\r] Spacing)+
 
 Identifier <- IdNondigit IdChar* Spacing
 
-IdNondigit <- [a-z] / [A-Z] / [_?]
+IdNondigit <- [a-z] / [A-Z] / [_?!]
 
-IdChar <- [a-z] / [A-Z] / [0-9] / [_?]
+IdChar <- [a-z] / [A-Z] / [0-9] / [_?!]
 
 
 #
