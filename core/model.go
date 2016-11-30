@@ -216,6 +216,8 @@ type DictionaryValue interface {
 	Keys() []string
 	Resolve(string) (Value, bool)
 	Merge([]DictionaryValue) Value
+	Set(symbol Value, value Value)
+	Remove(symbol Value)
 }
 
 // MathValue represents a value that knows how to apply basic arithmetics
@@ -777,6 +779,14 @@ func (dictValue *dictValue) Merge(withAll []DictionaryValue) Value {
 	}
 
 	return NewDictionaryValue(dictValue.parent, newMap)
+}
+
+func (dictValue *dictValue) Set(symbol Value, value Value) {
+	dictValue.values[symbol.String()] = value
+}
+
+func (dictValue *dictValue) Remove(symbol Value) {
+	delete(dictValue.values, symbol.String())
 }
 
 func (dictValue *dictValue) Run(context RunContext, arguments []Argument) Value {

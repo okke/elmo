@@ -14,7 +14,7 @@ var Module = elmo.NewModule("dict", initModule)
 
 func initModule(context elmo.RunContext) elmo.Value {
 	return elmo.NewMappingForModule(context, []elmo.NamedValue{
-		new(), keys(), knows(), get(), merge()})
+		new(), keys(), knows(), get(), merge(), set(), remove()})
 }
 
 func new() elmo.NamedValue {
@@ -183,5 +183,47 @@ func merge() elmo.NamedValue {
 
 		return dictionaries[0].Merge(dictionaries[1:])
 
+	})
+}
+
+func set() elmo.NamedValue {
+	return elmo.NewGoFunction("set!", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+		_, err := elmo.CheckArguments(arguments, 3, 3, "set", "<dictionary> <symbol> <value>")
+		if err != nil {
+			return err
+		}
+
+		// first argument of a dictionary function can be an identifier with the name of the dictionary
+		//
+		dict, ok := elmo.EvalArgumentOrSolveIdentifier(context, arguments[0]).(elmo.DictionaryValue)
+
+		if !ok {
+			return elmo.NewErrorValue(fmt.Sprintf("invalid call to set!, expect a dictionary as first argument instead of %v", arguments[0]))
+		}
+
+		dict.Set(elmo.EvalArgument(context, arguments[1]), elmo.EvalArgument(context, arguments[2]))
+
+		return dict.(elmo.Value)
+	})
+}
+
+func remove() elmo.NamedValue {
+	return elmo.NewGoFunction("remove!", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+		_, err := elmo.CheckArguments(arguments, 2, 2, "remove", "<dictionary> <symbol>")
+		if err != nil {
+			return err
+		}
+
+		// first argument of a dictionary function can be an identifier with the name of the dictionary
+		//
+		dict, ok := elmo.EvalArgumentOrSolveIdentifier(context, arguments[0]).(elmo.DictionaryValue)
+
+		if !ok {
+			return elmo.NewErrorValue(fmt.Sprintf("invalid call to set!, expect a dictionary as first argument instead of %v", arguments[0]))
+		}
+
+		dict.Remove(elmo.EvalArgument(context, arguments[1]))
+
+		return dict.(elmo.Value)
 	})
 }

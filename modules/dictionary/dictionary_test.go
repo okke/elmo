@@ -296,3 +296,49 @@ func TestMerge(t *testing.T) {
   	 multiply $m.a $m.b`, elmo.ExpectValue(t, elmo.NewIntegerLiteral(8)))
 
 }
+
+func TestSet(t *testing.T) {
+
+	elmo.ParseTestAndRunBlockWithinContext(t, dictContext(),
+		`d: (load "dict")
+		 d.set!`, elmo.ExpectErrorValueAt(t, 2))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, dictContext(),
+		`d: (load "dict")
+	 	 d.set! "chiptole" a "jalapeno"`, elmo.ExpectErrorValueAt(t, 2))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, dictContext(),
+		`d: (load "dict")
+		 peppers: {
+		   a: "jalapeno"
+	   }
+		 d.set! $peppers a "chipotle"
+		 peppers.a`, elmo.ExpectValue(t, elmo.NewStringLiteral("chipotle")))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, dictContext(),
+		`d: (load "dict")
+ 		 peppers: {
+ 		   a: "jalapeno"
+ 	   }
+ 		 d.set! $peppers a $nil
+ 		 d.knows peppers a`, elmo.ExpectValue(t, elmo.True))
+}
+
+func TestRemove(t *testing.T) {
+
+	elmo.ParseTestAndRunBlockWithinContext(t, dictContext(),
+		`d: (load "dict")
+		 d.remove!`, elmo.ExpectErrorValueAt(t, 2))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, dictContext(),
+		`d: (load "dict")
+	 	 d.remove! "chiptole" a`, elmo.ExpectErrorValueAt(t, 2))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, dictContext(),
+		`d: (load "dict")
+		 peppers: {
+		   a: "jalapeno"
+	   }
+		 d.remove! $peppers a
+		 d.knows $peppers a`, elmo.ExpectValue(t, elmo.False))
+}
