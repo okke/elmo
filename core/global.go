@@ -64,6 +64,8 @@ func NewGlobalContext() RunContext {
 	context.SetNamed(assert())
 	context.SetNamed(_error())
 	context.SetNamed(help())
+	context.SetNamed(freeze())
+	context.SetNamed(frozen())
 
 	return context
 }
@@ -1523,4 +1525,41 @@ func help() NamedValue {
 		return NewListValue(result)
 
 	})
+}
+
+func freeze() NamedValue {
+	return NewGoFunction(`freeze!/Freezes a value (makes a value immutable)
+		Usage: freeze <value>
+		Returns: frozen value`,
+
+		func(context RunContext, arguments []Argument) Value {
+
+			_, err := CheckArguments(arguments, 1, 1, "freeze!", "<value>")
+			if err != nil {
+				return err
+			}
+
+			value := EvalArgument(context, arguments[0])
+			value.Freeze()
+
+			return value
+		})
+}
+
+func frozen() NamedValue {
+	return NewGoFunction(`frozen/Checks if a value is frozen (immutable)
+		Usage: frozen <value>
+		Returns: boolean (true when frozen, false when not)`,
+
+		func(context RunContext, arguments []Argument) Value {
+
+			_, err := CheckArguments(arguments, 1, 1, "frozen", "<value>")
+			if err != nil {
+				return err
+			}
+
+			value := EvalArgument(context, arguments[0])
+			return NewBooleanLiteral(value.Frozen())
+
+		})
 }

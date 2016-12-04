@@ -894,3 +894,28 @@ func TestHelp(t *testing.T) {
 		 help chipotle`, ExpectValue(t, NewStringLiteral("not so hot pepper\nfrom mexico\nlove it")))
 
 }
+
+func TestFreeze(t *testing.T) {
+
+	ParseTestAndRunBlock(t,
+		`freeze!`, ExpectErrorValueAt(t, 1))
+
+	ParseTestAndRunBlock(t,
+		`frozen`, ExpectErrorValueAt(t, 1))
+
+	ParseTestAndRunBlock(t,
+		`pepper: "chipotle"
+		 freeze! $pepper
+		 frozen $pepper`, ExpectValue(t, True))
+
+	ParseTestAndRunBlock(t,
+		`pepper: []
+		 freeze! $pepper
+		 frozen $pepper`, ExpectValue(t, True))
+
+	ParseTestAndRunBlock(t,
+		`pepper: {}
+		 freeze! $pepper
+		 frozen $pepper`, ExpectValue(t, True))
+
+}

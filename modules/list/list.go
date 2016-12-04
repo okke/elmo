@@ -115,7 +115,9 @@ func appendAndOptionallyChange(name string, change bool) elmo.NamedValue {
 			if !ok {
 				return elmo.NewErrorValue(fmt.Sprintf("can not mutate %v", list))
 			}
-			mutable.Mutate(internal)
+			if _, err := mutable.Mutate(internal); err != nil {
+				return err
+			}
 		}
 
 		return elmo.NewListValue(internal)
@@ -156,7 +158,9 @@ func prependAndOptionallyChange(name string, change bool) elmo.NamedValue {
 			if !ok {
 				return elmo.NewErrorValue(fmt.Sprintf("can not mutate %v", list))
 			}
-			mutable.Mutate(internal)
+			if _, err := mutable.Mutate(internal); err != nil {
+				return err
+			}
 		}
 
 		return elmo.NewListValue(internal)

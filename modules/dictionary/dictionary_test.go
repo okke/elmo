@@ -322,6 +322,24 @@ func TestSet(t *testing.T) {
  	   }
  		 d.set! $peppers a $nil
  		 d.knows peppers a`, elmo.ExpectValue(t, elmo.True))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, dictContext(),
+		`d: (load "dict")
+ 		 peppers: {
+ 		   a: "jalapeno"
+ 	   }
+		 freeze! $peppers
+ 		 d.set! $peppers a "chipotle"`, elmo.ExpectErrorValueAt(t, 6))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, dictContext(),
+		`d: (load "dict")
+  	 peppers: {
+  		   a: {
+				   b: "jalapeno"
+				 }
+  	 }
+ 		 freeze! $peppers
+  	 d.set! $peppers.a b "chipotle"`, elmo.ExpectErrorValueAt(t, 8))
 }
 
 func TestRemove(t *testing.T) {
@@ -341,4 +359,13 @@ func TestRemove(t *testing.T) {
 	   }
 		 d.remove! $peppers a
 		 d.knows $peppers a`, elmo.ExpectValue(t, elmo.False))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, dictContext(),
+		`d: (load "dict")
+  	 peppers: {
+  	   a: "jalapeno"
+  	 }
+ 		 freeze! $peppers
+  	 d.remove! $peppers a`, elmo.ExpectErrorValueAt(t, 6))
+
 }

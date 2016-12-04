@@ -96,7 +96,8 @@ func NewTypeInfo(name string) TypeInfo {
 }
 
 type baseValue struct {
-	info TypeInfo
+	info   TypeInfo
+	frozen bool
 }
 
 type nothing struct {
@@ -196,6 +197,8 @@ type Value interface {
 	Internal() interface{}
 	Info() TypeInfo
 	IsType(TypeInfo) bool
+	Freeze()
+	Frozen() bool
 }
 
 // IdentifierValue represents a value that can be lookedup
@@ -216,8 +219,8 @@ type DictionaryValue interface {
 	Keys() []string
 	Resolve(string) (Value, bool)
 	Merge([]DictionaryValue) Value
-	Set(symbol Value, value Value)
-	Remove(symbol Value)
+	Set(symbol Value, value Value) (Value, ErrorValue)
+	Remove(symbol Value) (Value, ErrorValue)
 }
 
 // MathValue represents a value that knows how to apply basic arithmetics
@@ -245,7 +248,7 @@ type HelpValue interface {
 // MutableValue represents a value that can be mutated
 //
 type MutableValue interface {
-	Mutate(value interface{})
+	Mutate(value interface{}) (Value, ErrorValue)
 }
 
 // ErrorValue represents an Error
@@ -282,6 +285,14 @@ func (baseValue *baseValue) IsType(typeInfo TypeInfo) bool {
 	}
 
 	return baseValue.info.ID() == typeInfo.ID()
+}
+
+func (baseValue *baseValue) Freeze() {
+	baseValue.frozen = true
+}
+
+func (baseValue *baseValue) Frozen() bool {
+	return baseValue.frozen
 }
 
 func (nothing *nothing) String() string {
@@ -706,8 +717,22 @@ func (listValue *listValue) Run(context RunContext, arguments []Argument) Value 
 	return NewErrorValue("too many arguments for list access")
 }
 
-func (listValue *listValue) Mutate(value interface{}) {
+func (listValue *listValue) Mutate(value interface{}) (Value, ErrorValue) {
+	if listValue.Frozen() {
+		return listValue, NewErrorValue("can not mutate frozen value")
+	}
+
 	listValue.values = value.([]Value)
+	return listValue, nil
+}
+
+func (listValue *listValue) Freeze() {
+	listValue.baseValue.Freeze()
+	for _, value := range listValue.values {
+		if !value.Frozen() {
+			value.Freeze()
+		}
+	}
 }
 
 func (returnValue *returnValue) String() string {
@@ -781,12 +806,31 @@ func (dictValue *dictValue) Merge(withAll []DictionaryValue) Value {
 	return NewDictionaryValue(dictValue.parent, newMap)
 }
 
-func (dictValue *dictValue) Set(symbol Value, value Value) {
+func (dictValue *dictValue) Set(symbol Value, value Value) (Value, ErrorValue) {
+	if dictValue.Frozen() {
+		return dictValue, NewErrorValue("can not set value in frozen dictionary")
+	}
 	dictValue.values[symbol.String()] = value
+
+	return dictValue, nil
 }
 
-func (dictValue *dictValue) Remove(symbol Value) {
+func (dictValue *dictValue) Remove(symbol Value) (Value, ErrorValue) {
+	if dictValue.Frozen() {
+		return dictValue, NewErrorValue("can not remove value from frozen dictionary")
+	}
 	delete(dictValue.values, symbol.String())
+
+	return dictValue, nil
+}
+
+func (dictValue *dictValue) Freeze() {
+	dictValue.baseValue.Freeze()
+	for _, value := range dictValue.values {
+		if !value.Frozen() {
+			value.Freeze()
+		}
+	}
 }
 
 func (dictValue *dictValue) Run(context RunContext, arguments []Argument) Value {

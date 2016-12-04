@@ -201,7 +201,9 @@ func set() elmo.NamedValue {
 			return elmo.NewErrorValue(fmt.Sprintf("invalid call to set!, expect a dictionary as first argument instead of %v", arguments[0]))
 		}
 
-		dict.Set(elmo.EvalArgument(context, arguments[1]), elmo.EvalArgument(context, arguments[2]))
+		if _, err := dict.Set(elmo.EvalArgument(context, arguments[1]), elmo.EvalArgument(context, arguments[2])); err != nil {
+			return err
+		}
 
 		return dict.(elmo.Value)
 	})
@@ -222,7 +224,9 @@ func remove() elmo.NamedValue {
 			return elmo.NewErrorValue(fmt.Sprintf("invalid call to set!, expect a dictionary as first argument instead of %v", arguments[0]))
 		}
 
-		dict.Remove(elmo.EvalArgument(context, arguments[1]))
+		if _, err := dict.Remove(elmo.EvalArgument(context, arguments[1])); err != nil {
+			return err
+		}
 
 		return dict.(elmo.Value)
 	})
