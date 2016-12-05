@@ -63,6 +63,7 @@ func NewGlobalContext() RunContext {
 	context.SetNamed(modulo())
 	context.SetNamed(assert())
 	context.SetNamed(_error())
+	context.SetNamed(_panic())
 	context.SetNamed(help())
 	context.SetNamed(freeze())
 	context.SetNamed(frozen())
@@ -1453,7 +1454,7 @@ func _error() NamedValue {
 		> error "chipotle not hot enought error"
 		will result in an error
 
-		Note, givens message value is evaluated to a string`,
+		Note, given message value is evaluated to a string`,
 
 		func(context RunContext, arguments []Argument) Value {
 
@@ -1463,6 +1464,31 @@ func _error() NamedValue {
 			}
 
 			return NewErrorValue(EvalArgument2String(context, arguments[0]))
+
+		})
+}
+
+func _panic() NamedValue {
+	return NewGoFunction(`panic/constructs a fatal error with a user defined message
+		Usage: panic <message>
+		Returns: a user defined fatal error
+
+		Example:
+		> fatal "chipotle not hot enought error"
+		will result in an error
+
+		Note, given message value is evaluated to a string
+
+		Also note, fatal error can't be assigned to variables`,
+
+		func(context RunContext, arguments []Argument) Value {
+
+			_, err := CheckArguments(arguments, 1, 1, "panic", "<message>")
+			if err != nil {
+				return err
+			}
+
+			return NewErrorValue(EvalArgument2String(context, arguments[0])).Panic()
 
 		})
 }

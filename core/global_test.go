@@ -878,6 +878,17 @@ func TestAssert(t *testing.T) {
 func TestError(t *testing.T) {
 	ParseTestAndRunBlock(t, `error`, ExpectErrorValueAt(t, 1))
 	ParseTestAndRunBlock(t, `error "chipotle"`, ExpectErrorValueAt(t, 1))
+	ParseTestAndRunBlock(t,
+		`err: (error "chipotle")
+		 "chipotle"`, ExpectValue(t, NewStringLiteral("chipotle")))
+}
+
+func TestPanic(t *testing.T) {
+	ParseTestAndRunBlock(t, `panic`, ExpectErrorValueAt(t, 1))
+	ParseTestAndRunBlock(t, `panic "chipotle"`, ExpectErrorValueAt(t, 1))
+	ParseTestAndRunBlock(t,
+		`err: (panic "chipotle")
+		 "chipotle"`, ExpectErrorValueAt(t, 1))
 }
 
 func TestHelp(t *testing.T) {
