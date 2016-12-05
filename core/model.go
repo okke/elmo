@@ -199,7 +199,7 @@ type Value interface {
 	Internal() interface{}
 	Info() TypeInfo
 	IsType(TypeInfo) bool
-	Freeze()
+	Freeze() Value
 	Frozen() bool
 }
 
@@ -293,8 +293,21 @@ func (baseValue *baseValue) IsType(typeInfo TypeInfo) bool {
 	return baseValue.info.ID() == typeInfo.ID()
 }
 
-func (baseValue *baseValue) Freeze() {
+func (baseValue *baseValue) Freeze() Value {
 	baseValue.frozen = true
+	return baseValue
+}
+
+func (baseValue *baseValue) Type() Type {
+	panic("baseValue does not support type")
+}
+
+func (baseValue *baseValue) Internal() interface{} {
+	panic("baseValue does not support internal")
+}
+
+func (baseValue *baseValue) String() string {
+	return "baseValue[?]"
 }
 
 func (baseValue *baseValue) Frozen() bool {
@@ -732,13 +745,14 @@ func (listValue *listValue) Mutate(value interface{}) (Value, ErrorValue) {
 	return listValue, nil
 }
 
-func (listValue *listValue) Freeze() {
+func (listValue *listValue) Freeze() Value {
 	listValue.baseValue.Freeze()
 	for _, value := range listValue.values {
 		if !value.Frozen() {
 			value.Freeze()
 		}
 	}
+	return listValue
 }
 
 func (returnValue *returnValue) String() string {
@@ -830,13 +844,14 @@ func (dictValue *dictValue) Remove(symbol Value) (Value, ErrorValue) {
 	return dictValue, nil
 }
 
-func (dictValue *dictValue) Freeze() {
+func (dictValue *dictValue) Freeze() Value {
 	dictValue.baseValue.Freeze()
 	for _, value := range dictValue.values {
 		if !value.Frozen() {
 			value.Freeze()
 		}
 	}
+	return dictValue
 }
 
 func (dictValue *dictValue) Run(context RunContext, arguments []Argument) Value {

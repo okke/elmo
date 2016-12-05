@@ -1582,9 +1582,7 @@ func freeze() NamedValue {
 			}
 
 			value := EvalArgument(context, arguments[0])
-			value.Freeze()
-
-			return value
+			return value.Freeze()
 		})
 }
 
