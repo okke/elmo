@@ -36,7 +36,7 @@ func TestSetValueIntoGlobalContextAndGetIt(t *testing.T) {
 
 	ParseTestAndRunBlock(t,
 		`set chipotle "sauce"
-     set sauce (get)`, ExpectErrorValueAt(t, 2))
+     get`, ExpectErrorValueAt(t, 2))
 
 }
 
@@ -83,6 +83,10 @@ func TestIncrementValue(t *testing.T) {
   	 chipotle`, ExpectErrorValueAt(t, 1))
 
 	ParseTestAndRunBlock(t,
+		`result: (incr chipotle "galapeno")
+   	 type $result`, ExpectValue(t, NewIdentifier("error")))
+
+	ParseTestAndRunBlock(t,
 		`incr chipotle 3
   	 incr chipotle "galapeno"
   	 chipotle`, ExpectErrorValueAt(t, 2))
@@ -126,7 +130,7 @@ func TestDefined(t *testing.T) {
 func TestUserDefinedFunctionWithoutArguments(t *testing.T) {
 
 	ParseTestAndRunBlock(t,
-		`set fsauce (func)`, ExpectErrorValueAt(t, 1))
+		`func`, ExpectErrorValueAt(t, 1))
 
 	ParseTestAndRunBlock(t,
 		`set fsauce (func {
@@ -152,7 +156,7 @@ func TestUserDefinedFunctionWithoutArguments(t *testing.T) {
 func TestUserDefinedFunctionReUse(t *testing.T) {
 
 	ParseTestAndRunBlock(t,
-		`set fsauce (func chipotle)`, ExpectErrorValueAt(t, 1))
+		`func chipotle`, ExpectErrorValueAt(t, 1))
 
 	ParseTestAndRunBlock(t,
 		`fsauce: (func {
@@ -183,7 +187,7 @@ func TestUserDefinedFunctionReUse(t *testing.T) {
 	 	 set soup (fsoup)`, ExpectValueSetTo(t, "soup", "chipotle"))
 
 	ParseTestAndRunBlock(t,
-		`fsoup: &fsauce.a`, ExpectErrorValueAt(t, 1))
+		`&fsauce.a`, ExpectErrorValueAt(t, 1))
 }
 
 func TestUserDefinedFunctionInFunction(t *testing.T) {
@@ -212,7 +216,7 @@ func TestUserDefinedFunctionInFunction(t *testing.T) {
 func TestUserDefinedFunctionWithOneArgument(t *testing.T) {
 
 	ParseTestAndRunBlock(t,
-		`set fsauce (func 3)`, ExpectErrorValueAt(t, 1))
+		`func 3`, ExpectErrorValueAt(t, 1))
 
 	ParseTestAndRunBlock(t,
 		`set fsauce (func pepper {
@@ -263,7 +267,7 @@ func TestPipeToUserDefinedFunction(t *testing.T) {
 func TestUserDefinedFunctionWithHelp(t *testing.T) {
 
 	ParseTestAndRunBlock(t,
-		`fsauce: (func "sauce from heaven")`, ExpectErrorValueAt(t, 1))
+		`func "sauce from heaven"`, ExpectErrorValueAt(t, 1))
 
 	ParseTestAndRunBlock(t,
 		`fsauce: (func "sauce from heaven" {

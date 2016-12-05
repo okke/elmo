@@ -29,6 +29,7 @@ func (loader *loader) loadFromDir(folderName string, name string) Value {
 		result := ParseAndRunWithFile(subContext, string(b), source)
 
 		if result.Type() == TypeError {
+			result.(ErrorValue).Panic()
 			return result
 		}
 
@@ -58,8 +59,8 @@ func (loader *loader) Load(name string) Value {
 		}
 	}
 
-	return NewErrorValue(fmt.Sprintf("could not find %s", name))
-
+	err := NewErrorValue(fmt.Sprintf("could not find %s", name))
+	return err.Panic()
 }
 
 // NewLoader constructs a new source code loader

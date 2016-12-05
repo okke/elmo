@@ -28,7 +28,7 @@ func TestLoaderDoesNotLoadFileWithError(t *testing.T) {
 		t.Errorf("could load undefined-functions: %v", value)
 	}
 
-	if value.String() != "error at ./loader_testdata/undefined-function.mo at line 2: call to undefined \"what\"" {
+	if value.String() != "fatal error at ./loader_testdata/undefined-function.mo at line 2: call to undefined \"what\"" {
 		t.Errorf("expected a different value, found %v", value)
 	}
 
@@ -56,7 +56,7 @@ func TestLoaderDoesNotLoadFileWhichCanNotLoadOtherFile(t *testing.T) {
 		t.Errorf("could load undefined-script: %v", value)
 	}
 
-	if value.String() != "error at ./loader_testdata/undefined-script.mo at line 1: can only mix in dictionaries, not error: could not find szechuan" {
+	if value.String() != "fatal error at ./loader_testdata/undefined-script.mo at line 1: could not find szechuan" {
 		t.Errorf("expected a different value, found %v", value)
 	}
 

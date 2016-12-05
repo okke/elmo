@@ -175,6 +175,8 @@ type errorValue struct {
 	meta   ScriptMetaData
 	lineno int
 	msg    string
+	fatal  bool
+	ignore bool
 }
 
 // GoFunction is a native go function that takes an array of input values
@@ -259,6 +261,10 @@ type ErrorValue interface {
 	SetAt(meta ScriptMetaData, lineno int)
 	At() (ScriptMetaData, int)
 	IsTraced() bool
+	Panic() ErrorValue
+	IsFatal() bool
+	Ignore() ErrorValue
+	CanBeIgnored() bool
 }
 
 // RunnableValue represents a value that can evaluated to another value
@@ -841,11 +847,15 @@ func (dictValue *dictValue) Run(context RunContext, arguments []Argument) Value 
 }
 
 func (errorValue *errorValue) String() string {
+	kind := "error"
+	if errorValue.IsFatal() {
+		kind = "fatal error"
+	}
 	if errorValue.meta != nil {
 		meta, lineno := errorValue.At()
-		return fmt.Sprintf("error at %s at line %d: %s", meta.Name(), lineno, errorValue.msg)
+		return fmt.Sprintf("%s at %s at line %d: %s", kind, meta.Name(), lineno, errorValue.msg)
 	}
-	return fmt.Sprintf("error: %s", errorValue.msg)
+	return fmt.Sprintf("%s: %s", kind, errorValue.msg)
 }
 
 func (internalValue *internalValue) String() string {
@@ -884,6 +894,25 @@ func (errorValue *errorValue) At() (meta ScriptMetaData, lineno int) {
 func (errorValue *errorValue) IsTraced() bool {
 	meta, lineno := errorValue.At()
 	return meta != nil && lineno > 0
+}
+
+func (errorValue *errorValue) Panic() ErrorValue {
+	errorValue.fatal = true
+	return errorValue
+}
+
+func (errorValue *errorValue) IsFatal() bool {
+	return errorValue.fatal
+}
+
+func (errorValue *errorValue) Ignore() ErrorValue {
+	errorValue.ignore = true
+	errorValue.fatal = false
+	return errorValue
+}
+
+func (errorValue *errorValue) CanBeIgnored() bool {
+	return errorValue.ignore
 }
 
 func (goFunction *goFunction) String() string {
@@ -1323,7 +1352,10 @@ func (block *block) Run(context RunContext, arguments []Argument) Value {
 			break
 		}
 		if result.Type() == TypeError {
-			return result
+			if !result.(ErrorValue).CanBeIgnored() {
+				context.Stop()
+				return result
+			}
 		}
 	}
 

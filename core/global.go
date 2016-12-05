@@ -128,6 +128,9 @@ func set() NamedValue {
 		Alternative usage: set <symbol>* value
 		Returns: value that has been assigned to the denoted variable
 
+		When evaluation of the assigned value results in a non fatal error,
+		the assignment will result in an error that won't break the execution flow.
+
 		Examples:
 
 		> set a 3
@@ -188,6 +191,13 @@ func set() NamedValue {
 				context.Set(name, value)
 			}
 
+			if value.Type() == TypeError {
+				if !value.(ErrorValue).IsFatal() {
+					// can ignore non fatal errors in assignments
+					//
+					return value.(ErrorValue).Ignore()
+				}
+			}
 			return value
 		})
 }
@@ -845,6 +855,8 @@ func load() NamedValue {
 		Usage: load <module|script>
 		Returns: A dictionary containing loaded variables
 
+		When loading results in an error, it will return it as a fatal error
+
 		Examples:
 
 		> str: (load string)
@@ -879,6 +891,10 @@ func load() NamedValue {
 
 			if loaded == nil {
 				return NewErrorValue(fmt.Sprintf("could not find module %s", name))
+			}
+
+			if loaded.Type() == TypeError {
+				return loaded.(ErrorValue).Panic()
 			}
 
 			return context.Mixin(loaded)
