@@ -1586,7 +1586,7 @@ func freeze() NamedValue {
 				return freezable.Freeze()
 			}
 
-			return NewErrorValue(fmt.Sprintf("can not freeze %v", value))
+			return value
 		})
 }
 
@@ -1607,6 +1607,8 @@ func frozen() NamedValue {
 				return NewBooleanLiteral(freezable.Frozen())
 			}
 
-			return False
+			// by default, all non freezable values are frozen
+			//
+			return True
 		})
 }
