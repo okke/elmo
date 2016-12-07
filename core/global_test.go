@@ -918,8 +918,14 @@ func TestFreeze(t *testing.T) {
 	ParseTestAndRunBlock(t,
 		`frozen`, ExpectErrorValueAt(t, 1))
 
+	// cant freeze a non freezable value
+	//
 	ParseTestAndRunBlock(t,
 		`pepper: "chipotle"
+		 freeze! $pepper`, ExpectErrorValueAt(t, 2))
+
+	ParseTestAndRunBlock(t,
+		`pepper: ["chipotle"]
 		 freeze! $pepper
 		 frozen $pepper`, ExpectValue(t, True))
 

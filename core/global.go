@@ -1582,7 +1582,11 @@ func freeze() NamedValue {
 			}
 
 			value := EvalArgument(context, arguments[0])
-			return value.Freeze()
+			if freezable, ok := value.(FreezableValue); ok {
+				return freezable.Freeze()
+			}
+
+			return NewErrorValue(fmt.Sprintf("can not freeze %v", value))
 		})
 }
 
@@ -1599,7 +1603,10 @@ func frozen() NamedValue {
 			}
 
 			value := EvalArgument(context, arguments[0])
-			return NewBooleanLiteral(value.Frozen())
+			if freezable, ok := value.(FreezableValue); ok {
+				return NewBooleanLiteral(freezable.Frozen())
+			}
 
+			return False
 		})
 }

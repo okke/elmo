@@ -96,8 +96,7 @@ func NewTypeInfo(name string) TypeInfo {
 }
 
 type baseValue struct {
-	info   TypeInfo
-	frozen bool
+	info TypeInfo
 }
 
 type nothing struct {
@@ -151,6 +150,7 @@ type booleanLiteral struct {
 
 type listValue struct {
 	baseValue
+	frozen bool
 	values []Value
 }
 
@@ -161,6 +161,7 @@ type returnValue struct {
 
 type dictValue struct {
 	baseValue
+	frozen bool
 	parent *dictValue
 	values map[string]Value
 }
@@ -199,8 +200,6 @@ type Value interface {
 	Internal() interface{}
 	Info() TypeInfo
 	IsType(TypeInfo) bool
-	Freeze() Value
-	Frozen() bool
 }
 
 // IdentifierValue represents a value that can be lookedup
@@ -253,6 +252,14 @@ type MutableValue interface {
 	Mutate(value interface{}) (Value, ErrorValue)
 }
 
+// FreezableValue represents a value that can be frozen
+// (protected from modification)
+//
+type FreezableValue interface {
+	Freeze() Value
+	Frozen() bool
+}
+
 // ErrorValue represents an Error
 //
 type ErrorValue interface {
@@ -293,12 +300,8 @@ func (baseValue *baseValue) IsType(typeInfo TypeInfo) bool {
 	return baseValue.info.ID() == typeInfo.ID()
 }
 
-func (baseValue *baseValue) Freeze() Value {
-	baseValue.frozen = true
-	return baseValue
-}
-
 func (baseValue *baseValue) Type() Type {
+	fmt.Printf("check type of %v\n", baseValue)
 	panic("baseValue does not support type")
 }
 
@@ -308,10 +311,6 @@ func (baseValue *baseValue) Internal() interface{} {
 
 func (baseValue *baseValue) String() string {
 	return "baseValue[?]"
-}
-
-func (baseValue *baseValue) Frozen() bool {
-	return baseValue.frozen
 }
 
 func (nothing *nothing) String() string {
@@ -746,13 +745,17 @@ func (listValue *listValue) Mutate(value interface{}) (Value, ErrorValue) {
 }
 
 func (listValue *listValue) Freeze() Value {
-	listValue.baseValue.Freeze()
+	listValue.frozen = true
 	for _, value := range listValue.values {
-		if !value.Frozen() {
-			value.Freeze()
+		if freezable, ok := value.(FreezableValue); ok && !freezable.Frozen() {
+			freezable.Freeze()
 		}
 	}
 	return listValue
+}
+
+func (listValue *listValue) Frozen() bool {
+	return listValue.frozen
 }
 
 func (returnValue *returnValue) String() string {
@@ -845,13 +848,17 @@ func (dictValue *dictValue) Remove(symbol Value) (Value, ErrorValue) {
 }
 
 func (dictValue *dictValue) Freeze() Value {
-	dictValue.baseValue.Freeze()
+	dictValue.frozen = true
 	for _, value := range dictValue.values {
-		if !value.Frozen() {
-			value.Freeze()
+		if freezable, ok := value.(FreezableValue); ok && !freezable.Frozen() {
+			freezable.Freeze()
 		}
 	}
 	return dictValue
+}
+
+func (dictValue *dictValue) Frozen() bool {
+	return dictValue.frozen
 }
 
 func (dictValue *dictValue) Run(context RunContext, arguments []Argument) Value {

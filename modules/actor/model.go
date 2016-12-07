@@ -20,7 +20,10 @@ type Actor interface {
 }
 
 func (actor *actor) Send(value elmo.Value) {
-	actor.channel <- value.Freeze()
+	if freezable, ok := value.(elmo.FreezableValue); ok {
+		freezable.Freeze()
+	}
+	actor.channel <- value
 }
 
 func (actor *actor) Receive() elmo.Value {
