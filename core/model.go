@@ -1,6 +1,8 @@
 package elmo
 
 import (
+	"bytes"
+	"encoding/gob"
 	"errors"
 	"fmt"
 	"math"
@@ -50,6 +52,8 @@ const (
 	TypeReturn
 	// TypeNil represents the type of a nil value
 	TypeNil
+	// TypeBinary represents the value of a byte array
+	TypeBinary
 )
 
 var typeInfoIdentifier = NewTypeInfo("identifier")
@@ -65,6 +69,7 @@ var typeInfoCall = NewTypeInfo("call")
 var typeInfoGoFunction = NewTypeInfo("func")
 var typeInfoReturn = NewTypeInfo("return")
 var typeInfoNil = NewTypeInfo("nil")
+var typeInfoBinary = NewTypeInfo("binary")
 
 // TypeInfo represents kinf of subType for TypeInternal values
 //
@@ -180,6 +185,29 @@ type errorValue struct {
 	ignore bool
 }
 
+// BinaryData is a struct used to serialize values to binary data
+// Note, property names are as short as possible and public
+// so the gob package can easily serialize it
+//
+type BinaryData struct {
+	// Type Id for core types or -1
+	//
+	I int64
+
+	// Name for non core types
+	//
+	N string
+
+	// Actual data
+	//
+	D []byte
+}
+
+type binaryValue struct {
+	baseValue
+	data []byte
+}
+
 // GoFunction is a native go function that takes an array of input values
 // and returns an output value
 //
@@ -260,6 +288,21 @@ type FreezableValue interface {
 	Frozen() bool
 }
 
+// SerializableValue represents a value that can be serialized to
+// a binary representation
+//
+type SerializableValue interface {
+	ToBinary() BinaryValue
+}
+
+// BinaryValue represents a value that can be deserialized to
+// a regular value
+//
+type BinaryValue interface {
+	ToRegular() Value
+	AsBytes() []byte
+}
+
 // ErrorValue represents an Error
 //
 type ErrorValue interface {
@@ -325,6 +368,71 @@ func (nothing *nothing) Internal() interface{} {
 	return nil
 }
 
+func (binaryValue *binaryValue) String() string {
+	return fmt.Sprintf("binary:%v", binaryValue.data)
+}
+
+func (binaryValue *binaryValue) Type() Type {
+	return TypeBinary
+}
+
+func (binaryValue *binaryValue) Internal() interface{} {
+	return binaryValue.data
+}
+
+func (binaryValue *binaryValue) AsBytes() []byte {
+	return binaryValue.data
+}
+
+func (binaryValue *binaryValue) ToRegular() Value {
+
+	buf := bytes.NewBuffer(binaryValue.data)
+	decoder := gob.NewDecoder(buf)
+	var bdata BinaryData
+	if err := decoder.Decode(&bdata); err != nil {
+		return NewErrorValue(err.Error())
+	}
+
+	dataBuffer := bytes.NewBuffer(bdata.D)
+	decoder = gob.NewDecoder(dataBuffer)
+
+	switch bdata.I {
+	case typeInfoIdentifier.ID():
+		actualData := []string{}
+		if err := decoder.Decode(&actualData); err != nil {
+			return NewErrorValue(err.Error())
+		}
+		return NewNameSpacedIdentifier(actualData)
+	case typeInfoString.ID():
+		actualData := ""
+		if err := decoder.Decode(&actualData); err != nil {
+			return NewErrorValue(err.Error())
+		}
+		return NewStringLiteral(actualData)
+	case typeInfoInteger.ID():
+		actualData := int64(0)
+		if err := decoder.Decode(&actualData); err != nil {
+			return NewErrorValue(err.Error())
+		}
+		return NewIntegerLiteral(actualData)
+	case typeInfoFloat.ID():
+		actualData := float64(0)
+		if err := decoder.Decode(&actualData); err != nil {
+			return NewErrorValue(err.Error())
+		}
+		return NewFloatLiteral(actualData)
+	case typeInfoBoolean.ID():
+		actualData := true
+		if err := decoder.Decode(&actualData); err != nil {
+			return NewErrorValue(err.Error())
+		}
+		return NewBooleanLiteral(actualData)
+	default:
+		return NewErrorValue("binaryValue.AsRegular: operation unsupported yet")
+	}
+
+}
+
 func (identifier *identifier) String() string {
 	if len(identifier.value) == 1 {
 		return identifier.value[0]
@@ -375,6 +483,10 @@ func (identifier *identifier) LookUp(context RunContext) (DictionaryValue, Value
 		}
 	}
 	return dict, lookup, true
+}
+
+func (identifier *identifier) ToBinary() BinaryValue {
+	return NewBinaryValueFromInternal(typeInfoIdentifier.ID(), "", identifier.value)
 }
 
 func (stringLiteral *stringLiteral) String() string {
@@ -451,6 +563,10 @@ func (stringLiteral *stringLiteral) Run(context RunContext, arguments []Argument
 	}
 
 	return NewErrorValue("too many arguments for string access")
+}
+
+func (stringLiteral *stringLiteral) ToBinary() BinaryValue {
+	return NewBinaryValueFromInternal(typeInfoString.ID(), "", stringLiteral.value)
 }
 
 func (integerLiteral *integerLiteral) String() string {
@@ -544,8 +660,12 @@ func (integerLiteral *integerLiteral) Compare(value Value) (int, ErrorValue) {
 	return 0, NewErrorValue("can not compare integer with non integer")
 }
 
+func (integerLiteral *integerLiteral) ToBinary() BinaryValue {
+	return NewBinaryValueFromInternal(typeInfoInteger.ID(), "", integerLiteral.value)
+}
+
 func (floatLiteral *floatLiteral) String() string {
-	return fmt.Sprintf("%f", floatLiteral.value)
+	return strings.TrimRight(fmt.Sprintf("%f", floatLiteral.value), "0")
 }
 
 func (floatLiteral *floatLiteral) Type() Type {
@@ -646,6 +766,10 @@ func (floatLiteral *floatLiteral) Compare(value Value) (int, ErrorValue) {
 	return 0, NewErrorValue("can not compare float with non float")
 }
 
+func (floatLiteral *floatLiteral) ToBinary() BinaryValue {
+	return NewBinaryValueFromInternal(typeInfoFloat.ID(), "", floatLiteral.value)
+}
+
 func (booleanLiteral *booleanLiteral) String() string {
 	return fmt.Sprintf("%v", booleanLiteral.value)
 }
@@ -656,6 +780,10 @@ func (booleanLiteral *booleanLiteral) Type() Type {
 
 func (booleanLiteral *booleanLiteral) Internal() interface{} {
 	return booleanLiteral.value
+}
+
+func (booleanLiteral *booleanLiteral) ToBinary() BinaryValue {
+	return NewBinaryValueFromInternal(typeInfoBoolean.ID(), "", booleanLiteral.value)
 }
 
 func (listValue *listValue) String() string {
@@ -1060,10 +1188,32 @@ func NewInternalValue(info TypeInfo, value interface{}) Value {
 	return &internalValue{baseValue: baseValue{info: info}, value: value}
 }
 
+// NewBinaryValueFromInternal constructs a binary value from regular data
+// id: TypeId (only for core types)
+// typeName: Name of non core typeName
+//
+func NewBinaryValueFromInternal(id int64, typeName string, value interface{}) BinaryValue {
+	var namesBuffer bytes.Buffer
+	gob.NewEncoder(&namesBuffer).Encode(value)
+
+	data := &BinaryData{id, typeName, namesBuffer.Bytes()}
+
+	var structBuffer bytes.Buffer
+	gob.NewEncoder(&structBuffer).Encode(data)
+
+	return NewBinaryValue(structBuffer.Bytes()).(BinaryValue)
+}
+
 // NewErrorValue creates a new Error
 //
 func NewErrorValue(msg string) ErrorValue {
 	return &errorValue{baseValue: baseValue{info: typeInfoError}, msg: msg}
+}
+
+// NewBinaryValue creates a new Binary
+//
+func NewBinaryValue(data []byte) Value {
+	return &binaryValue{baseValue: baseValue{info: typeInfoBinary}, data: data}
 }
 
 // NewGoFunction creates a new go function

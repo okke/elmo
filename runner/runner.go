@@ -9,6 +9,7 @@ import (
 
 	"github.com/okke/elmo/core"
 	"github.com/okke/elmo/modules/actor"
+	bin "github.com/okke/elmo/modules/binary"
 	"github.com/okke/elmo/modules/dictionary"
 	"github.com/okke/elmo/modules/list"
 	"github.com/okke/elmo/modules/str"
@@ -42,6 +43,7 @@ func NewMainContext() elmo.RunContext {
 	context.RegisterModule(dict.Module)
 	context.RegisterModule(actor.Module)
 	context.RegisterModule(sys.Module)
+	context.RegisterModule(bin.Module)
 
 	return context
 }

@@ -262,3 +262,39 @@ func TestGoFunctionCanAlterContext(t *testing.T) {
 	}
 
 }
+
+func TestIdentifierToBinary(t *testing.T) {
+
+	if value := NewIdentifier("chipotle").(SerializableValue).ToBinary().ToRegular(); value.String() != "chipotle" {
+		t.Errorf("expected chipotle, not \"%s\"", value.String())
+	}
+
+	if value := NewIdentifier("peppers.chipotle").(SerializableValue).ToBinary().ToRegular(); value.String() != "peppers.chipotle" {
+		t.Errorf("expected chipotle, not \"%s\"", value.String())
+	}
+
+}
+
+func TestStringToBinary(t *testing.T) {
+	if value := NewStringLiteral("chipotle").(SerializableValue).ToBinary().ToRegular(); value.String() != "chipotle" {
+		t.Errorf("expected chipotle, not \"%s\"", value.String())
+	}
+}
+
+func TestIntToBinary(t *testing.T) {
+	if value := NewIntegerLiteral(42).(SerializableValue).ToBinary().ToRegular(); value.String() != "42" {
+		t.Errorf("expected 42, not \"%s\"", value.String())
+	}
+}
+
+func TestFloatToBinary(t *testing.T) {
+	if value := NewFloatLiteral(42.99).(SerializableValue).ToBinary().ToRegular(); value.String() != "42.99" {
+		t.Errorf("expected 42.99, not \"%s\"", value.String())
+	}
+}
+
+func TestBooleanToBinary(t *testing.T) {
+	if value := True.(SerializableValue).ToBinary().ToRegular(); value.String() != "true" {
+		t.Errorf("expected true, not \"%s\"", value.String())
+	}
+}

@@ -3,13 +3,13 @@
 
 ![elmologo](/doc/images/logo.jpg)
 
-Note, Elmo is 'brand new', far from complete and still under heavy development. But feel free to experiment with it. Or even help developing it.
+Note, Elmo is 'brand new', far from complete and still under heavy development (on master branch). But feel free to experiment with it. Or even help developing it.
 
 ## Documentation
 
 [introduction](/doc/introduction.md)
 
-[manual](/doc/manual.md)
+[far from complete manual](/doc/manual.md)
 
 ## Quick start
 
@@ -45,10 +45,11 @@ dict: (load dict)
 str:  (load string)
 sys:  (load sys)
 act:  (load actor)
+bin:  (load bin)
 help
 ```
 
-do not want to run the REPL but execute an elmo source file:
+do not want to run the REPL but just want to execute an elmo source file:
 
 ```bash
 elmo example.mo
