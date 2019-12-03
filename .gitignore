@@ -1,3 +1,4 @@
 vendor/
 build/
+core/elmo.peg.go
 
