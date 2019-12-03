@@ -1,3 +1,4 @@
+//go:generate go run github.com/pointlander/peg elmo.peg
 package elmo
 
 import "fmt"
