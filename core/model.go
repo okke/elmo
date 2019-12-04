@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"math"
 	"strings"
+	"sync"
+	"github.com/google/uuid"
 )
 
 // Runnable is a type that can be interpreted
@@ -102,7 +104,10 @@ func NewTypeInfo(name string) TypeInfo {
 
 type baseValue struct {
 	info TypeInfo
+	id uuid.UUID
+	mutex sync.Mutex
 }
+
 
 type nothing struct {
 	baseValue
@@ -228,6 +233,7 @@ type Value interface {
 	Internal() interface{}
 	Info() TypeInfo
 	IsType(TypeInfo) bool
+	UUID() uuid.UUID
 }
 
 // IdentifierValue represents a value that can be lookedup
@@ -354,6 +360,17 @@ func (baseValue *baseValue) Internal() interface{} {
 
 func (baseValue *baseValue) String() string {
 	return "baseValue[?]"
+}
+
+func (baseValue *baseValue) UUID() uuid.UUID {
+	baseValue.mutex.Lock()
+	defer baseValue.mutex.Unlock()
+
+	if baseValue.id[0] == 0 {
+		baseValue.id =  uuid.New()
+	}
+
+	return baseValue.id
 }
 
 func (nothing *nothing) String() string {

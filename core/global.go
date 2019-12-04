@@ -8,6 +8,7 @@ import (
 	"sort"
 	"strings"
 	"time"
+	"github.com/google/uuid"
 )
 
 // NoArguments is an array of arguments with no arguments
@@ -67,6 +68,7 @@ func NewGlobalContext() RunContext {
 	context.SetNamed(help())
 	context.SetNamed(freeze())
 	context.SetNamed(frozen())
+	context.SetNamed(_uuid())
 
 	return context
 }
@@ -1610,5 +1612,24 @@ func frozen() NamedValue {
 			// by default, all non freezable values are frozen
 			//
 			return True
+		})
+}
+
+func _uuid() NamedValue {
+	return NewGoFunction(`uuid/Returns a unique id for given value or a new id when no value is given
+		Usage: uuid <value>?
+		Returns: uuid`,
+
+		func(context RunContext, arguments []Argument) Value {
+			argLen, err := CheckArguments(arguments, 0, 1, "uuid", "<value>?")
+			if err != nil {
+				return err
+			}
+
+			if argLen ==  1 {
+				return NewStringLiteral(EvalArgument(context, arguments[0]).UUID().String())	
+			}
+
+			return NewStringLiteral(uuid.New().String())
 		})
 }

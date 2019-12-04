@@ -946,3 +946,15 @@ func TestFreeze(t *testing.T) {
 		 frozen $pepper`, ExpectValue(t, True))
 
 }
+
+func TestUUID(t *testing.T) {
+
+	ParseTestAndRunBlock(t,
+		`pepper: {}
+		 i: (uuid $pepper)
+		 same: $pepper 
+		 eq $i (uuid $same)`, ExpectValue(t, True))
+
+	ParseTestAndRunBlock(t,
+		`ne (uuid) (uuid)`, ExpectValue(t, True))
+}
