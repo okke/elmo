@@ -5,10 +5,10 @@ import (
 	"encoding/gob"
 	"errors"
 	"fmt"
+	"github.com/google/uuid"
 	"math"
 	"strings"
 	"sync"
-	"github.com/google/uuid"
 )
 
 // Runnable is a type that can be interpreted
@@ -103,11 +103,10 @@ func NewTypeInfo(name string) TypeInfo {
 }
 
 type baseValue struct {
-	info TypeInfo
-	id uuid.UUID
+	info  TypeInfo
+	id    uuid.UUID
 	mutex sync.Mutex
 }
-
 
 type nothing struct {
 	baseValue
@@ -367,7 +366,7 @@ func (baseValue *baseValue) UUID() uuid.UUID {
 	defer baseValue.mutex.Unlock()
 
 	if baseValue.id[0] == 0 {
-		baseValue.id =  uuid.New()
+		baseValue.id = uuid.New()
 	}
 
 	return baseValue.id
@@ -903,6 +902,10 @@ func (listValue *listValue) Frozen() bool {
 	return listValue.frozen
 }
 
+func (listValue *listValue) ToBinary() BinaryValue {
+	return NewBinaryValueFromInternal(typeInfoList.ID(), "", Serialize(listValue))
+}
+
 func (returnValue *returnValue) String() string {
 	return fmt.Sprintf("<%v>", returnValue.values)
 }
@@ -1011,6 +1014,10 @@ func (dictValue *dictValue) Run(context RunContext, arguments []Argument) Value 
 	key := EvalArgument(context, arguments[0])
 	result, _ := dictValue.Resolve(key.String())
 	return result
+}
+
+func (dictValue *dictValue) ToBinary() BinaryValue {
+	return NewBinaryValueFromInternal(typeInfoDictionary.ID(), "", Serialize(dictValue))
 }
 
 func (errorValue *errorValue) String() string {
