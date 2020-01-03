@@ -3,12 +3,12 @@ package elmo
 import (
 	"bytes"
 	"fmt"
+	"github.com/google/uuid"
 	"math"
 	"reflect"
 	"sort"
 	"strings"
 	"time"
-	"github.com/google/uuid"
 )
 
 // NoArguments is an array of arguments with no arguments
@@ -966,6 +966,20 @@ func eval() NamedValue {
 		})
 }
 
+func compareValues(v1 Value, v2 Value, f func(int) Value) Value {
+	c1, comparable := v1.(ComparableValue)
+	if !comparable {
+		return NewErrorValue(fmt.Sprintf("invalid comparison, expected comparable values instead of %v and %v", v1, v2))
+	}
+
+	result, err := c1.Compare(v2)
+	if err != nil {
+		return err
+	}
+	return f(result)
+
+}
+
 func eq() NamedValue {
 	return NewGoFunction(`eq/Checks if two arguments are the same
 		Usage: eq <value> <value>
@@ -989,6 +1003,22 @@ func eq() NamedValue {
 				return err
 			}
 
+			v1 := EvalArgument(context, arguments[0])
+			v2 := EvalArgument(context, arguments[1])
+
+			// first try to compare the two values
+			//
+			if result := compareValues(v1, v2, func(result int) Value {
+				if result == 0 {
+					return True
+				}
+				return False
+			}); result.Type() != TypeError {
+				return result
+			}
+
+			// if that did not work, simple do a deep equal
+			//
 			if reflect.DeepEqual(EvalArgument(context, arguments[0]), EvalArgument(context, arguments[1])) {
 				return True
 			}
@@ -1018,6 +1048,21 @@ func ne() NamedValue {
 		if err != nil {
 			return err
 		}
+
+		v1 := EvalArgument(context, arguments[0])
+		v2 := EvalArgument(context, arguments[1])
+
+		// first try to compare the two values
+		//
+		if result := compareValues(v1, v2, func(result int) Value {
+			if result == 0 {
+				return False
+			}
+			return True
+		}); result.Type() != TypeError {
+			return result
+		}
+
 		if reflect.DeepEqual(EvalArgument(context, arguments[0]), EvalArgument(context, arguments[1])) {
 			return False
 		}
@@ -1025,17 +1070,6 @@ func ne() NamedValue {
 		return True
 
 	})
-}
-
-func compareValues(v1 Value, v2 Value, f func(int) Value) Value {
-	if v1.Type() == TypeInteger || v1.Type() == TypeFloat {
-		result, err := v1.(ComparableValue).Compare(v2)
-		if err != nil {
-			return err
-		}
-		return f(result)
-	}
-	return NewErrorValue(fmt.Sprintf("invalid comparison, expected number values instead of %v and %v", v1, v2))
 }
 
 func gt() NamedValue {
@@ -1626,8 +1660,8 @@ func _uuid() NamedValue {
 				return err
 			}
 
-			if argLen ==  1 {
-				return NewStringLiteral(EvalArgument(context, arguments[0]).UUID().String())	
+			if argLen == 1 {
+				return NewStringLiteral(EvalArgument(context, arguments[0]).UUID().String())
 			}
 
 			return NewStringLiteral(uuid.New().String())

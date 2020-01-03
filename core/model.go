@@ -891,6 +891,40 @@ func (listValue *listValue) Run(context RunContext, arguments []Argument) Value 
 	return NewErrorValue("too many arguments for list access")
 }
 
+func (listValue *listValue) Compare(value Value) (int, ErrorValue) {
+	if value.Type() != TypeList {
+		return 0, NewErrorValue("can not compare list with non list")
+	}
+
+	v1 := listValue.values
+	v2 := value.Internal().([]Value)
+
+	for i := range v1 {
+
+		if i >= len(v2) {
+			return 1, nil
+		}
+
+		c1, comparable := v1[i].(ComparableValue)
+		if !comparable {
+			return 0, NewErrorValue("list contains uncomparable type")
+		}
+		result, err := c1.Compare(v2[i])
+		if err != nil {
+			return 0, err
+		}
+		if result != 0 {
+			return result, nil
+		}
+
+		if i == len(v1)-1 && len(v2) > len(v1) {
+			return -1, nil
+		}
+	}
+
+	return 0, nil
+}
+
 func (listValue *listValue) Append(value Value) {
 	listValue.values = append(listValue.values, value)
 }
