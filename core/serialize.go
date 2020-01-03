@@ -165,3 +165,92 @@ func (result *SerializationResult) addLiteral(value Value) error {
 
 	return nil
 }
+
+//
+// ---- [Deserialize] ---------------------------------
+//
+
+type deserializationContext struct {
+	mapping     map[uuid.UUID][]byte
+	constructed map[uuid.UUID]Value
+	stack       []Value
+}
+
+// ToValue reconstructs the original values used to create this serialization result
+//
+func (result *SerializationResult) ToValue() Value {
+
+	context := &deserializationContext{
+		constructed: make(map[uuid.UUID]Value, 0),
+		mapping:     result.M,
+		stack:       make([]Value, 0, 0)}
+
+	for _, ev := range result.L {
+		switch ev.T {
+		case SEValue:
+			context.processValue(ev)
+		case SEOpenList:
+			context.processOpenList(ev)
+		case SECloseList:
+			context.processCloseList(ev)
+		case SEListRef:
+			context.processListRef(ev)
+		}
+	}
+
+	return context.top()
+}
+
+func (context *deserializationContext) pop() Value {
+	var v Value
+	v, context.stack = context.stack[len(context.stack)-1], context.stack[:len(context.stack)-1]
+	return v
+}
+
+func (context *deserializationContext) top() Value {
+	return context.stack[len(context.stack)-1]
+}
+
+func (context *deserializationContext) push(value Value) {
+	context.stack = append(context.stack, value)
+}
+
+func (context *deserializationContext) handleValue(value Value) {
+
+	// when nothing is on the stack, simply push
+	if len(context.stack) == 0 {
+		context.push(value)
+		return
+	}
+
+	top := context.top()
+
+	// when there's a list on top of the stack, add value to this list
+	//
+	if top.Type() == TypeList {
+		top.(ListValue).Append(value)
+		return
+	}
+
+	panic("invalid deserialidsation state")
+
+}
+
+func (context *deserializationContext) processValue(ev SerializationEvent) {
+	context.handleValue(NewBinaryValue(context.mapping[ev.V]).(BinaryValue).ToRegular())
+}
+
+func (context *deserializationContext) processOpenList(ev SerializationEvent) {
+	l := NewListValue(make([]Value, 0, 0))
+	l.(*listValue).baseValue.id = ev.V
+	context.constructed[ev.V] = l
+	context.handleValue(l)
+}
+
+func (context *deserializationContext) processCloseList(ev SerializationEvent) {
+	context.handleValue(context.pop())
+}
+
+func (context *deserializationContext) processListRef(ev SerializationEvent) {
+	context.handleValue(context.constructed[ev.V])
+}

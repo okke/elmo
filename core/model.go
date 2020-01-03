@@ -257,6 +257,12 @@ type DictionaryValue interface {
 	Remove(symbol Value) (Value, ErrorValue)
 }
 
+// ListValue represents a value that can be used as a list of values
+//
+type ListValue interface {
+	Append(Value)
+}
+
 // MathValue represents a value that knows how to apply basic arithmetics
 //
 type MathValue interface {
@@ -443,6 +449,12 @@ func (binaryValue *binaryValue) ToRegular() Value {
 			return NewErrorValue(err.Error())
 		}
 		return NewBooleanLiteral(actualData)
+	case typeInfoList.ID():
+		actualData := SerializationResult{}
+		if err := decoder.Decode(&actualData); err != nil {
+			return NewErrorValue(err.Error())
+		}
+		return actualData.ToValue()
 	default:
 		return NewErrorValue("binaryValue.AsRegular: operation unsupported yet")
 	}
@@ -877,6 +889,10 @@ func (listValue *listValue) Run(context RunContext, arguments []Argument) Value 
 	}
 
 	return NewErrorValue("too many arguments for list access")
+}
+
+func (listValue *listValue) Append(value Value) {
+	listValue.values = append(listValue.values, value)
 }
 
 func (listValue *listValue) Mutate(value interface{}) (Value, ErrorValue) {
