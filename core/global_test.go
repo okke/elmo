@@ -686,7 +686,9 @@ func TestEq(t *testing.T) {
 	ParseTestAndRunBlock(t, `eq "1" "1"`, ExpectValue(t, True))
 	ParseTestAndRunBlock(t, `eq "1" [1]`, ExpectValue(t, False))
 	ParseTestAndRunBlock(t, `eq [1] [1]`, ExpectValue(t, True))
+	ParseTestAndRunBlock(t, `eq [1 2] [1 2]`, ExpectValue(t, True))
 	ParseTestAndRunBlock(t, `eq [1] [0]`, ExpectValue(t, False))
+	ParseTestAndRunBlock(t, `eq [1 2] [0 1]`, ExpectValue(t, False))
 	ParseTestAndRunBlock(t, `eq`, ExpectErrorValueAt(t, 1))
 	ParseTestAndRunBlock(t, `eq 1`, ExpectErrorValueAt(t, 1))
 	ParseTestAndRunBlock(t, `eq 1 1 1`, ExpectErrorValueAt(t, 1))
@@ -699,7 +701,11 @@ func TestNe(t *testing.T) {
 	ParseTestAndRunBlock(t, `ne "1" "1"`, ExpectValue(t, False))
 	ParseTestAndRunBlock(t, `ne "1" [1]`, ExpectValue(t, True))
 	ParseTestAndRunBlock(t, `ne [1] [1]`, ExpectValue(t, False))
+	ParseTestAndRunBlock(t, `ne [1 2] [1 2]`, ExpectValue(t, False))
 	ParseTestAndRunBlock(t, `ne [1] [0]`, ExpectValue(t, True))
+	ParseTestAndRunBlock(t, `ne [1 2] [0]`, ExpectValue(t, True))
+	ParseTestAndRunBlock(t, `ne [0] [1 2]`, ExpectValue(t, True))
+	ParseTestAndRunBlock(t, `ne [0 [1]] [0 [2]]`, ExpectValue(t, True))
 	ParseTestAndRunBlock(t, `ne`, ExpectErrorValueAt(t, 1))
 	ParseTestAndRunBlock(t, `ne 1`, ExpectErrorValueAt(t, 1))
 	ParseTestAndRunBlock(t, `ne 1 1 1`, ExpectErrorValueAt(t, 1))
@@ -711,6 +717,9 @@ func TestGt(t *testing.T) {
 	ParseTestAndRunBlock(t, `gt 0 1`, ExpectValue(t, False))
 	ParseTestAndRunBlock(t, `gt -1 0`, ExpectValue(t, False))
 	ParseTestAndRunBlock(t, `gt -1 -2`, ExpectValue(t, True))
+
+	ParseTestAndRunBlock(t, `gt [1] [1]`, ExpectValue(t, False))
+	ParseTestAndRunBlock(t, `gt [1 2] [1]`, ExpectValue(t, True))
 
 	ParseTestAndRunBlock(t, `gt 1.0 1.0`, ExpectValue(t, False))
 	ParseTestAndRunBlock(t, `gt 2.0 1.0`, ExpectValue(t, True))
@@ -744,6 +753,10 @@ func TestLt(t *testing.T) {
 	ParseTestAndRunBlock(t, `lt 0 1`, ExpectValue(t, True))
 	ParseTestAndRunBlock(t, `lt -1 0`, ExpectValue(t, True))
 	ParseTestAndRunBlock(t, `lt -1 -2`, ExpectValue(t, False))
+
+	ParseTestAndRunBlock(t, `lt [1] [1]`, ExpectValue(t, False))
+	ParseTestAndRunBlock(t, `lt [1] [1 2]`, ExpectValue(t, True))
+	ParseTestAndRunBlock(t, `lt [[1 2] [3 4] [5 6]] [[1 2] [3 5]]`, ExpectValue(t, True))
 
 	ParseTestAndRunBlock(t, `lt 1.0 1.0`, ExpectValue(t, False))
 	ParseTestAndRunBlock(t, `lt 2.0 1.0`, ExpectValue(t, False))
