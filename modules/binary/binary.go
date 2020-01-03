@@ -12,7 +12,8 @@ var Module = elmo.NewModule("bin", initModule)
 
 func initModule(context elmo.RunContext) elmo.Value {
 	return elmo.NewMappingForModule(context, []elmo.NamedValue{
-		_new()})
+		_new(),
+		toValue()})
 }
 
 func _new() elmo.NamedValue {
@@ -38,6 +39,30 @@ func _new() elmo.NamedValue {
 			}
 
 			return result
+
+		})
+}
+
+func toValue() elmo.NamedValue {
+	return elmo.NewGoFunction(`toValue/converts a binary value into original representation
+    Usage: toValue <binary>
+    Returns: regular value
+    `,
+		func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+			_, err := elmo.CheckArguments(arguments, 1, 1, "toValue", "<binary>")
+			if err != nil {
+				return err
+			}
+
+			value := elmo.EvalArgument(context, arguments[0])
+
+			if value.Type() != elmo.TypeBinary {
+				return elmo.NewErrorValue(fmt.Sprintf("toValue expects a binary value, not %v", value))
+			}
+
+			binary := value.(elmo.BinaryValue)
+
+			return binary.ToRegular()
 
 		})
 }

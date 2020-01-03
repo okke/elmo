@@ -28,3 +28,27 @@ func TestNewWithoutParent(t *testing.T) {
      type $b`, elmo.ExpectValue(t, elmo.NewIdentifier("binary")))
 
 }
+
+func TestToValue(t *testing.T) {
+
+	elmo.ParseTestAndRunBlockWithinContext(t, binContext(),
+		`bin: (load bin)
+		 assert (bin.new 5 | bin.toValue | eq 5)`, elmo.ExpectValue(t, elmo.True))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, binContext(),
+		`bin: (load bin)
+		 assert (bin.new 3.1415 | bin.toValue | eq 3.1415)`, elmo.ExpectValue(t, elmo.True))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, binContext(),
+		`bin: (load bin)
+		 assert (bin.new $true | bin.toValue | eq $true)`, elmo.ExpectValue(t, elmo.True))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, binContext(),
+		`bin: (load bin)
+		 assert (bin.new "chipotle" | bin.toValue | eq "chipotle")`, elmo.ExpectValue(t, elmo.True))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, binContext(),
+		`bin: (load bin)
+		 assert (bin.new jalapeno | bin.toValue | eq jalapeno)`, elmo.ExpectValue(t, elmo.True))
+
+}
