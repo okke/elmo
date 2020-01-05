@@ -174,6 +174,7 @@ type deserializationContext struct {
 	mapping     map[uuid.UUID][]byte
 	constructed map[uuid.UUID]Value
 	stack       []Value
+	keyStack    []string
 }
 
 // ToValue reconstructs the original values used to create this serialization result
@@ -183,7 +184,8 @@ func (result *SerializationResult) ToValue() Value {
 	context := &deserializationContext{
 		constructed: make(map[uuid.UUID]Value, 0),
 		mapping:     result.M,
-		stack:       make([]Value, 0, 0)}
+		stack:       make([]Value, 0, 0),
+		keyStack:    make([]string, 0, 0)}
 
 	for _, ev := range result.L {
 		switch ev.T {
@@ -192,9 +194,19 @@ func (result *SerializationResult) ToValue() Value {
 		case SEOpenList:
 			context.processOpenList(ev)
 		case SECloseList:
-			context.processCloseList(ev)
+			context.processClose(ev)
 		case SEListRef:
-			context.processListRef(ev)
+			context.processRef(ev)
+		case SEOpenDict:
+			context.processOpenDict(ev)
+		case SECloseDict:
+			context.processClose(ev)
+		case SEDictRef:
+			context.processRef(ev)
+		case SEDictKey:
+			context.processDictKey(ev)
+		default:
+			panic("insupported serialization event")
 		}
 	}
 
@@ -207,12 +219,22 @@ func (context *deserializationContext) pop() Value {
 	return v
 }
 
+func (context *deserializationContext) popKey() string {
+	var s string
+	s, context.keyStack = context.keyStack[len(context.keyStack)-1], context.keyStack[:len(context.keyStack)-1]
+	return s
+}
+
 func (context *deserializationContext) top() Value {
 	return context.stack[len(context.stack)-1]
 }
 
 func (context *deserializationContext) push(value Value) {
 	context.stack = append(context.stack, value)
+}
+
+func (context *deserializationContext) pushKey(key string) {
+	context.keyStack = append(context.keyStack, key)
 }
 
 func (context *deserializationContext) handleValue(value Value) {
@@ -232,7 +254,15 @@ func (context *deserializationContext) handleValue(value Value) {
 		return
 	}
 
-	panic("invalid deserialidsation state")
+	// when there's a dictionarty on top of the stack, create a key value pair
+	//
+	if top.Type() == TypeDictionary {
+		key := context.popKey()
+		top.(DictionaryValue).Set(NewIdentifier(key), value)
+		return
+	}
+
+	panic("invalid deserialisation state")
 
 }
 
@@ -245,12 +275,33 @@ func (context *deserializationContext) processOpenList(ev SerializationEvent) {
 	l.(*listValue).baseValue.id = ev.V
 	context.constructed[ev.V] = l
 	context.handleValue(l)
+
+	if context.top() != l {
+		context.push(l)
+	}
 }
 
-func (context *deserializationContext) processCloseList(ev SerializationEvent) {
-	context.handleValue(context.pop())
+func (context *deserializationContext) processClose(ev SerializationEvent) {
+	if len(context.stack) > 1 {
+		context.pop()
+	}
 }
 
-func (context *deserializationContext) processListRef(ev SerializationEvent) {
+func (context *deserializationContext) processRef(ev SerializationEvent) {
 	context.handleValue(context.constructed[ev.V])
+}
+
+func (context *deserializationContext) processOpenDict(ev SerializationEvent) {
+	dict := NewDictionaryValue(nil, make(map[string]Value))
+	dict.(*dictValue).baseValue.id = ev.V
+	context.constructed[ev.V] = dict
+	context.handleValue(dict)
+
+	if context.top() != dict {
+		context.push(dict)
+	}
+}
+
+func (context *deserializationContext) processDictKey(ev SerializationEvent) {
+	context.pushKey(ev.K)
 }
