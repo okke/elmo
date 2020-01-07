@@ -692,6 +692,14 @@ func TestEq(t *testing.T) {
 	ParseTestAndRunBlock(t, `eq`, ExpectErrorValueAt(t, 1))
 	ParseTestAndRunBlock(t, `eq 1`, ExpectErrorValueAt(t, 1))
 	ParseTestAndRunBlock(t, `eq 1 1 1`, ExpectErrorValueAt(t, 1))
+	ParseTestAndRunBlock(t, `eval {m1: {}; m2: {}; eq $m1 $m2}`, ExpectValue(t, True))
+	ParseTestAndRunBlock(t, `eval {m1: {a:1}; m2: {a:1}; eq $m1 $m2}`, ExpectValue(t, True))
+	ParseTestAndRunBlock(t, `eval {m1: {a:1}; m2: {a:2}; eq $m1 $m2}`, ExpectValue(t, False))
+	ParseTestAndRunBlock(t, `eval {m1: {a:1}; m2: {b:1}; eq $m1 $m2}`, ExpectValue(t, False))
+	ParseTestAndRunBlock(t, `eval {m1: {a:1}; m2: {}; eq $m1 $m2}`, ExpectValue(t, False))
+	ParseTestAndRunBlock(t, `eval {m1: {p:{x:1;y:1}}; m2: {p:{x:1;y:1}}; eq $m1 $m2}`, ExpectValue(t, True))
+	ParseTestAndRunBlock(t, `eval {m1: {p:{x:1;y:2}}; m2: {p:{x:1;y:1}}; eq $m1 $m2}`, ExpectValue(t, False))
+	ParseTestAndRunBlock(t, `eval {m1: {p:{x:1;z:1}}; m2: {p:{x:1;y:1}}; eq $m1 $m2}`, ExpectValue(t, False))
 }
 
 func TestNe(t *testing.T) {

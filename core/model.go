@@ -5,10 +5,11 @@ import (
 	"encoding/gob"
 	"errors"
 	"fmt"
-	"github.com/google/uuid"
 	"math"
 	"strings"
 	"sync"
+
+	"github.com/google/uuid"
 )
 
 // Runnable is a type that can be interpreted
@@ -1043,6 +1044,49 @@ func (dictValue *dictValue) Remove(symbol Value) (Value, ErrorValue) {
 	delete(dictValue.values, symbol.String())
 
 	return dictValue, nil
+}
+
+func (dictValue *dictValue) Compare(value Value) (int, ErrorValue) {
+	if value.Type() != TypeDictionary {
+		return 0, NewErrorValue("can not compare dictionary with non dictionary")
+	}
+
+	// TODO, check if there is a 'compare' function in the dictionary
+	//
+
+	keys1 := dictValue.Keys()
+	keys2 := value.(DictionaryValue).Keys()
+
+	if len(keys1) == len(keys2) {
+		for _, key := range keys1 {
+			kval2, found2 := value.(DictionaryValue).Resolve(key)
+			if !found2 {
+				return -1, NewErrorValue("can not compare asymetric dictionaries")
+			}
+			kval1, _ := dictValue.Resolve(key)
+
+			comparable, isComparable := kval1.(ComparableValue)
+			if !isComparable {
+				return -1, NewErrorValue("dictionary contains uncomparable values")
+			}
+
+			compared, err := comparable.Compare(kval2)
+			if err != nil {
+				return -1, err
+			}
+			if compared != 0 {
+				return compared, nil
+			}
+		}
+
+		// everything equal
+		return 0, nil
+	}
+
+	if len(keys1) < len(keys2) {
+		return -1, nil
+	}
+	return 1, nil
 }
 
 func (dictValue *dictValue) Freeze() Value {
