@@ -277,7 +277,7 @@ type MathValue interface {
 // ComparableValue represents a value that can be compared
 //
 type ComparableValue interface {
-	Compare(Value) (int, ErrorValue)
+	Compare(RunContext, Value) (int, ErrorValue)
 }
 
 // HelpValue represents a value with help
@@ -673,7 +673,7 @@ func (integerLiteral *integerLiteral) Modulo(value Value) Value {
 	return NewErrorValue("can not divide integer by non integer to calculate a modulo")
 }
 
-func (integerLiteral *integerLiteral) Compare(value Value) (int, ErrorValue) {
+func (integerLiteral *integerLiteral) Compare(context RunContext, value Value) (int, ErrorValue) {
 	if value.Type() == TypeInteger {
 		v1 := integerLiteral.value
 		v2 := value.Internal().(int64)
@@ -779,7 +779,7 @@ func (floatLiteral *floatLiteral) Modulo(value Value) Value {
 	return NewErrorValue("can not divide float by non number to calculate a modulo")
 }
 
-func (floatLiteral *floatLiteral) Compare(value Value) (int, ErrorValue) {
+func (floatLiteral *floatLiteral) Compare(context RunContext, value Value) (int, ErrorValue) {
 	if value.Type() == TypeFloat {
 		v1 := floatLiteral.value
 		v2 := value.Internal().(float64)
@@ -892,7 +892,7 @@ func (listValue *listValue) Run(context RunContext, arguments []Argument) Value 
 	return NewErrorValue("too many arguments for list access")
 }
 
-func (listValue *listValue) Compare(value Value) (int, ErrorValue) {
+func (listValue *listValue) Compare(context RunContext, value Value) (int, ErrorValue) {
 	if value.Type() != TypeList {
 		return 0, NewErrorValue("can not compare list with non list")
 	}
@@ -910,7 +910,7 @@ func (listValue *listValue) Compare(value Value) (int, ErrorValue) {
 		if !comparable {
 			return 0, NewErrorValue("list contains uncomparable type")
 		}
-		result, err := c1.Compare(v2[i])
+		result, err := c1.Compare(context, v2[i])
 		if err != nil {
 			return 0, err
 		}
@@ -1046,7 +1046,7 @@ func (dictValue *dictValue) Remove(symbol Value) (Value, ErrorValue) {
 	return dictValue, nil
 }
 
-func (dictValue *dictValue) Compare(value Value) (int, ErrorValue) {
+func (dictValue *dictValue) Compare(context RunContext, value Value) (int, ErrorValue) {
 	if value.Type() != TypeDictionary {
 		return 0, NewErrorValue("can not compare dictionary with non dictionary")
 	}
@@ -1070,7 +1070,7 @@ func (dictValue *dictValue) Compare(value Value) (int, ErrorValue) {
 				return -1, NewErrorValue("dictionary contains uncomparable values")
 			}
 
-			compared, err := comparable.Compare(kval2)
+			compared, err := comparable.Compare(context, kval2)
 			if err != nil {
 				return -1, err
 			}

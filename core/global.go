@@ -966,13 +966,13 @@ func eval() NamedValue {
 		})
 }
 
-func compareValues(v1 Value, v2 Value, f func(int) Value) Value {
+func compareValues(context RunContext, v1 Value, v2 Value, f func(int) Value) Value {
 	c1, comparable := v1.(ComparableValue)
 	if !comparable {
 		return NewErrorValue(fmt.Sprintf("invalid comparison, expected comparable values instead of %v and %v", v1, v2))
 	}
 
-	result, err := c1.Compare(v2)
+	result, err := c1.Compare(context, v2)
 	if err != nil {
 		return err
 	}
@@ -1008,7 +1008,7 @@ func eq() NamedValue {
 
 			// first try to compare the two values
 			//
-			if result := compareValues(v1, v2, func(result int) Value {
+			if result := compareValues(context, v1, v2, func(result int) Value {
 				if result == 0 {
 					return True
 				}
@@ -1054,7 +1054,7 @@ func ne() NamedValue {
 
 		// first try to compare the two values
 		//
-		if result := compareValues(v1, v2, func(result int) Value {
+		if result := compareValues(context, v1, v2, func(result int) Value {
 			if result == 0 {
 				return False
 			}
@@ -1094,7 +1094,7 @@ func gt() NamedValue {
 			v1 := EvalArgument(context, arguments[0])
 			v2 := EvalArgument(context, arguments[1])
 
-			return compareValues(v1, v2, func(result int) Value {
+			return compareValues(context, v1, v2, func(result int) Value {
 				if result == 1 {
 					return True
 				}
@@ -1124,7 +1124,7 @@ func gte() NamedValue {
 		v1 := EvalArgument(context, arguments[0])
 		v2 := EvalArgument(context, arguments[1])
 
-		return compareValues(v1, v2, func(result int) Value {
+		return compareValues(context, v1, v2, func(result int) Value {
 			if result == -1 {
 				return False
 			}
@@ -1154,7 +1154,7 @@ func lt() NamedValue {
 		v1 := EvalArgument(context, arguments[0])
 		v2 := EvalArgument(context, arguments[1])
 
-		return compareValues(v1, v2, func(result int) Value {
+		return compareValues(context, v1, v2, func(result int) Value {
 			if result == -1 {
 				return True
 			}
@@ -1184,7 +1184,7 @@ func lte() NamedValue {
 		v1 := EvalArgument(context, arguments[0])
 		v2 := EvalArgument(context, arguments[1])
 
-		return compareValues(v1, v2, func(result int) Value {
+		return compareValues(context, v1, v2, func(result int) Value {
 			if result == 1 {
 				return False
 			}
