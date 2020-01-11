@@ -737,7 +737,7 @@ func TestGt(t *testing.T) {
 
 	ParseTestAndRunBlock(t, `gt 1 1.0`, ExpectErrorValueAt(t, 1))
 	ParseTestAndRunBlock(t, `gt 1.0 1`, ExpectErrorValueAt(t, 1))
-	ParseTestAndRunBlock(t, `gt "chipotle" "galapeno"`, ExpectErrorValueAt(t, 1))
+	ParseTestAndRunBlock(t, `gt "chipotle" "galapeno"`, ExpectValue(t, False))
 
 	ParseTestAndRunBlock(t, `b: { _compare: (func v { return 1 }) }; s: { _compare: (func v { return -1 }) }; (gt $b $s)`, ExpectValue(t, True))
 
@@ -995,4 +995,10 @@ func TestUUID(t *testing.T) {
 
 	ParseTestAndRunBlock(t,
 		`ne (uuid) (uuid)`, ExpectValue(t, True))
+}
+
+func TestFile(t *testing.T) {
+
+	ParseTestAndRunBlock(t,
+		`f: (file "global_test.go"); f.name`, ExpectValue(t, NewStringLiteral("global_test.go")))
 }
