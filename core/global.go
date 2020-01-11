@@ -54,6 +54,7 @@ func NewGlobalContext() RunContext {
 	context.SetNamed(gte())
 	context.SetNamed(lt())
 	context.SetNamed(lte())
+	context.SetNamed(compare())
 	context.SetNamed(and())
 	context.SetNamed(or())
 	context.SetNamed(not())
@@ -1189,6 +1190,33 @@ func lte() NamedValue {
 				return False
 			}
 			return True
+		})
+
+	})
+}
+
+func compare() NamedValue {
+	return NewGoFunction(`compare/Compares two values 
+		Usage: comnpare <value> <value>
+		Returns: true -1 (first value is less then second), 0 (values are equal) or 1 (first value is greater than second value)
+
+		Examples:
+
+		> compare 2 1
+		will result in 1
+		> compare [1 2 3] [1 2 3 4]
+		will result in -1`, func(context RunContext, arguments []Argument) Value {
+
+		_, err := CheckArguments(arguments, 2, 2, "lte", "<value> <value>")
+		if err != nil {
+			return err
+		}
+
+		v1 := EvalArgument(context, arguments[0])
+		v2 := EvalArgument(context, arguments[1])
+
+		return compareValues(context, v1, v2, func(result int) Value {
+			return NewIntegerLiteral(int64(result))
 		})
 
 	})

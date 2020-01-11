@@ -519,7 +519,7 @@ func (identifier *identifier) ToBinary() BinaryValue {
 }
 
 func (stringLiteral *stringLiteral) String() string {
-	return fmt.Sprintf("%s", stringLiteral.value)
+	return stringLiteral.value
 }
 
 func (stringLiteral *stringLiteral) Type() Type {
@@ -596,6 +596,10 @@ func (stringLiteral *stringLiteral) Run(context RunContext, arguments []Argument
 
 func (stringLiteral *stringLiteral) ToBinary() BinaryValue {
 	return NewBinaryValueFromInternal(typeInfoString.ID(), "", stringLiteral.value)
+}
+
+func (stringLiteral *stringLiteral) Compare(context RunContext, value Value) (int, ErrorValue) {
+	return strings.Compare(stringLiteral.String(), value.String()), nil
 }
 
 func (integerLiteral *integerLiteral) String() string {
@@ -813,6 +817,23 @@ func (booleanLiteral *booleanLiteral) Internal() interface{} {
 
 func (booleanLiteral *booleanLiteral) ToBinary() BinaryValue {
 	return NewBinaryValueFromInternal(typeInfoBoolean.ID(), "", booleanLiteral.value)
+}
+
+func (booleanLiteral *booleanLiteral) Compare(context RunContext, value Value) (int, ErrorValue) {
+	if value.Type() != TypeBoolean {
+		return -1, NewErrorValue("can not compare boolean with non boolean")
+	}
+	with := value.Internal().(bool)
+	if booleanLiteral.value {
+		if with {
+			return 0, nil
+		}
+		return 1, nil
+	}
+	if !with {
+		return 0, nil
+	}
+	return -1, nil
 }
 
 func (listValue *listValue) String() string {

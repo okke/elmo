@@ -791,6 +791,19 @@ func TestLte(t *testing.T) {
 	ParseTestAndRunBlock(t, `lte -1.0 -2.0`, ExpectValue(t, False))
 }
 
+func TestCompare(t *testing.T) {
+	ParseTestAndRunBlock(t, `compare 1 1`, ExpectValue(t, NewIntegerLiteral(0)))
+	ParseTestAndRunBlock(t, `compare "chipotle" "jalapeno"`, ExpectValue(t, NewIntegerLiteral(-1)))
+	ParseTestAndRunBlock(t, `compare "chipotle" 0`, ExpectValue(t, NewIntegerLiteral(1)))
+	ParseTestAndRunBlock(t, `compare [1 2 3] [1 2]`, ExpectValue(t, NewIntegerLiteral(1)))
+	ParseTestAndRunBlock(t, `compare $false $true`, ExpectValue(t, NewIntegerLiteral(-1)))
+	ParseTestAndRunBlock(t, `compare $false $false`, ExpectValue(t, NewIntegerLiteral(0)))
+	ParseTestAndRunBlock(t, `compare $true $false`, ExpectValue(t, NewIntegerLiteral(1)))
+	ParseTestAndRunBlock(t, `compare $true $true`, ExpectValue(t, NewIntegerLiteral(0)))
+	ParseTestAndRunBlock(t, `compare $true "chipotle"`, ExpectErrorValueAt(t, 1))
+	ParseTestAndRunBlock(t, `e: { _compare: (func v { return 0 }) }; d: {}; compare $e $d`, ExpectValue(t, NewIntegerLiteral(0)))
+}
+
 func TestAnd(t *testing.T) {
 	ParseTestAndRunBlock(t, `and (true) (true)`, ExpectValue(t, True))
 	ParseTestAndRunBlock(t, `and (true) (true) (true)`, ExpectValue(t, True))
