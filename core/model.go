@@ -1046,13 +1046,36 @@ func (dictValue *dictValue) Remove(symbol Value) (Value, ErrorValue) {
 	return dictValue, nil
 }
 
+func (dictValue *dictValue) runInternalCompareFunc(context RunContext, compareFunction Runnable, value Value) (int, ErrorValue) {
+	if runnableCompare, compareIsRunnable := compareFunction.(Runnable); compareIsRunnable {
+
+		subContext := context.CreateSubContext()
+		subContext.SetThis(dictValue)
+
+		value := runnableCompare.Run(subContext, []Argument{NewDynamicArgument(value)})
+		if value.Type() == TypeError {
+			return -1, value.(ErrorValue)
+		}
+		if value.Type() == TypeInteger {
+			return int(value.Internal().(int64)), nil
+		}
+		return -1, NewErrorValue("found _compare did not return an integer")
+	}
+	return -1, NewErrorValue("found _compare is not runnable")
+}
+
 func (dictValue *dictValue) Compare(context RunContext, value Value) (int, ErrorValue) {
+
 	if value.Type() != TypeDictionary {
 		return 0, NewErrorValue("can not compare dictionary with non dictionary")
 	}
 
-	// TODO, check if there is a 'compare' function in the dictionary
+	// when there is a compare function found in the dictionary, simply use that one
 	//
+	if compareFunction, hasCompareFunction := dictValue.Resolve("_compare"); hasCompareFunction {
+		result, err := dictValue.runInternalCompareFunc(context, compareFunction.(Runnable), value)
+		return result, err
+	}
 
 	keys1 := dictValue.Keys()
 	keys2 := value.(DictionaryValue).Keys()
@@ -1121,9 +1144,9 @@ func (errorValue *errorValue) String() string {
 	}
 	if errorValue.meta != nil {
 		meta, lineno := errorValue.At()
-		return fmt.Sprintf("%s at %s at line %d: %s", kind, meta.Name(), lineno, errorValue.msg)
+		return fmt.Sprintf("%s(at %s at line %d: %s)", kind, meta.Name(), lineno, errorValue.msg)
 	}
-	return fmt.Sprintf("%s: %s", kind, errorValue.msg)
+	return fmt.Sprintf("%s(%s)", kind, errorValue.msg)
 }
 
 func (internalValue *internalValue) String() string {

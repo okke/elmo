@@ -739,6 +739,8 @@ func TestGt(t *testing.T) {
 	ParseTestAndRunBlock(t, `gt 1.0 1`, ExpectErrorValueAt(t, 1))
 	ParseTestAndRunBlock(t, `gt "chipotle" "galapeno"`, ExpectErrorValueAt(t, 1))
 
+	ParseTestAndRunBlock(t, `b: { _compare: (func v { return 1 }) }; s: { _compare: (func v { return -1 }) }; (gt $b $s)`, ExpectValue(t, True))
+
 }
 
 func TestGte(t *testing.T) {
@@ -771,6 +773,8 @@ func TestLt(t *testing.T) {
 	ParseTestAndRunBlock(t, `lt 0.0 1.0`, ExpectValue(t, True))
 	ParseTestAndRunBlock(t, `lt -1.0 0.0`, ExpectValue(t, True))
 	ParseTestAndRunBlock(t, `lt -1.0 -2.0`, ExpectValue(t, False))
+
+	ParseTestAndRunBlock(t, `b: { _compare: (func v { return 1 }) }; s: { _compare: (func v { return -1 }) }; (lt $s $b)`, ExpectValue(t, True))
 }
 
 func TestLte(t *testing.T) {
