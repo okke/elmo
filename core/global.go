@@ -1716,9 +1716,34 @@ func TimeDictionary(t time.Time) Value {
 }
 
 func _time() NamedValue {
-	return NewGoFunction(`time/Returns current time or parses a given string containing date/time
-		Usage: time
-		Returns: dictionary with time values`,
+	return NewGoFunction(`time/Generate a time dictionary based on given input
+		Usage: 
+		> time // without arguments time will return the current time
+		> time <int> // with one integer argument, time will convert given timestamp to time dictionary
+		> time <string> // with one string argument, time will convert given timestamp according to RFC3339 to time dictionary
+		> time <format> <string> // with two arguments, time will convert given string according to given format to time dictionary
+
+		Supported formats: ANSIC UnixDate RubyDate RFC822 RFC822Z RFC850 RFC1123 RFC1123Z RFC3339 RFC3339Nano Kitchen
+
+		Returns: dictionary with time values: {
+			zoneOffset (integer, nr of seconds )
+			year (integer)
+			month (integer)
+			day (integer)
+			hour (integer)
+			minute (integer)
+			second (integer)
+			nano (integer)
+			timestamp (integer, unix timestamp)
+		}
+		
+		Example:
+		
+		parsedTime: (time Kitchen "3:04PM")
+		anotherTime: (time RFC1123Z "Mon, 02 Jan 2006 15:04:05 -0700")
+		currentTime: $time
+		fromTimestamp: (time 0) 
+		`,
 
 		func(context RunContext, arguments []Argument) Value {
 			argLen, err := CheckArguments(arguments, 0, 2, "time", "<format>? <string>?")

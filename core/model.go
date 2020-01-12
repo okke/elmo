@@ -1382,7 +1382,7 @@ func NewBinaryValue(data []byte) Value {
 //
 func NewGoFunction(name string, value GoFunction) NamedValue {
 
-	splitted := strings.Split(name, "/")
+	splitted := strings.SplitN(name, "/", 2)
 	actualName := splitted[0]
 	var help Value = Nothing
 	if len(splitted) > 1 {
