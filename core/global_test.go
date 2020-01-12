@@ -997,3 +997,49 @@ func TestUUID(t *testing.T) {
 		`ne (uuid) (uuid)`, ExpectValue(t, True))
 }
 
+func TestTime(t *testing.T) {
+
+	ParseTestAndRunBlock(t,
+		`(time "2019-10-12T14:20:50.52+07:00") zoneOffset |divide 60 |divide 60 |eq 7`, ExpectValue(t, True))
+
+	ParseTestAndRunBlock(t,
+		`(time "ANSIC" "Mon Jan 2 15:04:05 2006") year |eq 2006`, ExpectValue(t, True))
+
+	ParseTestAndRunBlock(t,
+		`(time UnixDate "Mon Jan 2 15:04:05 MST 2006") month |eq 1`, ExpectValue(t, True))
+
+	ParseTestAndRunBlock(t,
+		`(time RubyDate "Mon Jan 02 15:04:05 -0700 2006") day |eq 2`, ExpectValue(t, True))
+
+	ParseTestAndRunBlock(t,
+		`(time RFC822 "02 Jan 06 15:04 MST") year |eq 2006`, ExpectValue(t, True))
+
+	ParseTestAndRunBlock(t,
+		`(time RFC822Z "02 Jan 06 15:04 -0700") hour |eq 15`, ExpectValue(t, True))
+
+	ParseTestAndRunBlock(t,
+		`(time RFC850 "Monday, 02-Jan-06 15:04:05 MST") minute |eq 4`, ExpectValue(t, True))
+
+	ParseTestAndRunBlock(t,
+		`(time RFC1123 "Mon, 02 Jan 2006 15:04:05 MST") second |eq 5`, ExpectValue(t, True))
+
+	ParseTestAndRunBlock(t,
+		`(time RFC1123Z "Mon, 02 Jan 2006 15:04:05 -0700") zoneOffset |divide 60 |divide 60 |eq -7`, ExpectValue(t, True))
+
+	ParseTestAndRunBlock(t,
+		`(time RFC3339 "2006-01-02T15:04:05+07:00") minute |eq 4`, ExpectValue(t, True))
+
+	ParseTestAndRunBlock(t,
+		`(time RFC3339Nano "2006-01-02T15:04:05.999999999Z") nano |eq 999999999`, ExpectValue(t, True))
+
+	ParseTestAndRunBlock(t,
+		`(time Kitchen "3:04PM") hour |eq 15`, ExpectValue(t, True))
+
+	ParseTestAndRunBlock(t,
+		`(time Kitchen "3:04PM") hour |eq 15`, ExpectValue(t, True))
+
+	ParseTestAndRunBlock(t,
+		`t: ((time) timestamp)
+		 t2: ((time $t) timestamp)
+		 eq $t $t2`, ExpectValue(t, True))
+}

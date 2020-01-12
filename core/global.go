@@ -71,6 +71,7 @@ func NewGlobalContext() RunContext {
 	context.SetNamed(freeze())
 	context.SetNamed(frozen())
 	context.SetNamed(_uuid())
+	context.SetNamed(_time())
 	context.SetNamed(file())
 
 	return context
@@ -1695,5 +1696,89 @@ func _uuid() NamedValue {
 			}
 
 			return NewStringLiteral(uuid.New().String())
+		})
+}
+
+// TimeDictionary takes a go time and convert into an elmo dictionary
+//
+func TimeDictionary(t time.Time) Value {
+	_, zoneOffset := t.Zone()
+	return NewDictionaryValue(nil, map[string]Value{
+		"zoneOffset": NewIntegerLiteral(int64(zoneOffset)),
+		"year":       NewIntegerLiteral(int64(t.Year())),
+		"month":      NewIntegerLiteral(int64(t.Month())),
+		"day":        NewIntegerLiteral(int64(t.Day())),
+		"hour":       NewIntegerLiteral(int64(t.Hour())),
+		"minute":     NewIntegerLiteral(int64(t.Minute())),
+		"second":     NewIntegerLiteral(int64(t.Second())),
+		"nano":       NewIntegerLiteral(int64(t.Nanosecond())),
+		"timestamp":  NewIntegerLiteral(t.UnixNano())})
+}
+
+func _time() NamedValue {
+	return NewGoFunction(`time/Returns current time or parses a given string containing date/time
+		Usage: time
+		Returns: dictionary with time values`,
+
+		func(context RunContext, arguments []Argument) Value {
+			argLen, err := CheckArguments(arguments, 0, 2, "time", "<format>? <string>?")
+			if err != nil {
+				return err
+			}
+
+			if argLen == 0 {
+				// currrent time
+				return TimeDictionary(time.Now())
+			}
+
+			var format string = time.RFC3339
+			var timestr string = ""
+
+			if argLen == 2 {
+
+				formatstr := EvalArgument2String(context, arguments[0])
+				switch formatstr {
+				case "ANSIC":
+					format = time.ANSIC
+				case "UnixDate":
+					format = time.UnixDate
+				case "RubyDate":
+					format = time.RubyDate
+				case "RFC822":
+					format = time.RFC822
+				case "RFC822Z":
+					format = time.RFC822Z
+				case "RFC850":
+					format = time.RFC850
+				case "RFC1123":
+					format = time.RFC1123
+				case "RFC1123Z":
+					format = time.RFC1123Z
+				case "RFC3339":
+					format = time.RFC3339
+				case "RFC3339Nano":
+					format = time.RFC3339Nano
+				case "Kitchen":
+					format = time.Kitchen
+				default:
+					format = formatstr
+				}
+				timestr = EvalArgument2String(context, arguments[1])
+
+			} else {
+
+				timearg := EvalArgument(context, arguments[0])
+				if timearg.Type() == TypeInteger {
+					// timestamp
+					return TimeDictionary(time.Unix(0, timearg.Internal().(int64)))
+				}
+				timestr = EvalArgument2String(context, arguments[0])
+			}
+
+			time, timeerr := time.Parse(format, timestr)
+			if timeerr != nil {
+				return NewErrorValue(timeerr.Error())
+			}
+			return TimeDictionary(time)
 		})
 }
