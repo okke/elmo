@@ -997,8 +997,3 @@ func TestUUID(t *testing.T) {
 		`ne (uuid) (uuid)`, ExpectValue(t, True))
 }
 
-func TestFile(t *testing.T) {
-
-	ParseTestAndRunBlock(t,
-		`f: (file "global_test.go"); f.name`, ExpectValue(t, NewStringLiteral("global_test.go")))
-}

@@ -4,8 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"math"
-	"os"
-	"path/filepath"
 	"reflect"
 	"sort"
 	"strings"
@@ -1697,42 +1695,5 @@ func _uuid() NamedValue {
 			}
 
 			return NewStringLiteral(uuid.New().String())
-		})
-}
-
-func file() NamedValue {
-	return NewGoFunction(`file/Returns a dictionary with file information based on a given path
-		Usage: file <path>
-		Returns: dictionary {
-		  name (string)
-		  mode (string)
-		  isDir (boolean)
-		}`,
-
-		func(context RunContext, arguments []Argument) Value {
-			if _, err := CheckArguments(arguments, 1, 1, "file", "<path>?"); err != nil {
-				return err
-			}
-
-			path := EvalArgument(context, arguments[0])
-			if path.Type() == TypeError {
-				return path
-			}
-
-			info, err := os.Stat(path.String())
-			if err != nil {
-				return NewErrorValue(err.Error())
-			}
-
-			absPath, err := filepath.Abs(info.Name())
-			if err != nil {
-				return NewErrorValue(err.Error())
-			}
-
-			return NewDictionaryValue(nil, map[string]Value{
-				"name":  NewStringLiteral(info.Name()),
-				"path":  NewStringLiteral(absPath),
-				"mode":  NewStringLiteral(info.Mode().String()),
-				"isDir": NewBooleanLiteral(info.IsDir())})
 		})
 }
