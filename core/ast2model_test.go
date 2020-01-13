@@ -62,6 +62,28 @@ func TestCreateBlockWithOneCallWithOneArgument(t *testing.T) {
 	})
 }
 
+func TestCreateBlockWithOneCallWithOneArgumentAndAComment(t *testing.T) {
+	ParseAndTestBlock(t, "chipotle sauce # njam", func(block Block) {
+
+		if len(block.Calls()) != 1 {
+			t.Error("exptected 1 call")
+		}
+
+		if block.Calls()[0].Name() != "chipotle" {
+			t.Errorf("exptected call to chipotle, got call to %s", block.Calls()[0].Name())
+		}
+
+		if len(block.Calls()[0].Arguments()) != 1 {
+			t.Error("call should one argument")
+		}
+
+		if block.Calls()[0].Arguments()[0].String() != "sauce" {
+			t.Errorf("exptected call with sauce as argument, got call with %s", block.Calls()[0].Arguments()[0].String())
+		}
+
+	})
+}
+
 func TestCreateBlockWithOneCallWithTwoArguments(t *testing.T) {
 	ParseAndTestBlock(t, "chipotle sauce in_a_jar", func(block Block) {
 
@@ -138,7 +160,7 @@ func TestCreateBlockWithTwoCallsWithTwoArguments(t *testing.T) {
 }
 
 func TestCreateBlockWithOneCallWithOneStringArgument(t *testing.T) {
-	ParseAndTestBlock(t, "chipotle \"sauce\"", func(block Block) {
+	ParseAndTestBlock(t, "chipotle \"sauce\" #bla", func(block Block) {
 
 		if len(block.Calls()) != 1 {
 			t.Error("exptected 1 call")
@@ -159,11 +181,12 @@ func TestCreateBlockWithOneCallWithOneStringArgument(t *testing.T) {
 		if block.Calls()[0].Arguments()[0].String() != "sauce" {
 			t.Errorf("exptected argument (sauce), got (%s)", block.Calls()[0].Arguments()[0].String())
 		}
+
 	})
 }
 
 func TestCreateBlockWithOneCallWithOneIntegerArgument(t *testing.T) {
-	ParseAndTestBlock(t, "chipotle 36", func(block Block) {
+	ParseAndTestBlock(t, "chipotle 36 # and more", func(block Block) {
 
 		if len(block.Calls()) != 1 {
 			t.Error("exptected 1 call")

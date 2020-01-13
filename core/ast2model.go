@@ -122,17 +122,17 @@ func Ast2Argument(node *node32, meta ScriptMetaData) Argument {
 		parts := []string{}
 		begin := node.begin
 		end := node.end
-		next := node
+		current := node
 
-		for next != nil {
-			end = next.end
-			parts = append(parts, nodeText(next, meta.Content()))
+		for current != nil {
+			end = current.end
+			parts = append(parts, nodeText(current, meta.Content()))
 
-			dot := next.next
-			if dot != nil && dot.pegRule == ruleDOT {
-				next = dot.next
+			next := current.next
+			if next != nil && next.pegRule == ruleDOT {
+				current = next.next
 			} else {
-				next = nil
+				current = nil
 			}
 		}
 

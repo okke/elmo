@@ -58,20 +58,21 @@ IdChar <- [a-z] / [A-Z] / [0-9] / [_?!]
 # STRING LITERALS
 #
 
-StringLiteral <- ["] StringChar* ["] Spacing
+StringLiteral <- Quote StringChar* Quote Spacing
+Quote <- ["]
 
 StringChar <- Escape / ![\"\n\\] .
 
-LongStringLiteral <- ('`' (('``') / (!'`'.))* '`' Spacing)
-
+LongStringLiteral <- ( LongString Spacing)
+LongString <- '`' (('``') / (!'`'.))* '`'
 Escape <- '\\' .
 
 #
 # NUMBERS
 #
 
-Number <- ('-')? [0-9][0-9]* ('.' [0-9][0-9]*)? Spacing
-
+Number <- Numbers Spacing
+Numbers <- ('-')? [0-9][0-9]* ('.' [0-9][0-9]*)?
 
 #
 # PUNCTUATORS

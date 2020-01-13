@@ -1,7 +1,5 @@
 package elmo
 
-import "strings"
-
 // filterNodes filters an array of nodes
 //
 func filterNodes(nodes []*node32, f func(*node32) bool) []*node32 {
@@ -99,5 +97,22 @@ func childrenRules(node *node32) []pegRule {
 // Text returns the textual representation of a node without any Spacing
 //
 func nodeText(node *node32, buf string) string {
-	return strings.TrimSpace(buf[node.begin : node.begin+(node.end-node.begin)])
+
+	begin := node.begin
+	end := node.end
+	cursor := node.up
+	if cursor != nil {
+		begin = cursor.begin
+
+		for cursor != nil {
+			if cursor.pegRule == ruleSpacing {
+				break
+			}
+			end = cursor.end
+			cursor = cursor.next
+		}
+	}
+
+	return buf[begin : begin+(end-begin)]
+
 }

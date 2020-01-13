@@ -90,7 +90,7 @@ func ExpectValue(t *testing.T, value Value) func(RunContext, Value) {
 
 	return func(context RunContext, blockResult Value) {
 		if !reflect.DeepEqual(blockResult, value) {
-			t.Errorf("expected value %v but found %v at %s", value, blockResult, getCallingFunc())
+			t.Errorf("expected value %v of type %v but found %v of type %v at %s", value, value.Info().Name(), blockResult, blockResult.Info().Name(), getCallingFunc())
 		}
 	}
 }

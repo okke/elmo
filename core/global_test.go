@@ -14,6 +14,11 @@ func TestSetValueIntoGlobalContextUsingShortcut(t *testing.T) {
 
 }
 
+func TestEcho(t *testing.T) {
+	ParseTestAndRunBlock(t, `echo chipotle`, ExpectValue(t, NewIdentifier("chipotle")))
+	ParseTestAndRunBlock(t, `echo chipotle # njam`, ExpectValue(t, NewIdentifier("chipotle")))
+}
+
 func TestType(t *testing.T) {
 
 	ParseTestAndRunBlock(t, `type chipotle`, ExpectValue(t, NewIdentifier("identifier")))
