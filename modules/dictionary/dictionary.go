@@ -5,7 +5,7 @@ import (
 	"math"
 	"sort"
 
-	"github.com/okke/elmo/core"
+	elmo "github.com/okke/elmo/core"
 )
 
 // Module contains functions that operate on maps
@@ -25,45 +25,27 @@ func new() elmo.NamedValue {
 			return err
 		}
 
+		var dictValues elmo.Value
+		var parent elmo.Value
+
 		if argLen == 1 {
+			dictValues = elmo.EvalArgument(context, arguments[0])
+		} else {
+			parent = elmo.EvalArgumentOrSolveIdentifier(context, arguments[0])
 
-			// new without parent
-			//
-			dictValues := elmo.EvalArgument(context, arguments[0])
-
-			if dictValues.Type() == elmo.TypeBlock {
-				return elmo.NewDictionaryWithBlock(context, dictValues.(elmo.Block))
+			if parent.Type() != elmo.TypeDictionary {
+				return elmo.NewErrorValue(fmt.Sprintf("invalid dictionary parent %v", parent))
 			}
 
-			if dictValues.Type() == elmo.TypeDictionary {
-				return elmo.NewDictionaryValue(nil, dictValues.Internal().(map[string]elmo.Value))
-			}
-
-			if dictValues.Type() == elmo.TypeList {
-				return elmo.NewDictionaryFromList(nil, dictValues.Internal().([]elmo.Value))
-			}
-
-			return elmo.NewErrorValue(fmt.Sprintf("can not create dictionary from %v", dictValues))
-
+			dictValues = elmo.EvalArgument(context, arguments[1])
 		}
 
-		parent := elmo.EvalArgumentOrSolveIdentifier(context, arguments[0])
-
-		if parent.Type() != elmo.TypeDictionary {
-			return elmo.NewErrorValue(fmt.Sprintf("invalid dictionary parent %v", parent))
-		}
-
-		dictValues := elmo.EvalArgument(context, arguments[1])
-
-		if dictValues.Type() == elmo.TypeBlock {
+		switch dictValues.Type() {
+		case elmo.TypeBlock:
 			return elmo.NewDictionaryValue(parent, elmo.NewDictionaryWithBlock(context, dictValues.(elmo.Block)).Internal().(map[string]elmo.Value))
-		}
-
-		if dictValues.Type() == elmo.TypeDictionary {
+		case elmo.TypeDictionary:
 			return elmo.NewDictionaryValue(parent, dictValues.Internal().(map[string]elmo.Value))
-		}
-
-		if dictValues.Type() == elmo.TypeList {
+		case elmo.TypeList:
 			return elmo.NewDictionaryFromList(parent, dictValues.Internal().([]elmo.Value))
 		}
 
