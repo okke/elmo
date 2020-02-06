@@ -2,9 +2,13 @@ package elmo
 
 import (
 	"fmt"
+	"github.com/pkg/errors"
 	"io/ioutil"
+	"log"
 	"os"
+	"os/exec"
 	"path"
+	"path/filepath"
 	"plugin"
 	"strings"
 )
@@ -28,12 +32,36 @@ func fileExists(filename string) bool {
 	return !info.IsDir()
 }
 
+func (loader *loader) buildFromGoCode(goModPath string) error {
+
+	cmd := exec.Command("go", "build", "-buildmode=plugin")
+	cmd.Dir = filepath.Dir(goModPath)
+	_, err := cmd.Output()
+	return errors.Wrap(err, fmt.Sprintf("could not exec: %s in %s", cmd.String(), cmd.Dir))
+
+}
+
 func (loader *loader) loadFromPlugin(folderName string, name string) Value {
 
 	source := strings.Join([]string{folderName, "/", name, ".so"}, "")
 
 	if !fileExists(source) {
-		return nil
+		goModPath := strings.Join([]string{filepath.Dir(source), "/go.mod"}, "")
+		if !fileExists(goModPath) {
+			log.Println("no code in", folderName, "for", goModPath)
+			return nil
+		}
+		// found go source code, try to compile it
+		//
+		if err := loader.buildFromGoCode(goModPath); err != nil {
+			log.Println("code did not compile for", goModPath)
+			return NewErrorValue(err.Error())
+		}
+
+		if !fileExists(source) {
+			log.Println("code did compile but no", name, ".so file in", folderName)
+			return NewErrorValue(fmt.Sprintf("found go code in %s but it did not compile to %s.so", folderName, name))
+		}
 	}
 
 	modulePlugin, err := plugin.Open(source)
