@@ -1,9 +1,9 @@
-# ELMO, embeddable scripting language for Go
+# ELMO, embeddable and extensible scripting language for Go
 
 
 ![elmologo](/doc/images/logo.jpg)
 
-Note, Elmo is 'brand new', far from complete and still under heavy development (on master branch). But feel free to experiment with it. Or even help developing it.
+Note, Elmo is still in draft status and under development (on master branch). But feel free to experiment with it. Or even help developing it.
 
 ## Documentation
 
