@@ -7,10 +7,11 @@ import (
 	"os"
 	"strings"
 
-	"github.com/okke/elmo/core"
+	elmo "github.com/okke/elmo/core"
 	"github.com/okke/elmo/modules/actor"
 	bin "github.com/okke/elmo/modules/binary"
-	"github.com/okke/elmo/modules/dictionary"
+	"github.com/okke/elmo/modules/data"
+	dict "github.com/okke/elmo/modules/dictionary"
 	"github.com/okke/elmo/modules/list"
 	"github.com/okke/elmo/modules/str"
 	"github.com/okke/elmo/modules/sys"
@@ -44,6 +45,7 @@ func NewMainContext() elmo.RunContext {
 	context.RegisterModule(actor.Module)
 	context.RegisterModule(sys.Module)
 	context.RegisterModule(bin.Module)
+	context.RegisterModule(data.Module)
 
 	return context
 }
