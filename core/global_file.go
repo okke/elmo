@@ -81,7 +81,7 @@ func getFileContent(file DictionaryValue, transform func([]byte) Value) Value {
 }
 
 func fileBinaryContent(file DictionaryValue) NamedValue {
-	return NewGoFunction(`binary/Returns the binary contant of a file
+	return NewGoFunction(`binary/Returns the binary content of a file
 		Usage: file.binary 
 		Returns: file content as a binary value`,
 
@@ -93,7 +93,7 @@ func fileBinaryContent(file DictionaryValue) NamedValue {
 }
 
 func fileStringContent(file DictionaryValue) NamedValue {
-	return NewGoFunction(`string/Returns the binary contant of a file
+	return NewGoFunction(`string/Returns the content of a file as string
 		Usage: file.string
 		Returns: file content as a string value`,
 

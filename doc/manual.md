@@ -4,6 +4,8 @@
 
 [Working with functions](functions.md)
 
+[Working with files (and how read CSV or JSON data)](datafiles.md)
+
 [Embedding Elmo](embedding.md)
 
 TODO: add more topics
