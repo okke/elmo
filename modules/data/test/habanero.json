@@ -1,0 +1,13 @@
+{
+    "name": "Habanero",
+    "shu": [350000, 855000],
+    "rating": 4.01,
+    "intrating": 4.0,
+    "comments": [{
+        "from":"joe",
+        "text":"pretty damn hot but still eatable"
+    },{
+        "from":"han",
+        "text":"chews like a cucumber lollypop"
+    }]
+}

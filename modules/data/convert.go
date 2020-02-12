@@ -2,6 +2,8 @@ package data
 
 import (
 	"encoding/csv"
+	"encoding/json"
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -20,6 +22,40 @@ func convertStringToValue(in string) elmo.Value {
 	}
 
 	return elmo.NewStringLiteral(stringValue)
+}
+
+func convertAnyToValue(in interface{}) elmo.Value {
+
+	if list, canCast := in.([]interface{}); canCast {
+		return convertListToValue(list)
+	}
+
+	if dict, canCast := in.(map[string]interface{}); canCast {
+		return convertMapToValue(dict)
+	}
+
+	return convertStringToValue(fmt.Sprint(in))
+}
+
+func convertListToValue(in []interface{}) elmo.Value {
+
+	list := make([]elmo.Value, len(in), len(in))
+
+	for index, value := range in {
+		list[index] = convertAnyToValue(value)
+	}
+	return elmo.NewListValue(list)
+}
+
+func convertMapToValue(in map[string]interface{}) elmo.Value {
+
+	mapping := make(map[string]elmo.Value, len(in))
+
+	for key, value := range in {
+		mapping[key] = convertAnyToValue(value)
+	}
+
+	return elmo.NewDictionaryValue(nil, mapping)
 }
 
 func convertCSVStringToListOfDictionaries(in string) elmo.Value {
@@ -64,4 +100,14 @@ func convertCSVStringToListOfDictionaries(in string) elmo.Value {
 	}
 
 	return elmo.NewListValue(list)
+}
+
+func convertJSONStringToDictionary(in string) elmo.Value {
+
+	jsonMap := make(map[string]interface{})
+	if err := json.Unmarshal([]byte(in), &jsonMap); err != nil {
+		return elmo.NewErrorValue(err.Error())
+	}
+
+	return convertMapToValue(jsonMap)
 }

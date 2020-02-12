@@ -10,7 +10,7 @@ var Module = elmo.NewModule("data", initModule)
 
 func initModule(context elmo.RunContext) elmo.Value {
 	return elmo.NewMappingForModule(context, []elmo.NamedValue{
-		_csv()})
+		_csv(), _json()})
 }
 
 func _csv() elmo.NamedValue {
@@ -36,6 +36,29 @@ func _csv() elmo.NamedValue {
 
 			value := elmo.EvalArgument(context, arguments[0])
 			return convertCSVStringToListOfDictionaries(value.String())
+
+		})
+}
+
+func _json() elmo.NamedValue {
+	return elmo.NewGoFunction(`json/converts json into a dictionary
+    Usage: json <string>
+	Returns: Dictionary representation of given json (a fulll elmo Value tree)
+
+	example: 
+
+	data: (load data)
+	puts (((file "./test/habanero.json") string) |data.json)
+
+    `,
+		func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+
+			if _, err := elmo.CheckArguments(arguments, 1, 1, "json", "<string>"); err != nil {
+				return err
+			}
+
+			value := elmo.EvalArgument(context, arguments[0])
+			return convertJSONStringToDictionary(value.String())
 
 		})
 }
