@@ -107,3 +107,18 @@ func ParseTestAndRunBlockWithinContext(t *testing.T, context RunContext, s strin
 	})
 
 }
+
+// run an elmo test file located in the ./test directory
+//
+func TestMoFile(t *testing.T, mo string, contextInitializer func(RunContext)) {
+	context := NewGlobalContext()
+	contextInitializer(context)
+
+	loader := NewLoader(context, []string{"./test"})
+
+	loaded := loader.Load(mo)
+
+	if loaded.Type() == TypeError {
+		t.Error("error while loading", mo, ":", loaded.String())
+	}
+}
