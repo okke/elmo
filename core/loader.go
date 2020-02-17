@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/pkg/errors"
 	"io/ioutil"
-	"log"
 	"os"
 	"os/exec"
 	"path"
@@ -48,18 +47,15 @@ func (loader *loader) loadFromPlugin(folderName string, name string) Value {
 	if !fileExists(source) {
 		goModPath := strings.Join([]string{filepath.Dir(source), "/go.mod"}, "")
 		if !fileExists(goModPath) {
-			log.Println("no code in", folderName, "for", goModPath)
 			return nil
 		}
 		// found go source code, try to compile it
 		//
 		if err := loader.buildFromGoCode(goModPath); err != nil {
-			log.Println("code did not compile for", goModPath)
 			return NewErrorValue(err.Error())
 		}
 
 		if !fileExists(source) {
-			log.Println("code did compile but no", name, ".so file in", folderName)
 			return NewErrorValue(fmt.Sprintf("found go code in %s but it did not compile to %s.so", folderName, name))
 		}
 	}
