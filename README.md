@@ -47,6 +47,7 @@ sys:  (load sys)
 act:  (load actor)
 bin:  (load bin)
 data: (load data)
+http: (load http)
 help
 ```
 

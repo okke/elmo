@@ -12,6 +12,7 @@ import (
 	bin "github.com/okke/elmo/modules/binary"
 	"github.com/okke/elmo/modules/data"
 	dict "github.com/okke/elmo/modules/dictionary"
+	http "github.com/okke/elmo/modules/elmohttp"
 	"github.com/okke/elmo/modules/list"
 	"github.com/okke/elmo/modules/str"
 	"github.com/okke/elmo/modules/sys"
@@ -46,6 +47,7 @@ func NewMainContext() elmo.RunContext {
 	context.RegisterModule(sys.Module)
 	context.RegisterModule(bin.Module)
 	context.RegisterModule(data.Module)
+	context.RegisterModule(http.Module)
 
 	return context
 }
