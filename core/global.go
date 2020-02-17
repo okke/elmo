@@ -74,6 +74,7 @@ func NewGlobalContext() RunContext {
 	context.SetNamed(_uuid())
 	context.SetNamed(_time())
 	context.SetNamed(file())
+	context.SetNamed(test())
 
 	return context
 }
@@ -1830,3 +1831,49 @@ func _time() NamedValue {
 			return TimeDictionary(time)
 		})
 }
+
+func test() NamedValue {
+	return NewGoFunction(`test/Runs all test functions in a given dictionary
+	`,func(context RunContext, arguments []Argument) Value {
+		if _, err := CheckArguments(arguments, 1, 1, "test", "<suite>"); err != nil {
+			return err
+		}
+
+		// first argument of a dictionary function can be an identifier with the name of the dictionary
+		//
+		dict, ok := EvalArgumentOrSolveIdentifier(context, arguments[0]).(DictionaryValue)
+
+		if !ok {
+			return NewErrorValue("invalid call to test, expect a dictionary with test functions as first argument: usage test <suite>")
+		}
+
+		keyNames := dict.Keys()
+
+		results := make(map[string]Value,0)
+		failed := false
+
+		for _, key := range keyNames {
+			if !strings.HasPrefix(key, "test")  {
+				continue
+			}
+
+			value, _ := dict.Resolve(key);
+			if value.Type() != TypeGoFunction {
+				continue
+			}
+
+			result := value.(Runnable).Run(context, []Argument{})
+			if result.Type() == TypeError {
+				results[key] = result
+				failed = true
+			}
+		}
+
+		if failed {
+			return NewErrorValue(fmt.Sprintf("test suite failed: %v", results))
+		}
+
+		return True
+	})
+}
+

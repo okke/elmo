@@ -1,7 +1,5 @@
 http: (load http)
 
-# https://raw.githubusercontent.com/okke/elmo/master/modules/elmohttp/test/getdata.txt
-
 suite: {
     client: (http.client "https://raw.githubusercontent.com")
 
@@ -27,8 +25,4 @@ suite: {
     })
 }
 
-(suite.testHttpClientHasItsOwnType)
-(suite.testHttpClientUsesUrlAsString)
-(suite.testHttpClientCanGetContentAsString)
-(suite.testHttpClientWillReturnErrorOn404)
-(suite.testHttpClientCanGetContentByPath)
+test suite
