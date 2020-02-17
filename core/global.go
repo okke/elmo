@@ -48,6 +48,7 @@ func NewGlobalContext() RunContext {
 	context.SetNamed(eval())
 	context.SetNamed(puts())
 	context.SetNamed(echo())
+	context.SetNamed(toS())
 	context.SetNamed(sleep())
 	context.SetNamed(eq())
 	context.SetNamed(ne())
@@ -826,6 +827,28 @@ func echo() NamedValue {
 			return EvalArgument(context, arguments[0])
 		})
 }
+
+func toS() NamedValue {
+	return NewGoFunction(`to_s/Converts given value to a string
+		Usage: to_s <value>
+		Returns: string representation of value
+
+		Examples:
+
+		> a: 1
+		> b: (to_s a)
+		`,
+
+		func(context RunContext, arguments []Argument) Value {
+			_, err := CheckArguments(arguments, 1, 1, "to_s", "<value>")
+			if err != nil {
+				return err
+			}
+
+			return NewStringLiteral(EvalArgument(context, arguments[0]).String())
+		})
+}
+
 
 func sleep() NamedValue {
 	return NewGoFunction(`sleep/Pause for given number of milliseconds

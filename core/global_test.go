@@ -19,6 +19,10 @@ func TestEcho(t *testing.T) {
 	ParseTestAndRunBlock(t, `echo chipotle # njam`, ExpectValue(t, NewIdentifier("chipotle")))
 }
 
+func TestToS(t *testing.T) {
+	ParseTestAndRunBlock(t, `to_s chipotle`, ExpectValue(t, NewStringLiteral("chipotle")))
+}
+
 func TestType(t *testing.T) {
 
 	ParseTestAndRunBlock(t, `type chipotle`, ExpectValue(t, NewIdentifier("identifier")))
