@@ -1,4 +1,5 @@
 http: (load http)
+dict: (load dict)
 
 suite: {
     client: (http.client "https://raw.githubusercontent.com")
@@ -22,6 +23,23 @@ suite: {
 
     testHttpClientCanGetContentByPath: (func {
         http.get $client "/okke/elmo/master/modules/elmohttp/test/getdata.txt" |eq "chipotle" |assert
+    })
+
+    # TODO: do not use github but own internal server
+    #
+    testHttpClientCanCatchCookies: (func {
+
+        # first check cookies before request
+        #
+        github: (http.client "https://github.com")
+        cookies: (http.cookies $github)
+        dict.knows $cookies _gh_sess |not |assert
+
+        # and then do a request and expect a github session cookie
+        #
+        http.get $github "/"
+        cookies: (http.cookies $github)
+        dict.knows $cookies _gh_sess |assert
     })
 }
 
