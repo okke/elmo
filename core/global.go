@@ -69,6 +69,7 @@ func NewGlobalContext() RunContext {
 	context.SetNamed(_error())
 	context.SetNamed(_panic())
 	context.SetNamed(help())
+	context.SetNamed(_close())
 	context.SetNamed(freeze())
 	context.SetNamed(frozen())
 	context.SetNamed(_uuid())
@@ -849,7 +850,6 @@ func toS() NamedValue {
 			return NewStringLiteral(EvalArgument(context, arguments[0]).String())
 		})
 }
-
 
 func sleep() NamedValue {
 	return NewGoFunction(`sleep/Pause for given number of milliseconds
@@ -1660,6 +1660,36 @@ func help() NamedValue {
 	})
 }
 
+func _close() NamedValue {
+	return NewGoFunction(`close/Closes a value (in case this is supported by given value)
+		Usage: close <value>
+		Returns: value`,
+
+		func(context RunContext, arguments []Argument) Value {
+
+			_, err := CheckArguments(arguments, 1, 1, "close", "<value>")
+			if err != nil {
+				return err
+			}
+
+			value := EvalArgument(context, arguments[0])
+			if closeable, ok := value.(CloseableValue); ok {
+				closeable.Close()
+			} else {
+
+				// also check if internal value implements the CloseableValue interface
+				//
+				if closeable, ok := value.Internal().(CloseableValue); ok {
+					closeable.Close()
+				} else {
+					return NewErrorValue("value is not closable")
+				}
+			}
+
+			return value
+		})
+}
+
 func freeze() NamedValue {
 	return NewGoFunction(`freeze!/Freezes a value (makes a value immutable)
 		Usage: freeze <value>
@@ -1834,7 +1864,7 @@ func _time() NamedValue {
 
 func test() NamedValue {
 	return NewGoFunction(`test/Runs all test functions in a given dictionary
-	`,func(context RunContext, arguments []Argument) Value {
+	`, func(context RunContext, arguments []Argument) Value {
 		if _, err := CheckArguments(arguments, 1, 1, "test", "<suite>"); err != nil {
 			return err
 		}
@@ -1849,15 +1879,15 @@ func test() NamedValue {
 
 		keyNames := dict.Keys()
 
-		results := make(map[string]Value,0)
+		results := make(map[string]Value, 0)
 		failed := false
 
 		for _, key := range keyNames {
-			if !strings.HasPrefix(key, "test")  {
+			if !strings.HasPrefix(key, "test") {
 				continue
 			}
 
-			value, _ := dict.Resolve(key);
+			value, _ := dict.Resolve(key)
 			if value.Type() != TypeGoFunction {
 				continue
 			}
@@ -1876,4 +1906,3 @@ func test() NamedValue {
 		return True
 	})
 }
-

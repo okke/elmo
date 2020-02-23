@@ -1,6 +1,8 @@
 package elmohttp
 
-import elmo "github.com/okke/elmo/core"
+import (
+	elmo "github.com/okke/elmo/core"
+)
 
 // Module contains http related functions
 //
@@ -8,7 +10,7 @@ var Module = elmo.NewModule("http", initModule)
 
 func initModule(context elmo.RunContext) elmo.Value {
 	return elmo.NewMappingForModule(context, []elmo.NamedValue{
-		client(), get(), cookies()})
+		client(), get(), cookies(), testServer(), testURL()})
 }
 
 func client() elmo.NamedValue {
@@ -78,5 +80,39 @@ func cookies() elmo.NamedValue {
 		}
 
 		return elmo.NewDictionaryValue(nil, mapping)
+	})
+}
+
+func testServer() elmo.NamedValue {
+	return elmo.NewGoFunction(`testServer/create a new http test server
+	`, func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+		if _, err := elmo.CheckArguments(arguments, 1, 1, "testServer", "<block>"); err != nil {
+			return err
+		}
+
+		handler := elmo.EvalArgument(context, arguments[0])
+		if handler.Type() != elmo.TypeGoFunction {
+			return elmo.NewErrorValue("test_server expects function as argument")
+		}
+
+		server := NewTestServer(context.CreateSubContext(), handler.(elmo.Runnable))
+
+		return elmo.NewInternalValue(typeInfoHTTPTestServer, server)
+	})
+}
+
+func testURL() elmo.NamedValue {
+	return elmo.NewGoFunction(`testURL/retrieves the url of a given test server
+	`, func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+		if _, err := elmo.CheckArguments(arguments, 1, 1, "testURL", "<test_server>"); err != nil {
+			return err
+		}
+
+		server := elmo.EvalArgument(context, arguments[0])
+		if !server.IsType(typeInfoHTTPTestServer) {
+			return elmo.NewErrorValue("test_url expects test server as argument")
+		}
+
+		return elmo.NewStringLiteral(server.Internal().(HTTPTestServer).URL())
 	})
 }

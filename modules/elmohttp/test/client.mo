@@ -1,19 +1,27 @@
 http: (load http)
 dict: (load dict)
+str: (load string)
+
+server: (http.testServer (func request response {
+    response.write "chipotle"        
+}))
 
 suite: {
+  
     client: (http.client "https://raw.githubusercontent.com")
+    testClient: (http.client (http.testURL $server))
+
 
     testHttpClientHasItsOwnType: (func {
-        type $client |eq httpClient |assert
+        type $testClient |eq httpClient |assert
     })
 
     testHttpClientUsesUrlAsString: (func {
-        to_s $client |eq "https://raw.githubusercontent.com" |assert
+        to_s $testClient |str.startsWith "http://" |assert
     })
 
     testHttpClientCanGetContentAsString: (func {
-        http.get $client |type |eq string |assert
+        http.get $testClient |type |eq string |assert
     })
 
     testHttpClientWillReturnErrorOn404: (func {
@@ -22,7 +30,7 @@ suite: {
     })
 
     testHttpClientCanGetContentByPath: (func {
-        http.get $client "/okke/elmo/master/modules/elmohttp/test/getdata.txt" |eq "chipotle" |assert
+        http.get $testClient "" |eq "chipotle" |assert
     })
 
     # TODO: do not use github but own internal server
@@ -32,15 +40,14 @@ suite: {
         # first check cookies before request
         #
         github: (http.client "https://github.com")
-        cookies: (http.cookies $github)
-        dict.knows $cookies _gh_sess |not |assert
+        dict.knows (http.cookies $github) _gh_sess |not |assert
 
         # and then do a request and expect a github session cookie
         #
         http.get $github "/"
-        cookies: (http.cookies $github)
-        dict.knows $cookies _gh_sess |assert
+        dict.knows (http.cookies $github) _gh_sess |assert
     })
 }
 
 test suite
+close $server

@@ -3,60 +3,10 @@ package data
 import (
 	"encoding/csv"
 	"encoding/json"
-	"fmt"
-	"strconv"
 	"strings"
 
 	elmo "github.com/okke/elmo/core"
 )
-
-func convertStringToValue(in string) elmo.Value {
-	stringValue := strings.Trim(in, " \t")
-
-	if i, err := strconv.ParseInt(stringValue, 0, 64); err == nil {
-		return elmo.NewIntegerLiteral(i)
-	}
-
-	if f, err := strconv.ParseFloat(stringValue, 64); err == nil {
-		return elmo.NewFloatLiteral(f)
-	}
-
-	return elmo.NewStringLiteral(stringValue)
-}
-
-func convertAnyToValue(in interface{}) elmo.Value {
-
-	if list, canCast := in.([]interface{}); canCast {
-		return convertListToValue(list)
-	}
-
-	if dict, canCast := in.(map[string]interface{}); canCast {
-		return convertMapToValue(dict)
-	}
-
-	return convertStringToValue(fmt.Sprint(in))
-}
-
-func convertListToValue(in []interface{}) elmo.Value {
-
-	list := make([]elmo.Value, len(in), len(in))
-
-	for index, value := range in {
-		list[index] = convertAnyToValue(value)
-	}
-	return elmo.NewListValue(list)
-}
-
-func convertMapToValue(in map[string]interface{}) elmo.Value {
-
-	mapping := make(map[string]elmo.Value, len(in))
-
-	for key, value := range in {
-		mapping[key] = convertAnyToValue(value)
-	}
-
-	return elmo.NewDictionaryValue(nil, mapping)
-}
 
 func convertCSVStringToListOfDictionaries(in string) elmo.Value {
 
@@ -93,7 +43,7 @@ func convertCSVStringToListOfDictionaries(in string) elmo.Value {
 
 			fieldName := header[fieldIndex]
 			if fieldName != "" {
-				mapping[header[fieldIndex]] = convertStringToValue(fieldValue)
+				mapping[header[fieldIndex]] = elmo.ConvertStringToValue(fieldValue)
 			}
 		}
 		list = append(list, elmo.NewDictionaryValue(nil, mapping))
@@ -109,5 +59,5 @@ func convertJSONStringToDictionary(in string) elmo.Value {
 		return elmo.NewErrorValue(err.Error())
 	}
 
-	return convertMapToValue(jsonMap)
+	return elmo.ConvertMapToValue(jsonMap)
 }

@@ -957,6 +957,15 @@ func TestHelp(t *testing.T) {
 
 }
 
+func TestClosee(t *testing.T) {
+
+	ParseTestAndRunBlock(t,
+		`close`, ExpectErrorValueAt(t, 1))
+
+	ParseTestAndRunBlock(t,
+		`close 3`, ExpectErrorValueAt(t, 1))
+}
+
 func TestFreeze(t *testing.T) {
 
 	ParseTestAndRunBlock(t,

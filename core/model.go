@@ -300,6 +300,12 @@ type FreezableValue interface {
 	Frozen() bool
 }
 
+// CloseableValue represents a resource that can be closed
+//
+type CloseableValue interface {
+	Close()
+}
+
 // SerializableValue represents a value that can be serialized to
 // a binary representation
 //
@@ -1384,12 +1390,19 @@ func NewGoFunction(name string, value GoFunction) NamedValue {
 
 	splitted := strings.SplitN(name, "/", 2)
 	actualName := splitted[0]
-	var help Value = Nothing
+	var help string = ""
 	if len(splitted) > 1 {
-		help = NewStringLiteral(splitted[1])
+		help = splitted[1]
 	}
 
-	return &goFunction{baseValue: baseValue{info: typeInfoGoFunction}, name: actualName, help: help, value: value}
+	return NewGoFunctionWithHelp(actualName, help, value)
+}
+
+// NewGoFunctionWithHelp creates a new go function
+//
+func NewGoFunctionWithHelp(name string, help string, value GoFunction) NamedValue {
+
+	return &goFunction{baseValue: baseValue{info: typeInfoGoFunction}, name: name, help: NewStringLiteral(help), value: value}
 }
 
 // NewReturnValue creates a new list of values
