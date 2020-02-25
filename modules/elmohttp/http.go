@@ -36,7 +36,7 @@ func get() elmo.NamedValue {
 	return elmo.NewGoFunction(`get/executes an GET request on an http client
 	`, func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
 
-		argLen, err := elmo.CheckArguments(arguments, 1, 2, "get", "<client> <path>")
+		argLen, err := elmo.CheckArguments(arguments, 1, 3, "get", "<client> <path>? <parameters>?")
 		if err != nil {
 			return err
 		}
@@ -52,6 +52,14 @@ func get() elmo.NamedValue {
 		path := ""
 		if argLen == 2 {
 			path = elmo.EvalArgument2String(context, arguments[1])
+		}
+
+		if argLen == 3 {
+			parameters := elmo.EvalArgument(context, arguments[2])
+			if parameters.Type() != elmo.TypeDictionary {
+				return elmo.NewErrorValue("expect a dictionary with get parameters")
+			}
+			path = addParametersToPath(path, parameters.(elmo.DictionaryValue))
 		}
 
 		return client.Internal().(HTTPClient).DoRequest("GET", path)
