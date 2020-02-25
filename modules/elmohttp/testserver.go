@@ -3,6 +3,7 @@ package elmohttp
 import (
 	"net/http"
 	"net/http/httptest"
+	"time"
 
 	elmo "github.com/okke/elmo/core"
 )
@@ -40,21 +41,9 @@ func NewElmoRequestHandler(context elmo.RunContext, code elmo.Runnable) func(htt
 		requestValue := elmo.NewDictionaryValue(nil, requestMap)
 
 		responseValue := elmo.NewDictionaryValue(nil, map[string]elmo.Value{
-			"write": elmo.NewGoFunctionWithHelp("write", "writes content to http response", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
-				for _, arg := range arguments {
-					writeValue := elmo.EvalArgument(context, arg)
-					var err error = nil
-					if writeValue.Type() == elmo.TypeBinary {
-						_, err = responseWriter.Write(writeValue.(elmo.BinaryValue).AsBytes())
-					} else {
-						_, err = responseWriter.Write([]byte(writeValue.String()))
-					}
-					if err != nil {
-						return elmo.NewErrorValue(err.Error())
-					}
-				}
-				return elmo.Nothing
-			})})
+			"write":      responseWrite(responseWriter),
+			"sendStatus": responseWriteStatus(responseWriter),
+			"sendCookie": responseWriteCookie(responseWriter)})
 
 		arguments := []elmo.Argument{elmo.NewDynamicArgument(requestValue), elmo.NewDynamicArgument(responseValue)}
 
@@ -65,6 +54,67 @@ func NewElmoRequestHandler(context elmo.RunContext, code elmo.Runnable) func(htt
 		}
 
 	}
+}
+
+func responseWrite(responseWriter http.ResponseWriter) elmo.NamedValue {
+	return elmo.NewGoFunctionWithHelp("write", "writes content to http response", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+		for _, arg := range arguments {
+			writeValue := elmo.EvalArgument(context, arg)
+			var err error = nil
+			if writeValue.Type() == elmo.TypeBinary {
+				_, err = responseWriter.Write(writeValue.(elmo.BinaryValue).AsBytes())
+			} else {
+				_, err = responseWriter.Write([]byte(writeValue.String()))
+			}
+			if err != nil {
+				return elmo.NewErrorValue(err.Error())
+			}
+		}
+		return elmo.Nothing
+	})
+}
+
+func responseWriteStatus(responseWriter http.ResponseWriter) elmo.NamedValue {
+	return elmo.NewGoFunctionWithHelp("sendStatus", "writes http status code to http response", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+		if _, err := elmo.CheckArguments(arguments, 1, 1, "sendStatus", "<status>"); err != nil {
+			return err
+		}
+
+		status := elmo.EvalArgument(context, arguments[0])
+		if status.Type() != elmo.TypeInteger {
+			return elmo.NewErrorValue("http status must be an integer")
+		}
+
+		responseWriter.WriteHeader(int(status.Internal().(int64)))
+
+		return elmo.Nothing
+	})
+}
+
+func responseWriteCookie(responseWriter http.ResponseWriter) elmo.NamedValue {
+	return elmo.NewGoFunctionWithHelp("sendCookie", "writes http status code to http response", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+		if _, err := elmo.CheckArguments(arguments, 3, 3, "sendCookie", "<key> <value> <duration in seconds>"); err != nil {
+			return err
+		}
+
+		name := elmo.EvalArgument2String(context, arguments[0])
+		value := elmo.EvalArgument2String(context, arguments[1])
+		duration := elmo.EvalArgument(context, arguments[2])
+
+		if duration.Type() != elmo.TypeInteger {
+			return elmo.NewErrorValue("cookie duration must be an integer")
+		}
+
+		expire := time.Now().AddDate(0, 0, int(duration.Internal().(int64)))
+		cookie := http.Cookie{
+			Name:    name,
+			Value:   value,
+			Expires: expire,
+		}
+		http.SetCookie(responseWriter, &cookie)
+
+		return elmo.Nothing
+	})
 }
 
 // NewTestServer constructs a

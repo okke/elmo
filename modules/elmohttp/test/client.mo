@@ -3,13 +3,18 @@ dict: (load dict)
 str: (load string)
 
 server: (http.testServer (func request response {
-    response.write "chipotle"        
+    response.sendCookie "pepper" "jalapeno" 3600
+    response.write "chipotle"
+}))
+
+server404: (http.testServer (func request response {
+    response.sendStatus 404
 }))
 
 suite: {
   
-    client: (http.client "https://raw.githubusercontent.com")
     testClient: (http.client (http.testURL $server))
+    testClient404: (http.client (http.testURL $server404))
 
 
     testHttpClientHasItsOwnType: (func {
@@ -25,29 +30,20 @@ suite: {
     })
 
     testHttpClientWillReturnErrorOn404: (func {
-        http.get $client "/okke/elmo/master/404.go" |type |eq error |assert
-        http.get $client "/okke/elmo/master/README.md" |type |ne error |assert
+        http.get $testClient404 "" |type |eq error |assert
+        http.get $testClient "" |type |ne error |assert
     })
 
     testHttpClientCanGetContentByPath: (func {
         http.get $testClient "" |eq "chipotle" |assert
     })
 
-    # TODO: do not use github but own internal server
-    #
     testHttpClientCanCatchCookies: (func {
-
-        # first check cookies before request
-        #
-        github: (http.client "https://github.com")
-        dict.knows (http.cookies $github) _gh_sess |not |assert
-
-        # and then do a request and expect a github session cookie
-        #
-        http.get $github "/"
-        dict.knows (http.cookies $github) _gh_sess |assert
+        http.get $testClient ""
+        dict.knows (http.cookies $testClient) pepper |assert
     })
 }
 
 test suite
 close $server
+close $server404

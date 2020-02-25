@@ -11,7 +11,7 @@ suite: {
     })
 
     testTestServerHasTestURL: (func {
-        server: (http.testServer (func erquest response {}))
+        server: (http.testServer (func request response {}))
         url: (http.testURL $server)
         str.startsWith $url "http://" |assert  
         close $server
