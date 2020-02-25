@@ -23,6 +23,10 @@ func TestToS(t *testing.T) {
 	ParseTestAndRunBlock(t, `to_s chipotle`, ExpectValue(t, NewStringLiteral("chipotle")))
 }
 
+func TestFirst(t *testing.T) {
+	ParseTestAndRunBlock(t, `first`, ExpectValue(t, Nothing))
+}
+
 func TestType(t *testing.T) {
 
 	ParseTestAndRunBlock(t, `type chipotle`, ExpectValue(t, NewIdentifier("identifier")))

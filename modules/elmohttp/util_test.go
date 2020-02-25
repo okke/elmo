@@ -37,7 +37,7 @@ func TestAddMultipleParameters(t *testing.T) {
 		"pepper": "jalapeno",
 		"amount": "3"}).(elmo.DictionaryValue))
 
-	if path != "/spices?pepper=jalapeno&amount=3" {
+	if path != "/spices?amount=3&pepper=jalapeno" {
 		t.Error("expected 3 jalapeno peppers, not ", path)
 	}
 }
@@ -48,7 +48,7 @@ func TestUrlEncodedParameters(t *testing.T) {
 		"pepper": "jalapeno?",
 		"amount": "\"3\""}).(elmo.DictionaryValue))
 
-	if path != "/spices?pepper=jalapeno%3F&amount=%223%22" {
+	if path != "/spices?amount=%223%22&pepper=jalapeno%3F" {
 		t.Error("expected 3 jalapeno peppers, not ", path)
 	}
 }

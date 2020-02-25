@@ -14,10 +14,7 @@ server404: (http.testServer (func request response {
 
 serverEcho: (http.testServer (func request response {
     dict.keys request |list.each k {
-        response.write $k
-        response.write "="
-        set value found (dict.get request $k)
-        response.write $value
+        response.write $k "=" (dict.get request $k |first) ";"
     }
 }))
 
@@ -52,7 +49,7 @@ suite: {
 
     testHttpClientCanSendQueryParameters: (func {
         p: {pepper:"jalapeno"}
-        http.get $testClientEcho "" $p |eq "pepper=jalapeno" |assert
+        http.get $testClientEcho "" $p |eq "pepper=jalapeno;" |assert
     })
 
     testHttpClientCanCatchCookies: (func {

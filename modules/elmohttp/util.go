@@ -2,6 +2,7 @@ package elmohttp
 
 import (
 	"net/url"
+	"sort"
 	"strings"
 
 	elmo "github.com/okke/elmo/core"
@@ -19,7 +20,9 @@ func addParametersToPath(path string, parameters elmo.DictionaryValue) string {
 		sb.WriteRune('?')
 	}
 
-	for index, key := range parameters.Keys() {
+	keys := parameters.Keys()
+	sort.Strings(keys)
+	for index, key := range keys {
 		if index != 0 {
 			sb.WriteRune('&')
 		}

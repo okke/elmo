@@ -89,6 +89,11 @@ func ExpectNothing(t *testing.T) func(RunContext, Value) {
 func ExpectValue(t *testing.T, value Value) func(RunContext, Value) {
 
 	return func(context RunContext, blockResult Value) {
+		if value == Nothing {
+			if blockResult != Nothing {
+				t.Errorf("expected value nothing but found %v of type %v at %s", blockResult, blockResult.Info().Name(), getCallingFunc())
+			}
+		}
 		if !reflect.DeepEqual(blockResult, value) {
 			t.Errorf("expected value %v of type %v but found %v of type %v at %s", value, value.Info().Name(), blockResult, blockResult.Info().Name(), getCallingFunc())
 		}

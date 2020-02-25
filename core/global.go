@@ -33,6 +33,7 @@ func NewGlobalContext() RunContext {
 	context.SetNamed(_type())
 	context.SetNamed(set())
 	context.SetNamed(get())
+	context.SetNamed(first())
 	context.SetNamed(defined())
 	context.SetNamed(once())
 	context.SetNamed(incr())
@@ -255,6 +256,25 @@ func get() NamedValue {
 
 			return Nothing
 
+		})
+}
+
+func first() NamedValue {
+	return NewGoFunction(`first/Gets a the first value of given arguments
+		Usage: first <symbol>*
+		Returns: first value and ignore other parameters
+		
+
+		Examples:
+
+		> get 1 2 3
+		will result in 1`,
+
+		func(context RunContext, arguments []Argument) Value {
+			if len(arguments) == 0 {
+				return Nothing
+			}
+			return EvalArgument(context, arguments[0])
 		})
 }
 
