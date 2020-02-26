@@ -1,6 +1,7 @@
 package elmohttp
 
 import (
+	"bytes"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -18,7 +19,7 @@ type httpClient struct {
 }
 
 type HTTPClient interface {
-	DoRequest(method string, url string) elmo.Value
+	DoRequest(method string, url string, body []byte) elmo.Value
 	Cookies() []*http.Cookie
 }
 
@@ -40,9 +41,9 @@ func (httpClient *httpClient) String() string {
 	return httpClient.baseUrl.String()
 }
 
-func (httpClient *httpClient) DoRequest(method, url string) elmo.Value {
+func (httpClient *httpClient) DoRequest(method, url string, body []byte) elmo.Value {
 
-	req, err := http.NewRequest(method, httpClient.baseUrl.String()+url, nil)
+	req, err := http.NewRequest(method, httpClient.baseUrl.String()+url, bytes.NewBuffer(body))
 	if err != nil {
 		return elmo.NewErrorValue(err.Error())
 	}
@@ -52,7 +53,7 @@ func (httpClient *httpClient) DoRequest(method, url string) elmo.Value {
 	}
 
 	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
+	responseBody, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return elmo.NewErrorValue(err.Error())
 	}
@@ -63,7 +64,7 @@ func (httpClient *httpClient) DoRequest(method, url string) elmo.Value {
 		return elmo.NewErrorValue(fmt.Sprintf("http status code %d", resp.StatusCode))
 	}
 
-	return elmo.NewStringLiteral(string(body))
+	return elmo.NewStringLiteral(string(responseBody))
 }
 
 func (httpClient *httpClient) Cookies() []*http.Cookie {

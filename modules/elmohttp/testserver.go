@@ -1,6 +1,7 @@
 package elmohttp
 
 import (
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"time"
@@ -36,6 +37,13 @@ func NewElmoRequestHandler(context elmo.RunContext, code elmo.Runnable) func(htt
 				requestMap[k] = elmo.ConvertListOfStringsToValue(v)
 			}
 
+		}
+		body, err := ioutil.ReadAll(request.Body)
+		if err != nil {
+			http.Error(responseWriter, err.Error(), http.StatusInternalServerError)
+		}
+		if body != nil && len(body) > 0 {
+			requestMap["body"] = elmo.NewStringLiteral(string(body))
 		}
 
 		requestValue := elmo.NewDictionaryValue(nil, requestMap)

@@ -56,6 +56,10 @@ suite: {
         http.get $testClient ""
         dict.knows (http.cookies $testClient) pepper |assert
     })
+
+    testHttpClientCanSendPostRequest: (func {
+        http.post $testClientEcho "jalapeno" "" |eq "body=jalapeno;" |assert       
+    })
 }
 
 test suite

@@ -10,7 +10,7 @@ var Module = elmo.NewModule("http", initModule)
 
 func initModule(context elmo.RunContext) elmo.Value {
 	return elmo.NewMappingForModule(context, []elmo.NamedValue{
-		client(), get(), cookies(), testServer(), testURL()})
+		client(), get(), post(), cookies(), testServer(), testURL()})
 }
 
 func client() elmo.NamedValue {
@@ -32,11 +32,44 @@ func client() elmo.NamedValue {
 	})
 }
 
+func getPath(context elmo.RunContext, pathArg elmo.Argument, parametersArg elmo.Argument) (string, elmo.ErrorValue) {
+	path := ""
+
+	if pathArg != nil {
+		path = elmo.EvalArgument2String(context, pathArg)
+	}
+
+	if parametersArg != nil {
+		parameters := elmo.EvalArgument(context, parametersArg)
+		if parameters.Type() != elmo.TypeDictionary {
+			return "", elmo.NewErrorValue("expect a dictionary with get parameters")
+		}
+		path = addParametersToPath(path, parameters.(elmo.DictionaryValue))
+	}
+
+	return path, nil
+}
+
+func getPathAndParamatersArg(arguments []elmo.Argument, pathArgNo int, parametersArgNo int) (elmo.Argument, elmo.Argument) {
+	var pathArg elmo.Argument = nil
+	var parametersArg elmo.Argument = nil
+
+	if len(arguments) == pathArgNo+1 {
+		pathArg = arguments[pathArgNo]
+	}
+
+	if len(arguments) == parametersArgNo+1 {
+		parametersArg = arguments[parametersArgNo]
+	}
+
+	return pathArg, parametersArg
+}
+
 func get() elmo.NamedValue {
 	return elmo.NewGoFunction(`get/executes an GET request on an http client
 	`, func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
 
-		argLen, err := elmo.CheckArguments(arguments, 1, 3, "get", "<client> <path>? <parameters>?")
+		_, err := elmo.CheckArguments(arguments, 1, 3, "get", "<client> <path>? <parameters>?")
 		if err != nil {
 			return err
 		}
@@ -50,19 +83,47 @@ func get() elmo.NamedValue {
 		}
 
 		path := ""
-		if argLen == 2 {
-			path = elmo.EvalArgument2String(context, arguments[1])
+		pathArg, parametersArg := getPathAndParamatersArg(arguments, 1, 2)
+
+		path, err = getPath(context, pathArg, parametersArg)
+		if err != nil {
+			return err
 		}
 
-		if argLen == 3 {
-			parameters := elmo.EvalArgument(context, arguments[2])
-			if parameters.Type() != elmo.TypeDictionary {
-				return elmo.NewErrorValue("expect a dictionary with get parameters")
-			}
-			path = addParametersToPath(path, parameters.(elmo.DictionaryValue))
+		return client.Internal().(HTTPClient).DoRequest("GET", path, nil)
+	})
+}
+
+func post() elmo.NamedValue {
+	return elmo.NewGoFunction(`post/executes an POST request on an http client
+	`, func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+
+		_, err := elmo.CheckArguments(arguments, 2, 4, "post", "<client> <body> <path>? <parameters>?")
+		if err != nil {
+			return err
 		}
 
-		return client.Internal().(HTTPClient).DoRequest("GET", path)
+		// first argument is the http client
+		//
+		client := elmo.EvalArgument(context, arguments[0])
+
+		if !client.IsType(typeInfoHTTPClient) {
+			return elmo.NewErrorValue("invalid call to http.get, expected an http client as first parameter")
+		}
+
+		// second argument is body to post
+		//
+		body := []byte(elmo.EvalArgument2String(context, arguments[1]))
+
+		path := ""
+		pathArg, parametersArg := getPathAndParamatersArg(arguments, 2, 3)
+
+		path, err = getPath(context, pathArg, parametersArg)
+		if err != nil {
+			return err
+		}
+
+		return client.Internal().(HTTPClient).DoRequest("POST", path, body)
 	})
 }
 
