@@ -476,6 +476,10 @@ func (identifier *identifier) String() string {
 	return strings.Join(identifier.value, ".")
 }
 
+func (identifier *identifier) Compare(context RunContext, value Value) (int, ErrorValue) {
+	return strings.Compare(identifier.String(), value.String()), nil
+}
+
 func (identifier *identifier) Type() Type {
 	return TypeIdentifier
 }
