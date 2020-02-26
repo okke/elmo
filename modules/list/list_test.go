@@ -3,7 +3,7 @@ package list
 import (
 	"testing"
 
-	"github.com/okke/elmo/core"
+	elmo "github.com/okke/elmo/core"
 )
 
 func listContext() elmo.RunContext {
@@ -269,4 +269,20 @@ func TestFilter(t *testing.T) {
 		`list: (load "list")
 		 f: (func v {return (ne (v) 2)})
 	 	 list.filter [1 2 3] &f`, elmo.ExpectValue(t, elmo.ParseAndRun(elmo.NewGlobalContext(), "[1 3]")))
+}
+
+func TestSort(t *testing.T) {
+	elmo.ParseTestAndRunBlockWithinContext(t, listContext(),
+		`list: (load "list")
+		 [1 2 3] |list.sort! |eq [1 2 3]`, elmo.ExpectValue(t, elmo.True))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, listContext(),
+		`list: (load "list")
+		 [3 2 1] |list.sort! |eq [1 2 3]`, elmo.ExpectValue(t, elmo.True))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, listContext(),
+		`list: (load "list")
+		 l: [3 2 1]
+		 list.sort! $l
+		 eq $l [1 2 3]`, elmo.ExpectValue(t, elmo.True))
 }

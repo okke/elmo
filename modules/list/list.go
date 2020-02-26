@@ -3,8 +3,9 @@ package list
 import (
 	"fmt"
 	"math"
+	"sort"
 
-	"github.com/okke/elmo/core"
+	elmo "github.com/okke/elmo/core"
 )
 
 // Module contains functions that operate on lists
@@ -22,7 +23,8 @@ func initModule(context elmo.RunContext) elmo.Value {
 		mutablePrepend(),
 		each(),
 		_map(),
-		filter()})
+		filter(),
+		_sort()})
 }
 
 func convertToList(value elmo.Value) ([]elmo.Value, elmo.ErrorValue) {
@@ -295,5 +297,31 @@ func filter() elmo.NamedValue {
 		}
 
 		return elmo.NewListValue(newValues)
+	})
+}
+
+func _sort() elmo.NamedValue {
+	return elmo.NewGoFunction("sort!", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+
+		_, err := elmo.CheckArguments(arguments, 1, 1, "sort!", "<list>")
+		if err != nil {
+			return err
+		}
+
+		// first argument of a list function can be an identifier with the name of the list
+		//
+		list := elmo.EvalArgumentOrSolveIdentifier(context, arguments[0])
+
+		internal, err := convertToList(list)
+		if err != nil {
+			return err
+		}
+
+		sort.Slice(internal, func(i, j int) bool {
+			c, _ := internal[i].(elmo.ComparableValue).Compare(context, internal[j])
+			return c < 0
+		})
+
+		return elmo.NewListValue(internal)
 	})
 }
