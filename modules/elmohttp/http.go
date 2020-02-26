@@ -1,8 +1,21 @@
 package elmohttp
 
 import (
+	"net/http"
+
 	elmo "github.com/okke/elmo/core"
 )
+
+type HTTPMethod int
+
+const (
+	HTTP_GET HTTPMethod = iota
+	HTTP_POST
+	HTTP_PUT
+)
+
+var httpMethods = []string{http.MethodGet, http.MethodPost, http.MethodPut}
+var elmoHTTPMethods = []string{"get", "post", "put"}
 
 // Module contains http related functions
 //
@@ -10,7 +23,7 @@ var Module = elmo.NewModule("http", initModule)
 
 func initModule(context elmo.RunContext) elmo.Value {
 	return elmo.NewMappingForModule(context, []elmo.NamedValue{
-		client(), get(), post(), cookies(), testServer(), testURL()})
+		client(), get(), post(), put(), cookies(), testServer(), testURL()})
 }
 
 func client() elmo.NamedValue {
@@ -66,7 +79,7 @@ func getPathAndParamatersArg(arguments []elmo.Argument, pathArgNo int, parameter
 }
 
 func get() elmo.NamedValue {
-	return elmo.NewGoFunction(`get/executes an GET request on an http client
+	return elmo.NewGoFunction(`get/executes an HTTP GET request on an http client
 	`, func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
 
 		_, err := elmo.CheckArguments(arguments, 1, 3, "get", "<client> <path>? <parameters>?")
@@ -94,11 +107,11 @@ func get() elmo.NamedValue {
 	})
 }
 
-func post() elmo.NamedValue {
-	return elmo.NewGoFunction(`post/executes an POST request on an http client
-	`, func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+func postOrPut(method HTTPMethod) func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
 
-		_, err := elmo.CheckArguments(arguments, 2, 4, "post", "<client> <body> <path>? <parameters>?")
+	return func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+
+		_, err := elmo.CheckArguments(arguments, 2, 4, elmoHTTPMethods[method], "<client> <body> <path>? <parameters>?")
 		if err != nil {
 			return err
 		}
@@ -123,8 +136,18 @@ func post() elmo.NamedValue {
 			return err
 		}
 
-		return client.Internal().(HTTPClient).DoRequest("POST", path, body)
-	})
+		return client.Internal().(HTTPClient).DoRequest(httpMethods[method], path, body)
+	}
+}
+
+func post() elmo.NamedValue {
+	return elmo.NewGoFunction(`post/executes an HTTP POST request on an http client
+	`, postOrPut(HTTP_POST))
+}
+
+func put() elmo.NamedValue {
+	return elmo.NewGoFunction(`put/executes an HTTP PUT request on an http client
+	`, postOrPut(HTTP_PUT))
 }
 
 func cookies() elmo.NamedValue {

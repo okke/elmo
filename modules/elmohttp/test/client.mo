@@ -60,6 +60,10 @@ suite: {
     testHttpClientCanSendPostRequest: (func {
         http.post $testClientEcho "jalapeno" "" |eq "body=jalapeno;" |assert       
     })
+
+    testHttpClientCanSendPutRequest: (func {
+        http.put $testClientEcho "jalapeno" "" |eq "body=jalapeno;" |assert       
+    })
 }
 
 test suite
