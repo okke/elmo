@@ -46,6 +46,8 @@ func NewElmoRequestHandler(context elmo.RunContext, code elmo.Runnable) func(htt
 			requestMap["body"] = elmo.NewStringLiteral(string(body))
 		}
 
+		requestMap["method"] = elmo.NewStringLiteral(request.Method)
+
 		requestValue := elmo.NewDictionaryValue(nil, requestMap)
 
 		responseValue := elmo.NewDictionaryValue(nil, map[string]elmo.Value{
