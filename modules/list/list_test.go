@@ -286,3 +286,12 @@ func TestSort(t *testing.T) {
 		 list.sort! $l
 		 eq $l [1 2 3]`, elmo.ExpectValue(t, elmo.True))
 }
+
+func TestUnMutableSort(t *testing.T) {
+
+	elmo.ParseTestAndRunBlockWithinContext(t, listContext(),
+		`list: (load "list")
+		 l: [3 2 1]
+		 list.sort $l
+		 eq $l [3 2 1]`, elmo.ExpectValue(t, elmo.True))
+}

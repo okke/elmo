@@ -24,7 +24,8 @@ func initModule(context elmo.RunContext) elmo.Value {
 		each(),
 		_map(),
 		filter(),
-		_sort()})
+		_sort(),
+		mutableSort()})
 }
 
 func convertToList(value elmo.Value) ([]elmo.Value, elmo.ErrorValue) {
@@ -300,7 +301,7 @@ func filter() elmo.NamedValue {
 	})
 }
 
-func _sort() elmo.NamedValue {
+func mutableSort() elmo.NamedValue {
 	return elmo.NewGoFunction("sort!", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
 
 		_, err := elmo.CheckArguments(arguments, 1, 1, "sort!", "<list>")
@@ -323,5 +324,34 @@ func _sort() elmo.NamedValue {
 		})
 
 		return elmo.NewListValue(internal)
+	})
+}
+
+func _sort() elmo.NamedValue {
+	return elmo.NewGoFunction("sort", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+
+		_, err := elmo.CheckArguments(arguments, 1, 1, "sort", "<list>")
+		if err != nil {
+			return err
+		}
+
+		// first argument of a list function can be an identifier with the name of the list
+		//
+		list := elmo.EvalArgumentOrSolveIdentifier(context, arguments[0])
+
+		internal, err := convertToList(list)
+		if err != nil {
+			return err
+		}
+
+		copyOfInternal := make([]elmo.Value, len(internal), len(internal))
+		copy(copyOfInternal, internal)
+
+		sort.Slice(copyOfInternal, func(i, j int) bool {
+			c, _ := internal[i].(elmo.ComparableValue).Compare(context, internal[j])
+			return c < 0
+		})
+
+		return elmo.NewListValue(copyOfInternal)
 	})
 }
