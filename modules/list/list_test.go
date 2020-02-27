@@ -20,6 +20,19 @@ func TestNew(t *testing.T) {
 		l`, elmo.ExpectValue(t, elmo.ParseAndRun(elmo.NewGlobalContext(), "[1 2 3]")))
 }
 
+func TestTuple(t *testing.T) {
+
+	elmo.ParseTestAndRunBlockWithinContext(t, listContext(),
+		`list: (load "list")
+		 [1 1]|list.tuple|eq`, elmo.ExpectValue(t, elmo.True))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, listContext(),
+		`list: (load "list")
+		set a b c ([1 2 3]|list.tuple)
+		[$a $b $c]`, elmo.ExpectValue(t, elmo.ParseAndRun(elmo.NewGlobalContext(), "[1 2 3]")))
+
+}
+
 func TestLen(t *testing.T) {
 
 	elmo.ParseTestAndRunBlockWithinContext(t, listContext(),

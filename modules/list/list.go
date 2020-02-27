@@ -15,6 +15,7 @@ var Module = elmo.NewModule("list", initModule)
 func initModule(context elmo.RunContext) elmo.Value {
 	return elmo.NewMappingForModule(context, []elmo.NamedValue{
 		_new(),
+		tuple(),
 		_len(),
 		at(),
 		_append(),
@@ -68,6 +69,25 @@ func _len() elmo.NamedValue {
 		}
 
 		return elmo.NewIntegerLiteral(int64(len(internal)))
+	})
+}
+
+func tuple() elmo.NamedValue {
+	return elmo.NewGoFunction("tuple", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+
+		_, err := elmo.CheckArguments(arguments, 1, 1, "tuple", "<list>")
+		if err != nil {
+			return err
+		}
+
+		list := elmo.EvalArgumentOrSolveIdentifier(context, arguments[0])
+
+		internal, err := convertToList(list)
+		if err != nil {
+			return err
+		}
+
+		return elmo.NewReturnValue(internal)
 	})
 }
 
