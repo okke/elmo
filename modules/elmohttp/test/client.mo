@@ -49,7 +49,7 @@ suite: {
 
     testHttpClientCanSendQueryParameters: (func {
         p: {pepper:"jalapeno"}
-        http.get $testClientEcho "" $p |eq "method=GET;pepper=jalapeno;" |assert
+        http.get $testClientEcho "" $p |eq "Accept-Encoding=gzip;User-Agent=Go-http-client/1.1;method=GET;pepper=jalapeno;" |assert
     })
 
     testHttpClientCanCatchCookies: (func {
@@ -58,11 +58,16 @@ suite: {
     })
 
     testHttpClientCanSendPostRequest: (func {
-        http.post $testClientEcho "jalapeno" "" |eq "body=jalapeno;method=POST;" |assert       
+        http.post $testClientEcho "jalapeno" "" |eq "Accept-Encoding=gzip;Content-Length=8;User-Agent=Go-http-client/1.1;body=jalapeno;method=POST;" |assert       
     })
 
     testHttpClientCanSendPutRequest: (func {
-        http.put $testClientEcho "jalapeno" "" |eq "body=jalapeno;method=PUT;" |assert       
+        http.put $testClientEcho "jalapeno" "" |eq "Accept-Encoding=gzip;Content-Length=8;User-Agent=Go-http-client/1.1;body=jalapeno;method=PUT;" |assert       
+    })
+
+    testHttpClientCanSendUserDefinedHeaders: (func {
+        h: {"Accept-Peppers":"jalapeno,chipotle; not-to-hot"}
+        http.client (http.testURL $serverEcho) |http.setHeaders $h | http.get "" |eq "Accept-Encoding=gzip;Accept-Peppers=jalapeno,chipotle; not-to-hot;User-Agent=Go-http-client/1.1;method=GET;" |assert
     })
 }
 

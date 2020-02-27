@@ -23,7 +23,7 @@ var Module = elmo.NewModule("http", initModule)
 
 func initModule(context elmo.RunContext) elmo.Value {
 	return elmo.NewMappingForModule(context, []elmo.NamedValue{
-		client(), get(), post(), put(), cookies(), testServer(), testURL()})
+		client(), get(), post(), put(), cookies(), setHeaders(), testServer(), testURL()})
 }
 
 func client() elmo.NamedValue {
@@ -172,6 +172,43 @@ func cookies() elmo.NamedValue {
 		}
 
 		return elmo.NewDictionaryValue(nil, mapping)
+	})
+}
+
+func setHeaders() elmo.NamedValue {
+	return elmo.NewGoFunction(`setHeaders/set the headers for all request an http client will make
+	`, func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+		_, err := elmo.CheckArguments(arguments, 2, 2, "setHeaders", "<client> <headers as dictionary>")
+		if err != nil {
+			return err
+		}
+
+		// first argument is the http client
+		//
+		client := elmo.EvalArgument(context, arguments[0])
+
+		if !client.IsType(typeInfoHTTPClient) {
+			return elmo.NewErrorValue("invalid call to http.setHeaders, expected an http client as first parameter")
+		}
+
+		headerArg := elmo.EvalArgument(context, arguments[1])
+		if headerArg.Type() != elmo.TypeDictionary {
+			return elmo.NewErrorValue("invalid call to http.setHeaders, expected a dictionary of headers as second parameter")
+		}
+
+		headerDict := headerArg.(elmo.DictionaryValue)
+
+		headerKeys := headerDict.Keys()
+
+		headers := make(map[string]string, len(headerKeys))
+		for _, k := range headerKeys {
+			v, _ := headerDict.Resolve(k)
+			headers[k] = v.String()
+		}
+
+		client.Internal().(HTTPClient).SetHeaders(headers)
+
+		return client
 	})
 }
 

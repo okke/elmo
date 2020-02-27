@@ -38,12 +38,26 @@ func NewElmoRequestHandler(context elmo.RunContext, code elmo.Runnable) func(htt
 			}
 
 		}
+
+		// copy body into request map
+		//
 		body, err := ioutil.ReadAll(request.Body)
 		if err != nil {
 			http.Error(responseWriter, err.Error(), http.StatusInternalServerError)
 		}
 		if body != nil && len(body) > 0 {
 			requestMap["body"] = elmo.NewStringLiteral(string(body))
+		}
+
+		// copy headers into request map
+		//
+		for k, v := range request.Header {
+			if len(v) == 1 {
+				requestMap[k] = elmo.ConvertStringToValue(v[0])
+			} else {
+				requestMap[k] = elmo.ConvertListOfStringsToValue(v)
+			}
+
 		}
 
 		requestMap["method"] = elmo.NewStringLiteral(request.Method)
