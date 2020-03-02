@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"strconv"
+	"strings"
 )
 
 // Ast2Block converts an ast node to a code block
@@ -113,6 +114,46 @@ func replaceEscapes(s string, esc rune, escape func(c rune) rune) string {
 	return buffer.String()
 }
 
+// Ast2StringLiteral converts an ast node to a srtring value
+//
+func Ast2StringLiteral(node *node32, meta ScriptMetaData) Value {
+
+	content := meta.Content()
+
+	var sb strings.Builder
+
+	// keep track of blocks at positions
+	//
+	var blocks map[int]Block
+
+	for _, child := range nodeChildren(node) {
+		switch child.pegRule {
+		case ruleQuote:
+			// ignore
+		case ruleStringChar:
+			grandChildren := nodeChildren(child)
+			if grandChildren != nil && len(grandChildren) > 0 && grandChildren[0].pegRule == ruleEscape {
+				cursor := grandChildren[0].up
+				if cursor == nil {
+					sb.WriteRune(escapeString(rune(nodeText(child, content)[1])))
+				} else if cursor.pegRule == ruleBlock {
+					block := Ast2Block(cursor, meta)
+					if blocks == nil {
+						blocks = make(map[int]Block, 0)
+					}
+					blocks[sb.Len()] = block
+				} else {
+					panic("string parsing failed while escaping")
+				}
+			} else {
+				sb.WriteRune(content[child.begin])
+			}
+		}
+	}
+
+	return NewStringLiteralWithBlocks(sb.String(), blocks)
+}
+
 // Ast2Argument converts an ast node to a function argument
 //
 func Ast2Argument(node *node32, meta ScriptMetaData) Argument {
@@ -139,8 +180,7 @@ func Ast2Argument(node *node32, meta ScriptMetaData) Argument {
 		return NewArgument(meta, begin, end, NewNameSpacedIdentifier(parts))
 
 	case ruleStringLiteral:
-		txt := nodeText(node, meta.Content())
-		return NewArgument(meta, node.begin, node.end, NewStringLiteral(replaceEscapes(txt[1:len(txt)-1], '\\', escapeString)))
+		return NewArgument(meta, node.begin, node.end, Ast2StringLiteral(node, meta))
 	case ruleLongStringLiteral:
 		txt := nodeText(node, meta.Content())
 		return NewArgument(meta, node.begin, node.end, NewStringLiteral(replaceEscapes(txt[1:len(txt)-1], '`', escapeLongString)))

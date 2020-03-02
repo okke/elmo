@@ -140,7 +140,8 @@ type identifier struct {
 
 type stringLiteral struct {
 	baseValue
-	value string
+	value  string
+	blocks map[int]Block
 }
 
 type integerLiteral struct {
@@ -240,6 +241,12 @@ type Value interface {
 //
 type IdentifierValue interface {
 	LookUp(RunContext) (DictionaryValue, Value, bool)
+}
+
+// StringValue represents a value of a string with Dynamic blocks of content
+//
+type StringValue interface {
+	ResolveBlocks(RunContext) Value
 }
 
 // IncrementableValue represents a value that can be incremented
@@ -610,6 +617,25 @@ func (stringLiteral *stringLiteral) ToBinary() BinaryValue {
 
 func (stringLiteral *stringLiteral) Compare(context RunContext, value Value) (int, ErrorValue) {
 	return strings.Compare(stringLiteral.String(), value.String()), nil
+}
+
+func (stringLiteral *stringLiteral) ResolveBlocks(context RunContext) Value {
+	if stringLiteral.blocks == nil {
+		return stringLiteral
+	}
+	value := stringLiteral.value
+	inserted := 0
+	for at, block := range stringLiteral.blocks {
+		insertValue := block.Run(context, []Argument{})
+		insert := ""
+		if insertValue != nil && insertValue != Nothing {
+			insert = insertValue.String()
+		}
+		value = value[:at+inserted] + insert + value[at+inserted:]
+		inserted = inserted + len(insert)
+
+	}
+	return NewStringLiteral(value)
 }
 
 func (integerLiteral *integerLiteral) String() string {
@@ -1282,6 +1308,13 @@ func NewStringLiteral(value string) Value {
 	return &stringLiteral{baseValue: baseValue{info: typeInfoString}, value: value}
 }
 
+// NewStringLiteralWithBlocks creates a new string literal value and registers
+// at which positions in the string dynamic content must be added
+//
+func NewStringLiteralWithBlocks(value string, blocks map[int]Block) Value {
+	return &stringLiteral{baseValue: baseValue{info: typeInfoString}, value: value, blocks: blocks}
+}
+
 // NewIntegerLiteral creates a new integer value
 //
 func NewIntegerLiteral(value int64) Value {
@@ -1574,6 +1607,9 @@ func (call *call) Run(context RunContext, additionalArguments []Argument) Value 
 	case TypeIdentifier:
 		function = call.firstArgument.Value().(IdentifierValue)
 		inDict, value, found = function.LookUp(context)
+	case TypeString:
+		value = call.firstArgument.Value().(StringValue).ResolveBlocks(context)
+		found = true
 	default:
 		value = call.firstArgument.Value()
 		found = true
@@ -1745,6 +1781,10 @@ func EvalArgument(context RunContext, argument Argument) Value {
 
 	if argument.Type() == TypeBlock {
 		return argument.Value().(Block).CopyWithinContext(context)
+	}
+
+	if argument.Type() == TypeString {
+		return argument.Value().(StringValue).ResolveBlocks(context)
 	}
 
 	return argument.Value()

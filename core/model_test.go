@@ -37,6 +37,21 @@ func TestLiteralStringsWithUnicodeCharacters(t *testing.T) {
 		`"⌘chipotle"`, ExpectValue(t, NewStringLiteral("⌘chipotle")))
 }
 
+func TestLiteralStringsWithBlock(t *testing.T) {
+	ParseTestAndRunBlock(t,
+		`"chipotle_\{}_jalapeno"`, ExpectValue(t, NewStringLiteral("chipotle__jalapeno")))
+	ParseTestAndRunBlock(t,
+		`"chipotle_\{true}_jalapeno"`, ExpectValue(t, NewStringLiteral("chipotle_true_jalapeno")))
+	ParseTestAndRunBlock(t,
+		`"chipotle_\{true}_\{false}_jalapeno"`, ExpectValue(t, NewStringLiteral("chipotle_true_false_jalapeno")))
+	ParseTestAndRunBlock(t,
+		`a:3; "chipotle_\{a}_jalapeno"`, ExpectValue(t, NewStringLiteral("chipotle_3_jalapeno")))
+	ParseTestAndRunBlock(t,
+		`a:33; b:45; "chipotle_\{a}_\{b}_jalapeno"`, ExpectValue(t, NewStringLiteral("chipotle_33_45_jalapeno")))
+	ParseTestAndRunBlock(t,
+		`pepper:"chipotle"; s:"\{pepper}"`, ExpectValue(t, NewStringLiteral("chipotle")))
+}
+
 func TestFunctionCallWithBlock(t *testing.T) {
 	ParseTestAndRunBlock(t,
 		`f: (func arg {return (type $arg)})

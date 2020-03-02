@@ -65,7 +65,7 @@ StringChar <- Escape / ![\"\n\\] .
 
 LongStringLiteral <- ( LongString Spacing)
 LongString <- '`' (('``') / (!'`'.))* '`'
-Escape <- '\\' .
+Escape <- '\\' (Block / .)
 
 #
 # NUMBERS
