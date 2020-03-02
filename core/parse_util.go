@@ -96,7 +96,7 @@ func childrenRules(node *node32) []pegRule {
 
 // Text returns the textual representation of a node without any Spacing
 //
-func nodeText(node *node32, buf string) string {
+func nodeText(node *node32, buf []rune) string {
 
 	begin := node.begin
 	end := node.end
@@ -113,6 +113,6 @@ func nodeText(node *node32, buf string) string {
 		}
 	}
 
-	return buf[begin : begin+(end-begin)]
+	return string(buf[begin : begin+(end-begin)])
 
 }

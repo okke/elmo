@@ -32,6 +32,11 @@ func TestLiteralStrings(t *testing.T) {
 		"`chipotle``jalapeno`", ExpectValue(t, NewStringLiteral("chipotle`jalapeno")))
 }
 
+func TestLiteralStringsWithUnicodeCharacters(t *testing.T) {
+	ParseTestAndRunBlock(t,
+		`"⌘chipotle"`, ExpectValue(t, NewStringLiteral("⌘chipotle")))
+}
+
 func TestFunctionCallWithBlock(t *testing.T) {
 	ParseTestAndRunBlock(t,
 		`f: (func arg {return (type $arg)})
