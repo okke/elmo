@@ -114,9 +114,28 @@ func replaceEscapes(s string, esc rune, escape func(c rune) rune) string {
 	return buffer.String()
 }
 
+type ast2StringDriver struct {
+	quoteRule  pegRule
+	stringRule pegRule
+	escapeRule pegRule
+	escapeFunc func(rune) rune
+}
+
+var stringDriver = &ast2StringDriver{
+	quoteRule:  ruleQuote,
+	stringRule: ruleStringChar,
+	escapeRule: ruleEscape,
+	escapeFunc: escapeString}
+
+var longStringDriver = &ast2StringDriver{
+	quoteRule:  ruleBackTick,
+	stringRule: ruleLongStringChar,
+	escapeRule: ruleLongEscape,
+	escapeFunc: escapeLongString}
+
 // Ast2StringLiteral converts an ast node to a srtring value
 //
-func Ast2StringLiteral(node *node32, meta ScriptMetaData) Value {
+func Ast2StringLiteral(node *node32, meta ScriptMetaData, driver *ast2StringDriver) Value {
 
 	content := meta.Content()
 
@@ -128,20 +147,22 @@ func Ast2StringLiteral(node *node32, meta ScriptMetaData) Value {
 
 	for _, child := range nodeChildren(node) {
 		switch child.pegRule {
-		case ruleQuote:
+		case driver.quoteRule:
 			// ignore
-		case ruleStringChar:
+		case driver.stringRule:
 			grandChildren := nodeChildren(child)
-			if grandChildren != nil && len(grandChildren) > 0 && grandChildren[0].pegRule == ruleEscape {
+			if grandChildren != nil && len(grandChildren) > 0 && grandChildren[0].pegRule == driver.escapeRule {
 				cursor := grandChildren[0].up
 				if cursor == nil {
-					sb.WriteRune(escapeString(rune(nodeText(child, content)[1])))
+					sb.WriteRune(driver.escapeFunc(rune(nodeText(child, content)[1])))
 				} else if cursor.pegRule == ruleBlock {
 					block := Ast2Block(cursor, meta)
 					if blocks == nil {
 						blocks = make(map[int]Block, 0)
 					}
+
 					blocks[sb.Len()] = block
+
 				} else {
 					panic("string parsing failed while escaping")
 				}
@@ -180,10 +201,9 @@ func Ast2Argument(node *node32, meta ScriptMetaData) Argument {
 		return NewArgument(meta, begin, end, NewNameSpacedIdentifier(parts))
 
 	case ruleStringLiteral:
-		return NewArgument(meta, node.begin, node.end, Ast2StringLiteral(node, meta))
+		return NewArgument(meta, node.begin, node.end, Ast2StringLiteral(node, meta, stringDriver))
 	case ruleLongStringLiteral:
-		txt := nodeText(node, meta.Content())
-		return NewArgument(meta, node.begin, node.end, NewStringLiteral(replaceEscapes(txt[1:len(txt)-1], '`', escapeLongString)))
+		return NewArgument(meta, node.begin, node.end, Ast2StringLiteral(node, meta, longStringDriver))
 	case ruleNumber:
 		txt := nodeText(node, meta.Content())
 

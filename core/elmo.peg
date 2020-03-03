@@ -60,12 +60,15 @@ IdChar <- [a-z] / [A-Z] / [0-9] / [_?!]
 
 StringLiteral <- Quote StringChar* Quote Spacing
 Quote <- ["]
-
 StringChar <- Escape / ![\"\n\\] .
-
-LongStringLiteral <- ( LongString Spacing)
-LongString <- '`' (('``') / (!'`'.))* '`'
 Escape <- '\\' (Block / .)
+
+# Backticked string: `...` or `...``...` or `...`{}...`
+#
+LongStringLiteral <- BackTick LongStringChar* BackTick Spacing
+BackTick <- [`]
+LongStringChar <- LongEscape / (!'`'.)
+LongEscape <- '`' (Block / '`')
 
 #
 # NUMBERS
