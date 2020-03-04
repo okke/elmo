@@ -108,12 +108,18 @@ func replReadMore(commandLine *liner.State, command string) string {
 			if (strings.Count(current, "`") % 2) == 1 {
 				inMultiLine = false
 			} else {
-				wantMore = true
+				if (strings.Count(current, "`{") % 2) == 0 {
+					wantMore = true
+				}
 			}
 		} else {
 			if (strings.Count(current, "`") % 2) == 1 {
-				inMultiLine = true
-				wantMore = true
+				if (strings.Count(current, "`{") % 2) == 0 {
+					wantMore = true
+
+					inMultiLine = true
+					wantMore = true
+				}
 			}
 		}
 

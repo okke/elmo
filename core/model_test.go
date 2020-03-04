@@ -52,13 +52,15 @@ func TestLiteralStringsWithBlock(t *testing.T) {
 		`pepper:"chipotle"; s:"\{pepper}"`, ExpectValue(t, NewStringLiteral("chipotle")))
 }
 
-func TostLongLiteralStringsWithBlock(t *testing.T) {
+func TestLongLiteralStringsWithBlock(t *testing.T) {
 	ParseTestAndRunBlock(t,
 		"`chipotle_`{}_jalapeno`", ExpectValue(t, NewStringLiteral("chipotle__jalapeno")))
 	ParseTestAndRunBlock(t,
 		"`chipotle_`{true}_jalapeno`", ExpectValue(t, NewStringLiteral("chipotle_true_jalapeno")))
 	ParseTestAndRunBlock(t,
 		"`chipotle_`{true}_`{false}_jalapeno`", ExpectValue(t, NewStringLiteral("chipotle_true_false_jalapeno")))
+	ParseTestAndRunBlock(t,
+		"``{true}`{false}`", ExpectValue(t, NewStringLiteral("truefalse")))
 	ParseTestAndRunBlock(t,
 		"a:3; `chipotle_`{a}_jalapeno`", ExpectValue(t, NewStringLiteral("chipotle_3_jalapeno")))
 	ParseTestAndRunBlock(t,

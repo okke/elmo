@@ -143,7 +143,7 @@ func Ast2StringLiteral(node *node32, meta ScriptMetaData, driver *ast2StringDriv
 
 	// keep track of blocks at positions
 	//
-	var blocks map[int]Block
+	var blocks []*blockAtPositionInString
 
 	for _, child := range nodeChildren(node) {
 		switch child.pegRule {
@@ -158,10 +158,10 @@ func Ast2StringLiteral(node *node32, meta ScriptMetaData, driver *ast2StringDriv
 				} else if cursor.pegRule == ruleBlock {
 					block := Ast2Block(cursor, meta)
 					if blocks == nil {
-						blocks = make(map[int]Block, 0)
+						blocks = make([]*blockAtPositionInString, 0, 0)
 					}
 
-					blocks[sb.Len()] = block
+					blocks = append(blocks, &blockAtPositionInString{at: sb.Len(), block: block})
 
 				} else {
 					panic("string parsing failed while escaping")
@@ -172,7 +172,7 @@ func Ast2StringLiteral(node *node32, meta ScriptMetaData, driver *ast2StringDriv
 		}
 	}
 
-	return NewStringLiteralWithBlocks(sb.String(), blocks)
+	return newStringLiteralWithBlocks(sb.String(), blocks)
 }
 
 // Ast2Argument converts an ast node to a function argument

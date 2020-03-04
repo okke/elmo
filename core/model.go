@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"math"
-	"sort"
 	"strings"
 	"sync"
 
@@ -139,11 +138,15 @@ type identifier struct {
 	value []string
 }
 
+type blockAtPositionInString struct {
+	at    int
+	block Block
+}
+
 type stringLiteral struct {
 	baseValue
-	value        string
-	blocks       map[int]Block
-	blockIndexes []int
+	value  string
+	blocks []*blockAtPositionInString
 }
 
 type integerLiteral struct {
@@ -622,22 +625,23 @@ func (stringLiteral *stringLiteral) Compare(context RunContext, value Value) (in
 }
 
 func (stringLiteral *stringLiteral) ResolveBlocks(context RunContext) Value {
-	if stringLiteral.blocks == nil || stringLiteral.blockIndexes == nil {
+
+	if stringLiteral.blocks == nil {
 		return stringLiteral
 	}
-	value := stringLiteral.value
-	inserted := 0
 
-	for _, at := range stringLiteral.blockIndexes {
-		block := stringLiteral.blocks[at]
-		insertValue := block.Run(context, []Argument{})
+	inserted := 0
+	value := stringLiteral.value
+	for _, blockPosition := range stringLiteral.blocks {
+		insertValue := blockPosition.block.Run(context, []Argument{})
 		insert := ""
 		if insertValue != nil && insertValue != Nothing {
 			insert = insertValue.String()
 		}
-		value = value[:at+inserted] + insert + value[at+inserted:]
+		value = value[:blockPosition.at+inserted] + insert + value[blockPosition.at+inserted:]
 		inserted = inserted + len(insert)
 	}
+
 	return NewStringLiteral(value)
 }
 
@@ -1311,26 +1315,11 @@ func NewStringLiteral(value string) Value {
 	return &stringLiteral{baseValue: baseValue{info: typeInfoString}, value: value}
 }
 
-// NewStringLiteralWithBlocks creates a new string literal value and registers
+// newStringLiteralWithBlocks creates a new string literal value and registers
 // at which positions in the string dynamic content must be added
 //
-func NewStringLiteralWithBlocks(value string, blocks map[int]Block) Value {
-
-	if blocks == nil {
-		return NewStringLiteral(value)
-	}
-
-	// create a sorted list of block indexes
-	//
-	indexes := make([]int, len(blocks), len(blocks))
-	at := 0
-	for index := range blocks {
-		indexes[at] = index
-		at = at + 1
-	}
-	sort.Ints(indexes)
-
-	return &stringLiteral{baseValue: baseValue{info: typeInfoString}, value: value, blockIndexes: indexes, blocks: blocks}
+func newStringLiteralWithBlocks(value string, blocks []*blockAtPositionInString) Value {
+	return &stringLiteral{baseValue: baseValue{info: typeInfoString}, value: value, blocks: blocks}
 }
 
 // NewIntegerLiteral creates a new integer value
