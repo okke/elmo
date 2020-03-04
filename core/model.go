@@ -630,19 +630,28 @@ func (stringLiteral *stringLiteral) ResolveBlocks(context RunContext) Value {
 		return stringLiteral
 	}
 
-	inserted := 0
+	var sb strings.Builder
 	value := stringLiteral.value
+	at := 0
+
 	for _, blockPosition := range stringLiteral.blocks {
-		insertValue := blockPosition.block.Run(context, []Argument{})
-		insert := ""
-		if insertValue != nil && insertValue != Nothing {
-			insert = insertValue.String()
+		if at < blockPosition.at {
+			sb.WriteString(value[at:blockPosition.at])
 		}
-		value = value[:blockPosition.at+inserted] + insert + value[blockPosition.at+inserted:]
-		inserted = inserted + len(insert)
+
+		insertValue := blockPosition.block.Run(context, []Argument{})
+		if insertValue != nil && insertValue != Nothing {
+			sb.WriteString(insertValue.String())
+		}
+
+		at = blockPosition.at
 	}
 
-	return NewStringLiteral(value)
+	if at < len(value) {
+		sb.WriteString(value[at:])
+	}
+
+	return NewStringLiteral(sb.String())
 }
 
 func (integerLiteral *integerLiteral) String() string {
