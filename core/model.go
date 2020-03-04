@@ -541,7 +541,10 @@ func (identifier *identifier) ToBinary() BinaryValue {
 }
 
 func (stringLiteral *stringLiteral) String() string {
-	return stringLiteral.value
+	if stringLiteral.blocks == nil {
+		return stringLiteral.value
+	}
+	return stringLiteral.resolveBlocksToString(nil, func(Block) string { return "\\{...}" })
 }
 
 func (stringLiteral *stringLiteral) Type() Type {
@@ -624,11 +627,7 @@ func (stringLiteral *stringLiteral) Compare(context RunContext, value Value) (in
 	return strings.Compare(stringLiteral.String(), value.String()), nil
 }
 
-func (stringLiteral *stringLiteral) ResolveBlocks(context RunContext) Value {
-
-	if stringLiteral.blocks == nil {
-		return stringLiteral
-	}
+func (stringLiteral *stringLiteral) resolveBlocksToString(context RunContext, withBlock func(Block) string) string {
 
 	var sb strings.Builder
 	value := stringLiteral.value
@@ -639,10 +638,7 @@ func (stringLiteral *stringLiteral) ResolveBlocks(context RunContext) Value {
 			sb.WriteString(value[at:blockPosition.at])
 		}
 
-		insertValue := blockPosition.block.Run(context, []Argument{})
-		if insertValue != nil && insertValue != Nothing {
-			sb.WriteString(insertValue.String())
-		}
+		sb.WriteString(withBlock(blockPosition.block))
 
 		at = blockPosition.at
 	}
@@ -651,7 +647,22 @@ func (stringLiteral *stringLiteral) ResolveBlocks(context RunContext) Value {
 		sb.WriteString(value[at:])
 	}
 
-	return NewStringLiteral(sb.String())
+	return sb.String()
+}
+
+func (stringLiteral *stringLiteral) ResolveBlocks(context RunContext) Value {
+
+	if stringLiteral.blocks == nil {
+		return stringLiteral
+	}
+
+	return NewStringLiteral(stringLiteral.resolveBlocksToString(context, func(block Block) string {
+		if insertValue := block.Run(context, []Argument{}); insertValue != nil && insertValue != Nothing {
+			return insertValue.String()
+		}
+
+		return ""
+	}))
 }
 
 func (integerLiteral *integerLiteral) String() string {

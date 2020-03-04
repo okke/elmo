@@ -470,6 +470,17 @@ func ampersand() NamedValue {
 		func(context RunContext, arguments []Argument) Value {
 			// no argument checks are needed, ampersand (&) is an internal function
 			// part of elmo's syntax
+
+			// when argument is a string, return the raw string
+			// including possible blocks which are not evaluated
+			// so resulting value can be used as template
+			//
+			if arguments[0].Value().Type() == TypeString {
+				return arguments[0].Value()
+			}
+
+			// Otherwise evaluate to identifier which resolved and returned
+			// without further evaluation so functions can be passed as arguments
 			//
 			name := EvalArgument(context, arguments[0])
 
@@ -1008,6 +1019,8 @@ func eval() NamedValue {
 			result := EvalArgumentWithBlock(blockContext, arguments[blockArg])
 			if result.Type() == TypeBlock {
 				return result.(Block).Run(blockContext, []Argument{})
+			} else if result.Type() == TypeString {
+				return result.(StringValue).ResolveBlocks(blockContext)
 			}
 			return result
 
