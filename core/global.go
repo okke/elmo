@@ -1029,9 +1029,9 @@ func eval() NamedValue {
 }
 
 func parse() NamedValue {
-	return NewGoFunction(`parse/Parses anbd evaluates a string of elmo code
+	return NewGoFunction(`parse/Parses a string of elmo code and returns a block of code
 		Usage: parse string
-		Returns: evaluation result
+		Returns: elmo code block
 		`,
 
 		func(context RunContext, arguments []Argument) Value {
@@ -1040,7 +1040,11 @@ func parse() NamedValue {
 				return err
 			}
 
-			return ParseAndRunWithFile(context, EvalArgument2String(context, arguments[0]), "parse")
+			block, err := Parse2Block(EvalArgument2String(context, arguments[0]), "parse")
+			if err != nil {
+				return NewErrorValue(err.Error())
+			}
+			return block
 		})
 }
 

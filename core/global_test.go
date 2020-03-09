@@ -701,7 +701,7 @@ func TestEvalWithString(t *testing.T) {
 
 func TestParseWithEval(t *testing.T) {
 	ParseTestAndRunBlock(t,
-		`s:"&\"-\\{a}-\""; a:3; eval (parse $s)`, ExpectValue(t, NewStringLiteral("-3-")))
+		`s:"\"-\\{a}-\""; a:3; eval (parse $s)`, ExpectValue(t, NewStringLiteral("-3-")))
 }
 
 func TestEq(t *testing.T) {

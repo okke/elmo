@@ -21,6 +21,20 @@ func ParseAndTest(t *testing.T, s string, testfunc func(*node32)) {
 
 }
 
+// Parse2Block will parse given script and return it as block or error
+//
+func Parse2Block(s string, fileName string) (Block, error) {
+	grammar := &ElmoGrammar{Buffer: s}
+
+	grammar.Init()
+
+	if err := grammar.Parse(); err != nil {
+		return nil, err
+	}
+
+	return Ast2Block(grammar.AST(), NewScriptMetaData(fileName, s)), nil
+}
+
 // ParseAndRun will parse given script and execute test function on its result
 //
 func ParseAndRun(context RunContext, s string) Value {
