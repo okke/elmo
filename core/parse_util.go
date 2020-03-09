@@ -63,7 +63,7 @@ func pegRulesFirstChild(nodes []*node32) []pegRule {
 	return result
 }
 
-// TestEqRules will test if two array of rules are the same
+// ruleSlicesAreEqual will test if two array of rules are the same
 //
 func ruleSlicesAreEqual(a, b []pegRule) bool {
 
@@ -88,7 +88,7 @@ func ruleSlicesAreEqual(a, b []pegRule) bool {
 	return true
 }
 
-// ChildrenRules returns an array of the children rules
+// childrenRules returns an array of the children rules
 //
 func childrenRules(node *node32) []pegRule {
 	return pegRules(nodeChildren(node))

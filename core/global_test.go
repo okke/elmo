@@ -699,6 +699,11 @@ func TestEvalWithString(t *testing.T) {
 		`s:&"-\{a}-"; b:{a:1}; eval $b $s`, ExpectValue(t, NewStringLiteral("-1-")))
 }
 
+func TestParseWithEval(t *testing.T) {
+	ParseTestAndRunBlock(t,
+		`s:"&\"-\\{a}-\""; a:3; eval (parse $s)`, ExpectValue(t, NewStringLiteral("-3-")))
+}
+
 func TestEq(t *testing.T) {
 	ParseTestAndRunBlock(t, `eq 1 1`, ExpectValue(t, True))
 	ParseTestAndRunBlock(t, `eq 1 0`, ExpectValue(t, False))

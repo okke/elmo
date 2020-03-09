@@ -47,6 +47,7 @@ func NewGlobalContext() RunContext {
 	context.SetNamed(mixin())
 	context.SetNamed(load())
 	context.SetNamed(eval())
+	context.SetNamed(parse())
 	context.SetNamed(puts())
 	context.SetNamed(echo())
 	context.SetNamed(toS())
@@ -1024,6 +1025,22 @@ func eval() NamedValue {
 			}
 			return result
 
+		})
+}
+
+func parse() NamedValue {
+	return NewGoFunction(`parse/Parses anbd evaluates a string of elmo code
+		Usage: parse string
+		Returns: evaluation result
+		`,
+
+		func(context RunContext, arguments []Argument) Value {
+
+			if _, err := CheckArguments(arguments, 1, 1, "parse", "<string>"); err != nil {
+				return err
+			}
+
+			return ParseAndRunWithFile(context, EvalArgument2String(context, arguments[0]), "parse")
 		})
 }
 
