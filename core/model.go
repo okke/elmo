@@ -354,6 +354,12 @@ type RunnableValue interface {
 	Runnable
 }
 
+type Inspectable interface {
+	Meta() ScriptMetaData
+	BeginsAt() uint32
+	EndsAt() uint32
+}
+
 // NamedValue represent data with a name
 //
 type NamedValue interface {
@@ -1476,12 +1482,22 @@ func NewReturnValue(values []Value) Value {
 }
 
 //
-// ---[ASTNode]---------------------------------------------------------------
+// ---[ASTNode / Inspectable] ---------------------------------------------------------
 //
 type astNode struct {
 	meta  ScriptMetaData
 	begin uint32
 	end   uint32
+}
+
+func (astNode *astNode) Meta() ScriptMetaData {
+	return astNode.meta
+}
+func (astNode *astNode) BeginsAt() uint32 {
+	return astNode.begin
+}
+func (astNode *astNode) EndsAt() uint32 {
+	return astNode.end
 }
 
 //

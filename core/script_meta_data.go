@@ -22,7 +22,7 @@ func (scriptMetaData *scriptMetaData) Content() []rune {
 }
 
 func (scriptMetaData *scriptMetaData) PositionOf(absolutePosition int) (int, int) {
-	found := translatePositions([]rune(scriptMetaData.content), []int{absolutePosition})
+	found := translatePositions(scriptMetaData.content, []int{absolutePosition})
 	return found[absolutePosition].line, found[absolutePosition].symbol
 }
 
