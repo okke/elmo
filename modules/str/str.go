@@ -127,7 +127,7 @@ func trim() elmo.NamedValue {
 			cIdx = 2
 		}
 
-		cutset := " \t"
+		cutset := " \t\n\r"
 
 		if (cIdx == 1 && argLen == 2) || (cIdx == 2 && argLen == 3) {
 			csValue := elmo.EvalArgument(context, arguments[cIdx])

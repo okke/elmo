@@ -84,7 +84,11 @@ func TestTrim(t *testing.T) {
 
 	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
 		`str: (load "string")
-     str.trim " chipotle "`, elmo.ExpectValue(t, elmo.NewStringLiteral("chipotle")))
+	 str.trim " chipotle "`, elmo.ExpectValue(t, elmo.NewStringLiteral("chipotle")))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
+		`str: (load "string")
+     str.trim "\tchipotle\n"`, elmo.ExpectValue(t, elmo.NewStringLiteral("chipotle")))
 
 	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
 		`str: (load "string")
