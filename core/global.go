@@ -130,7 +130,12 @@ func _type() NamedValue {
 			if err != nil {
 				return err
 			}
-			return EvalArgument(context, arguments[0]).Info().Name()
+			value := EvalArgument(context, arguments[0])
+			info := value.Info()
+			if info == nil {
+				return NewStringLiteral("?")
+			}
+			return info.Name()
 		})
 }
 

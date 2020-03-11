@@ -1557,7 +1557,8 @@ type call struct {
 // Call is a function call
 //
 type Call interface {
-	RunnableValue
+	Value
+	Runnable
 
 	Name() string
 	Arguments() []Argument
