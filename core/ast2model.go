@@ -17,7 +17,7 @@ func Ast2Block(node *node32, meta ScriptMetaData) Block {
 		calls = append(calls, Ast2Call(call, meta))
 	}
 
-	return NewBlock(meta, node.begin, node.end, calls)
+	return NewBlock(meta, node, calls)
 }
 
 // Ast2List converts an ast node to a call to list
@@ -28,7 +28,7 @@ func Ast2List(node *node32, meta ScriptMetaData, pipe Call) Call {
 		arguments = append(arguments, Ast2Argument(argument.up, meta))
 	}
 
-	return NewCallWithFunction(meta, node.begin, node.end, ListConstructor, arguments, pipe)
+	return NewCallWithFunction(meta, node, ListConstructor, arguments, pipe)
 }
 
 // Ast2Call converts an ast node to a function call
@@ -54,7 +54,7 @@ func Ast2Call(node *node32, meta ScriptMetaData) Call {
 	for idx, argument := range children {
 		if idx == 0 {
 			if argument.pegRule == ruleAMPERSAND {
-				firstArg = NewArgument(meta, argument.begin, argument.end, NewIdentifier(nodeText(argument, meta.Content())))
+				firstArg = NewArgument(meta, argument, NewIdentifier(nodeText(argument, meta.Content())))
 			} else {
 				firstArg = Ast2Argument(argument.up, meta)
 			}
@@ -66,14 +66,14 @@ func Ast2Call(node *node32, meta ScriptMetaData) Call {
 				// convert identifier : value => set identifier value
 				//
 				arguments = append(arguments, firstArg)
-				firstArg = NewArgument(meta, argument.begin, argument.end, NewIdentifier("set"))
+				firstArg = NewArgument(meta, argument, NewIdentifier("set"))
 			} else {
 				panic(fmt.Sprintf("unexpected argument %v", argument))
 			}
 		}
 	}
 
-	return NewCall(meta, node.begin, node.end, firstArg, arguments, pipeTo)
+	return NewCall(meta, node, firstArg, arguments, pipeTo)
 }
 
 func escapeString(c rune) rune {
@@ -182,12 +182,12 @@ func Ast2Argument(node *node32, meta ScriptMetaData) Argument {
 	case ruleIdentifier:
 
 		parts := []string{}
-		begin := node.begin
-		end := node.end
+		begin := node
+		end := node
 		current := node
 
 		for current != nil {
-			end = current.end
+			end = current
 			parts = append(parts, nodeText(current, meta.Content()))
 
 			next := current.next
@@ -198,12 +198,12 @@ func Ast2Argument(node *node32, meta ScriptMetaData) Argument {
 			}
 		}
 
-		return NewArgument(meta, begin, end, NewNameSpacedIdentifier(parts))
+		return NewArgumentWithDots(meta, begin, end, NewNameSpacedIdentifier(parts))
 
 	case ruleStringLiteral:
-		return NewArgument(meta, node.begin, node.end, Ast2StringLiteral(node, meta, stringDriver))
+		return NewArgument(meta, node, Ast2StringLiteral(node, meta, stringDriver))
 	case ruleLongStringLiteral:
-		return NewArgument(meta, node.begin, node.end, Ast2StringLiteral(node, meta, longStringDriver))
+		return NewArgument(meta, node, Ast2StringLiteral(node, meta, longStringDriver))
 	case ruleNumber:
 		txt := nodeText(node, meta.Content())
 
@@ -219,15 +219,15 @@ func Ast2Argument(node *node32, meta ScriptMetaData) Argument {
 				panic(err)
 			}
 
-			return NewArgument(meta, node.begin, node.end, NewFloatLiteral(f))
+			return NewArgument(meta, node, NewFloatLiteral(f))
 		}
-		return NewArgument(meta, node.begin, node.end, NewIntegerLiteral(i))
+		return NewArgument(meta, node, NewIntegerLiteral(i))
 	case ruleFunctionCall:
-		return NewArgument(meta, node.begin, node.end, Ast2Call(node, meta))
+		return NewArgument(meta, node, Ast2Call(node, meta))
 	case ruleBlock:
-		return NewArgument(meta, node.begin, node.end, Ast2Block(node, meta))
+		return NewArgument(meta, node, Ast2Block(node, meta))
 	case ruleList:
-		return NewArgument(meta, node.begin, node.end, Ast2List(node, meta, nil))
+		return NewArgument(meta, node, Ast2List(node, meta, nil))
 	default:
 		panic(fmt.Sprintf("invalid argument node: %v", node))
 	}

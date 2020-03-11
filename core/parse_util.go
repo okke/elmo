@@ -39,6 +39,32 @@ func nodeChildren(node *node32) []*node32 {
 	})
 }
 
+func nodeChildrenWithoutSpacing(node *node32) []*node32 {
+	result := []*node32{}
+
+	cursor := node.up
+	for cursor != nil {
+		result = append(result, cursor)
+		cursor = cursor.next
+	}
+
+	return filterNodes(result, func(child *node32) bool {
+		return (child.pegRule != ruleSpacing &&
+			child.pegRule != ruleNewLine &&
+			child.pegRule != ruleEndOfLine)
+	})
+}
+
+// end of node returns the last character of a node while ignoring spacing
+//
+func endOfNode(node *node32) uint32 {
+	children := nodeChildrenWithoutSpacing(node)
+	if children == nil || len(children) == 0 {
+		return node.end
+	}
+	return endOfNode(children[len(children)-1])
+}
+
 // pegRules returns an array of the peg rules of a node without Spacing
 //
 func pegRules(nodes []*node32) []pegRule {

@@ -1485,19 +1485,31 @@ func NewReturnValue(values []Value) Value {
 // ---[ASTNode / Inspectable] ---------------------------------------------------------
 //
 type astNode struct {
-	meta  ScriptMetaData
-	begin uint32
-	end   uint32
+	meta    ScriptMetaData
+	node    *node32
+	endNode *node32
+	//begin uint32
+	//end   uint32
 }
 
 func (astNode *astNode) Meta() ScriptMetaData {
 	return astNode.meta
 }
 func (astNode *astNode) BeginsAt() uint32 {
-	return astNode.begin
+	if astNode == nil {
+		return 0
+	}
+	return astNode.node.begin
 }
+
 func (astNode *astNode) EndsAt() uint32 {
-	return astNode.end
+	if astNode.node == nil {
+		return 0
+	}
+	if astNode.endNode == nil {
+		return endOfNode(astNode.node)
+	}
+	return endOfNode(astNode.endNode)
 }
 
 //
@@ -1531,8 +1543,14 @@ func (argument *argument) Value() Value {
 
 // NewArgument constructs a new function argument
 //
-func NewArgument(meta ScriptMetaData, begin uint32, end uint32, value Value) Argument {
-	return &argument{astNode: astNode{meta: meta, begin: begin, end: end}, value: value}
+func NewArgument(meta ScriptMetaData, node *node32, value Value) Argument {
+	return &argument{astNode: astNode{meta: meta, node: node}, value: value}
+}
+
+// NewArgumentWithDots constructs a new function argument consisting of multiple ast nodes
+//
+func NewArgumentWithDots(meta ScriptMetaData, nodeBegin *node32, nodeEnd *node32, value Value) Argument {
+	return &argument{astNode: astNode{meta: meta, node: nodeBegin, endNode: nodeEnd}, value: value}
 }
 
 // NewDynamicArgument constructs a new function argument without script info
@@ -1588,7 +1606,7 @@ func (call *call) addInfoWhenError(value Value) Value {
 			return value
 		}
 
-		lineno, _ := call.meta.PositionOf(int(call.begin))
+		lineno, _ := call.meta.PositionOf(int(call.BeginsAt()))
 		value.(ErrorValue).SetAt(call.meta, lineno)
 	}
 	return value
@@ -1623,8 +1641,8 @@ func createArgumentsForMissingFunc(context RunContext, call *call, arguments []A
 	// and pass the original function name as first argument
 	//
 	return []Argument{
-		NewArgument(call.meta, call.astNode.begin, call.astNode.end, NewIdentifier(call.firstArgument.Value().(*identifier).value[len(call.firstArgument.Value().(*identifier).value)-1])),
-		NewArgument(call.meta, call.astNode.begin, call.astNode.end, NewListValue(values))}
+		NewArgument(call.meta, call.astNode.node, NewIdentifier(call.firstArgument.Value().(*identifier).value[len(call.firstArgument.Value().(*identifier).value)-1])),
+		NewArgument(call.meta, call.astNode.node, NewListValue(values))}
 }
 
 func (call *call) Run(context RunContext, additionalArguments []Argument) Value {
@@ -1729,15 +1747,15 @@ func (call *call) Internal() interface{} {
 
 // NewCall contstructs a new function call
 //
-func NewCall(meta ScriptMetaData, begin uint32, end uint32, firstArg Argument, arguments []Argument, pipeTo Call) Call {
-	return &call{astNode: astNode{meta: meta, begin: begin, end: end}, baseValue: baseValue{info: typeInfoCall},
+func NewCall(meta ScriptMetaData, node *node32, firstArg Argument, arguments []Argument, pipeTo Call) Call {
+	return &call{astNode: astNode{meta: meta, node: node}, baseValue: baseValue{info: typeInfoCall},
 		firstArgument: firstArg, arguments: arguments, pipe: pipeTo}
 }
 
 // NewCallWithFunction constructs a call that does not need to be resolved
 //
-func NewCallWithFunction(meta ScriptMetaData, begin uint32, end uint32, function GoFunction, arguments []Argument, pipeTo Call) Call {
-	return &call{astNode: astNode{meta: meta, begin: begin, end: end}, baseValue: baseValue{info: typeInfoCall},
+func NewCallWithFunction(meta ScriptMetaData, node *node32, function GoFunction, arguments []Argument, pipeTo Call) Call {
+	return &call{astNode: astNode{meta: meta, node: node}, baseValue: baseValue{info: typeInfoCall},
 		function: function, arguments: arguments, pipe: pipeTo}
 }
 
@@ -1811,8 +1829,8 @@ func (b *block) CopyWithinContext(context RunContext) Block {
 
 // NewBlock contsruct a new block of function calls
 //
-func NewBlock(meta ScriptMetaData, begin uint32, end uint32, calls []Call) Block {
-	return &block{astNode: astNode{meta: meta, begin: begin, end: end}, baseValue: baseValue{info: typeInfoBlock}, calls: calls}
+func NewBlock(meta ScriptMetaData, node *node32, calls []Call) Block {
+	return &block{astNode: astNode{meta: meta, node: node}, baseValue: baseValue{info: typeInfoBlock}, calls: calls}
 }
 
 // EvalArgument evaluates given argument

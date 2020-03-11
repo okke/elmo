@@ -28,7 +28,7 @@ suite: {
         calls: (inspect.calls {
             plus 5 3 | plus 8 |eq 16 |assert
         })
-        str.trim $((inspect.meta (calls 0)) code) |eq "plus 5 3 | plus 8 |eq 16 |assert" |assert
+        eq $((inspect.meta (calls 0)) code) "plus 5 3 | plus 8 |eq 16 |assert" |assert
     })    
 }
 

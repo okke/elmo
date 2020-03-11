@@ -3,7 +3,7 @@ package elmo
 import "testing"
 
 func dummyArgFromText(name string) Argument {
-	return NewArgument(NewScriptMetaData("test", "test"), 0, 0, NewIdentifier(name))
+	return NewArgument(NewScriptMetaData("test", "test"), nil, NewIdentifier(name))
 }
 
 func TestLiteralStrings(t *testing.T) {
@@ -196,7 +196,7 @@ func TestPipeMultipleReturnValues(t *testing.T) {
 
 func TestBlockWithoutCallsShouldReturnNothing(t *testing.T) {
 
-	result := NewBlock(nil, 0, 0, []Call{}).Run(NewRunContext(nil), []Argument{})
+	result := NewBlock(nil, nil, []Call{}).Run(NewRunContext(nil), []Argument{})
 
 	if result != Nothing {
 		t.Error("empty block should return nothing")
@@ -209,7 +209,7 @@ func TestBlockWithOneCallsShouldReturnCallResult(t *testing.T) {
 
 	context.Set("chipotle", NewStringLiteral("sauce"))
 
-	result := NewBlock(nil, 0, 0, []Call{NewCall(nil, 0, 0, dummyArgFromText("chipotle"), []Argument{}, nil)}).Run(context, []Argument{})
+	result := NewBlock(nil, nil, []Call{NewCall(nil, nil, dummyArgFromText("chipotle"), []Argument{}, nil)}).Run(context, []Argument{})
 
 	if result == Nothing {
 		t.Error("block with statement should return something")
@@ -227,9 +227,9 @@ func TestBlockWithTwoCallsShouldReturnLastCallResult(t *testing.T) {
 	context.Set("chipotle", NewStringLiteral("sauce"))
 	context.Set("blackbeans", NewStringLiteral("soup"))
 
-	result := NewBlock(nil, 0, 0, []Call{
-		NewCall(nil, 0, 0, dummyArgFromText("chipotle"), []Argument{}, nil),
-		NewCall(nil, 0, 0, dummyArgFromText("blackbeans"), []Argument{}, nil)}).Run(context, []Argument{})
+	result := NewBlock(nil, nil, []Call{
+		NewCall(nil, nil, dummyArgFromText("chipotle"), []Argument{}, nil),
+		NewCall(nil, nil, dummyArgFromText("blackbeans"), []Argument{}, nil)}).Run(context, []Argument{})
 
 	if result == Nothing {
 		t.Error("block with statement should return something")
@@ -248,7 +248,7 @@ func TestBlockCallToNativeFunctionShouldExecuteFunction(t *testing.T) {
 		return NewStringLiteral("chipotle")
 	}))
 
-	result := NewBlock(nil, 0, 0, []Call{NewCall(nil, 0, 0, dummyArgFromText("sauce"), []Argument{}, nil)}).Run(context, []Argument{})
+	result := NewBlock(nil, nil, []Call{NewCall(nil, nil, dummyArgFromText("sauce"), []Argument{}, nil)}).Run(context, []Argument{})
 
 	if result == Nothing {
 		t.Error("block with statement should return something")
@@ -267,7 +267,7 @@ func TestGoFunctionWithOneArgumentCanReturnArgumentValue(t *testing.T) {
 		return arguments[0].Value()
 	}))
 
-	result := NewBlock(nil, 0, 0, []Call{NewCall(nil, 0, 0, dummyArgFromText("echo"), []Argument{NewArgument(nil, 0, 0, NewStringLiteral("chipotle"))}, nil)}).Run(context, []Argument{})
+	result := NewBlock(nil, nil, []Call{NewCall(nil, nil, dummyArgFromText("echo"), []Argument{NewArgument(nil, nil, NewStringLiteral("chipotle"))}, nil)}).Run(context, []Argument{})
 
 	if result.String() != "chipotle" {
 		t.Errorf("function should return (chipotle) instead of %s", result.String())
@@ -284,9 +284,9 @@ func TestGoFunctionCanAlterContext(t *testing.T) {
 		return Nothing
 	}))
 
-	NewBlock(nil, 0, 0, []Call{NewCall(nil, 0, 0, dummyArgFromText("alter"), []Argument{
-		NewArgument(nil, 0, 0, NewStringLiteral("chipotle")),
-		NewArgument(nil, 0, 0, NewStringLiteral("sauce"))}, nil)}).Run(context, []Argument{})
+	NewBlock(nil, nil, []Call{NewCall(nil, nil, dummyArgFromText("alter"), []Argument{
+		NewArgument(nil, nil, NewStringLiteral("chipotle")),
+		NewArgument(nil, nil, NewStringLiteral("sauce"))}, nil)}).Run(context, []Argument{})
 
 	result, found := context.Get("chipotle")
 
