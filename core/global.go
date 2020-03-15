@@ -535,12 +535,13 @@ func _func() NamedValue {
 			}
 
 			argStart := 0
-			fname := "user_defined_function"
+
+			help := ""
 			if arguments[0].Type() == TypeString {
 				if argLen == 1 {
 					return NewErrorValue("func with help should at least have a body also")
 				}
-				fname = fmt.Sprintf("user_defined_function/%s", EvalArgument2String(context, arguments[0]))
+				help = EvalArgument2String(context, arguments[0])
 				argStart = 1
 			}
 
@@ -566,7 +567,7 @@ func _func() NamedValue {
 				return NewErrorValue("invalid call to func, last parameter must be a block: usage func <identifier> <identifier>* {...}")
 			}
 
-			return NewGoFunction(fname, func(innerContext RunContext, innerArguments []Argument) Value {
+			return NewGoFunctionWithBlock("anonymous", help, func(innerContext RunContext, innerArguments []Argument) Value {
 
 				if len(argNames) != len(innerArguments) {
 					return NewErrorValue(fmt.Sprintf("invalid call to user defined function: expect %d parameters instead of %d", len(argNames), len(innerArguments)))
@@ -587,7 +588,8 @@ func _func() NamedValue {
 				}
 
 				return block.(Block).Run(subContext, NoArguments)
-			})
+
+			}, block.(Block))
 
 		})
 }

@@ -46,9 +46,9 @@ func ParseAndRun(context RunContext, s string) Value {
 func ParseAndRunWithFile(context RunContext, s string, fileName string) (val Value) {
 
 	defer func() {
-		if r := recover(); r != nil {
-			val = NewErrorValue(fmt.Sprintf("%v", r))
-		}
+		//if r := recover(); r != nil {
+		//	val = NewErrorValue(fmt.Sprintf("%v", r))
+		//}
 	}()
 
 	absPath, err := filepath.Abs(fileName)

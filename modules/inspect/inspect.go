@@ -1,6 +1,10 @@
 package inspect
 
-import elmo "github.com/okke/elmo/core"
+import (
+	"fmt"
+
+	elmo "github.com/okke/elmo/core"
+)
 
 // Module contains inspect functions
 //
@@ -8,7 +12,7 @@ var Module = elmo.NewModule("inspect", initModule)
 
 func initModule(context elmo.RunContext) elmo.Value {
 	return elmo.NewMappingForModule(context, []elmo.NamedValue{
-		meta(), calls()})
+		meta(), calls(), block()})
 }
 
 func meta() elmo.NamedValue {
@@ -38,7 +42,7 @@ func meta() elmo.NamedValue {
 		value := elmo.EvalArgument(context, arguments[0])
 		inspectable, couldCast := value.(elmo.Inspectable)
 		if !couldCast {
-			return elmo.NewErrorValue("meta expects an inspectable value")
+			return elmo.NewErrorValue(fmt.Sprintf("meta expects an inspectable value, not a value of type %v", value.Info().Name()))
 		}
 
 		dict := elmo.NewDictionaryValue(nil, map[string]elmo.Value{
@@ -70,7 +74,7 @@ func calls() elmo.NamedValue {
 
 		value := elmo.EvalArgument(context, arguments[0])
 		if value.Type() != elmo.TypeBlock {
-
+			return elmo.NewErrorValue("calls expects a block")
 		}
 
 		block := value.(elmo.Block)
@@ -83,5 +87,36 @@ func calls() elmo.NamedValue {
 		}
 
 		return elmo.NewListValue(values)
+	})
+}
+
+func block() elmo.NamedValue {
+	return elmo.NewGoFunctionWithHelp("block", `
+	usage: block <function>
+	return the code block of a function
+	
+	`, func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+		_, err := elmo.CheckArguments(arguments, 1, 1, "block", "<function>")
+		if err != nil {
+			return err
+		}
+
+		value := elmo.EvalArgument(context, arguments[0])
+
+		userFunction, couldCast := value.(elmo.UserDefinedFunction)
+		if !couldCast {
+			return elmo.NewErrorValue("block expects a function")
+		}
+
+		block := userFunction.Block()
+		if block == nil {
+			return elmo.NewErrorValue("block expects a function written in elmo")
+		}
+
+		if block.Type() != elmo.TypeBlock {
+			return elmo.NewErrorValue(fmt.Sprintf("block is not of type block, found %v", block))
+		}
+
+		return block
 	})
 }

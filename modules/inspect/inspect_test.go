@@ -21,3 +21,7 @@ func TestMeta(t *testing.T) {
 func TestCalls(t *testing.T) {
 	elmo.TestMoFile(t, "calls", initTestContext)
 }
+
+func TestBlock(t *testing.T) {
+	elmo.TestMoFile(t, "block", initTestContext)
+}

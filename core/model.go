@@ -229,6 +229,7 @@ type goFunction struct {
 	name  string
 	help  Value
 	value GoFunction
+	block Block
 }
 
 // Value represents data within elmo
@@ -359,6 +360,12 @@ type Inspectable interface {
 	BeginsAt() uint32
 	EndsAt() uint32
 	Enrich(DictionaryValue)
+}
+
+// UserDefinedFunction represents a function written in elmo
+//
+type UserDefinedFunction interface {
+	Block() Block
 }
 
 // NamedValue represent data with a name
@@ -1324,6 +1331,10 @@ func (goFunction *goFunction) Help() Value {
 	return goFunction.help
 }
 
+func (goFunction *goFunction) Block() Block {
+	return goFunction.block
+}
+
 // NewIdentifier creates a new identifier value
 //
 func NewIdentifier(value string) Value {
@@ -1469,6 +1480,17 @@ func NewGoFunction(name string, value GoFunction) NamedValue {
 	return NewGoFunctionWithHelp(actualName, help, value)
 }
 
+// NewGoFunctionWithBlock creates a new go function and stores the block of code for later inspection
+//
+func NewGoFunctionWithBlock(name string, help string, value GoFunction, block Block) NamedValue {
+	return &goFunction{
+		baseValue: baseValue{info: typeInfoGoFunction},
+		name:      name,
+		help:      NewStringLiteral(help),
+		value:     value,
+		block:     block}
+}
+
 // NewGoFunctionWithHelp creates a new go function
 //
 func NewGoFunctionWithHelp(name string, help string, value GoFunction) NamedValue {
@@ -1604,6 +1626,9 @@ func (call *call) WillPipe() bool {
 }
 
 func (call *call) addInfoWhenError(value Value) Value {
+	if value == nil {
+		return nil
+	}
 	if value.Type() == TypeError {
 		if value.(ErrorValue).IsTraced() {
 			// TODO: add trace??
@@ -1826,7 +1851,7 @@ func (block *block) Run(context RunContext, arguments []Argument) Value {
 }
 
 func (block *block) String() string {
-	return fmt.Sprintf("{...}")
+	return fmt.Sprintf("{...%#v}", block)
 }
 
 func (block *block) Type() Type {
@@ -1851,23 +1876,30 @@ func NewBlock(meta ScriptMetaData, node *node32, calls []Call) Block {
 	return &block{astNode: astNode{meta: meta, node: node}, baseValue: baseValue{info: typeInfoBlock}, calls: calls}
 }
 
+func valueOrNil(value Value) Value {
+	if value == nil {
+		return Nothing
+	}
+	return value
+}
+
 // EvalArgument evaluates given argument
 //
 func EvalArgument(context RunContext, argument Argument) Value {
 
 	if argument.Type() == TypeCall {
-		return argument.Value().(Runnable).Run(context, NoArguments)
+		return valueOrNil(argument.Value().(Runnable).Run(context, NoArguments))
 	}
 
 	if argument.Type() == TypeBlock {
-		return argument.Value().(Block).CopyWithinContext(context)
+		return valueOrNil(argument.Value().(Block).CopyWithinContext(context))
 	}
 
 	if argument.Type() == TypeString {
-		return argument.Value().(StringValue).ResolveBlocks(context)
+		return valueOrNil(argument.Value().(StringValue).ResolveBlocks(context))
 	}
 
-	return argument.Value()
+	return valueOrNil(argument.Value())
 
 }
 
