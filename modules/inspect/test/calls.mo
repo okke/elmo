@@ -31,6 +31,14 @@ suite: {
         eq $((inspect.meta (calls 0)) code) "plus 5 3 | plus 8 |eq 16 |assert" |assert
     })
 
+    testCallsHaveNameInMetaData: (func {
+        calls: (inspect.calls {
+            plus 5 3 
+        })
+        first: (inspect.meta (calls 0))
+        eq (first name) "plus" |assert
+    })
+
     testPipedCallIsInMeta: (func {
         calls: (inspect.calls {
             plus 5 3 | plus 8

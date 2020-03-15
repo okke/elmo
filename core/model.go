@@ -1755,6 +1755,8 @@ func (call *call) Enrich(dict DictionaryValue) {
 	if call.pipe != nil {
 		dict.Set(NewStringLiteral("pipe"), call.pipe)
 	}
+
+	dict.Set(NewStringLiteral("name"), NewStringLiteral(call.Name()))
 }
 
 // NewCall contstructs a new function call
