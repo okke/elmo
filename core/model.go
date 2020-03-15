@@ -358,6 +358,7 @@ type Inspectable interface {
 	Meta() ScriptMetaData
 	BeginsAt() uint32
 	EndsAt() uint32
+	Enrich(DictionaryValue)
 }
 
 // NamedValue represent data with a name
@@ -1541,6 +1542,10 @@ func (argument *argument) Value() Value {
 	return argument.value
 }
 
+func (argument *argument) Enrich(dict DictionaryValue) {
+
+}
+
 // NewArgument constructs a new function argument
 //
 func NewArgument(meta ScriptMetaData, node *node32, value Value) Argument {
@@ -1745,6 +1750,13 @@ func (call *call) Internal() interface{} {
 	return errors.New("Internal() not implemented on call")
 }
 
+func (call *call) Enrich(dict DictionaryValue) {
+
+	if call.pipe != nil {
+		dict.Set(NewStringLiteral("pipe"), call.pipe)
+	}
+}
+
 // NewCall contstructs a new function call
 //
 func NewCall(meta ScriptMetaData, node *node32, firstArg Argument, arguments []Argument, pipeTo Call) Call {
@@ -1821,6 +1833,10 @@ func (block *block) Type() Type {
 
 func (block *block) Internal() interface{} {
 	return errors.New("Internal() not implemented on block")
+}
+
+func (block *block) Enrich(dict DictionaryValue) {
+
 }
 
 func (b *block) CopyWithinContext(context RunContext) Block {

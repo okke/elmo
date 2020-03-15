@@ -29,6 +29,15 @@ suite: {
             plus 5 3 | plus 8 |eq 16 |assert
         })
         eq $((inspect.meta (calls 0)) code) "plus 5 3 | plus 8 |eq 16 |assert" |assert
+    })
+
+    testPipedCallIsInMeta: (func {
+        calls: (inspect.calls {
+            plus 5 3 | plus 8
+        })
+        first: (inspect.meta (calls 0))
+        second: (inspect.meta (first pipe))
+        eq $(second code) "plus 8" |assert
     })    
 }
 

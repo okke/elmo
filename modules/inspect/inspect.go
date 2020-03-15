@@ -41,7 +41,7 @@ func meta() elmo.NamedValue {
 			return elmo.NewErrorValue("meta expects an inspectable value")
 		}
 
-		return elmo.NewDictionaryValue(nil, map[string]elmo.Value{
+		dict := elmo.NewDictionaryValue(nil, map[string]elmo.Value{
 			"fileName": elmo.NewStringLiteral(inspectable.Meta().Name()),
 			"beginsAt": elmo.NewIntegerLiteral(int64(inspectable.BeginsAt())),
 			"length":   elmo.NewIntegerLiteral(int64(inspectable.EndsAt() - inspectable.BeginsAt())),
@@ -49,6 +49,10 @@ func meta() elmo.NamedValue {
 				content := inspectable.Meta().Content()
 				return elmo.NewStringLiteral(string(content[int(inspectable.BeginsAt()):int(inspectable.EndsAt())]))
 			})})
+
+		inspectable.Enrich(dict.(elmo.DictionaryValue))
+
+		return dict
 
 	})
 }
