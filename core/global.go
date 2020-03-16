@@ -32,6 +32,7 @@ func NewGlobalContext() RunContext {
 
 	context.SetNamed(_type())
 	context.SetNamed(set())
+	context.SetNamed(let())
 	context.SetNamed(get())
 	context.SetNamed(first())
 	context.SetNamed(defined())
@@ -139,8 +140,56 @@ func _type() NamedValue {
 		})
 }
 
+func setOrLet(convertBlockToDictionary bool, name, help string) NamedValue {
+	return NewGoFunctionWithHelp(name, help, func(context RunContext, arguments []Argument) Value {
+
+		argLen, err := CheckArguments(arguments, 2, math.MaxInt16, name, "<identifier>* value")
+		if err != nil {
+			return err
+		}
+
+		var value = EvalArgument(context, arguments[argLen-1])
+
+		// value can evaluate to a multiple return so will result
+		// in multiple assignments
+		if value.Type() == TypeReturn {
+			returnedValues := value.(*returnValue).values
+			returnedLength := len(returnedValues)
+
+			for i := 0; i < (argLen-1) && i < returnedLength; i++ {
+				name := EvalArgument2String(context, arguments[i])
+				context.Set(name, returnedValues[i])
+			}
+		} else {
+
+			_, err := CheckArguments(arguments, 2, 2, "set", "<identifier> value")
+			if err != nil {
+				return err
+			}
+
+			// convert block to dictionary
+			//
+			if convertBlockToDictionary && value.Type() == TypeBlock {
+				value = NewDictionaryWithBlock(context, value.(Block))
+			}
+
+			name := EvalArgument2String(context, arguments[0])
+			context.Set(name, value)
+		}
+
+		if value.Type() == TypeError {
+			if !value.(ErrorValue).IsFatal() {
+				// can ignore non fatal errors in assignments
+				//
+				return value.(ErrorValue).Ignore()
+			}
+		}
+		return value
+	})
+}
+
 func set() NamedValue {
-	return NewGoFunction(`set/Set a variable
+	return setOrLet(true, "set", `set/Set a variable
 		Usage: set <symbol> <value>
 		Alternative usage: set <symbol>* value
 		Returns: value that has been assigned to the denoted variable
@@ -159,7 +208,7 @@ func set() NamedValue {
 		> c
 		will result in 3
 
-    Alternative example using a function that returns multiple values:
+        Alternative example using a function that returns multiple values:
 		> set f (func { return 1 2 })
 		> set a b $f
 		> a
@@ -170,53 +219,19 @@ func set() NamedValue {
 		Note, instead of using set, it's possible to use the ':' shortcut like:
 		> a: 3
 		or
-		> f: (func {....})`,
+		> f: (func {....})
+		
+		When assigning a block of code to a variable, the block of code will be executed and
+		the result will be a dictionary with values.
+		> set peppers {jalapeno:"hot"; habanero: "hotter"}
+		`)
+}
 
-		func(context RunContext, arguments []Argument) Value {
-
-			argLen, err := CheckArguments(arguments, 2, math.MaxInt16, "set", "<identifier>* value")
-			if err != nil {
-				return err
-			}
-
-			var value = EvalArgument(context, arguments[argLen-1])
-
-			// value can evaluate to a multiple return so will result
-			// in multiple assignments
-			if value.Type() == TypeReturn {
-				returnedValues := value.(*returnValue).values
-				returnedLength := len(returnedValues)
-
-				for i := 0; i < (argLen-1) && i < returnedLength; i++ {
-					name := EvalArgument2String(context, arguments[i])
-					context.Set(name, returnedValues[i])
-				}
-			} else {
-
-				_, err := CheckArguments(arguments, 2, 2, "set", "<identifier> value")
-				if err != nil {
-					return err
-				}
-
-				// convert block to dictionary
-				//
-				if value.Type() == TypeBlock {
-					value = NewDictionaryWithBlock(context, value.(Block))
-				}
-
-				name := EvalArgument2String(context, arguments[0])
-				context.Set(name, value)
-			}
-
-			if value.Type() == TypeError {
-				if !value.(ErrorValue).IsFatal() {
-					// can ignore non fatal errors in assignments
-					//
-					return value.(ErrorValue).Ignore()
-				}
-			}
-			return value
-		})
+func let() NamedValue {
+	return setOrLet(false, "let", `Set a variable including assigning blocks of code as block of code instead of a dictionary value
+		Usage: let <symbol> <value>
+		Alternative usage: let <symbol>* value
+		Returns: value that has been assigned to the denoted variable`)
 }
 
 func get() NamedValue {

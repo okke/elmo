@@ -3,15 +3,20 @@ package elmo
 import "testing"
 
 func TestSetValueIntoGlobalContext(t *testing.T) {
-
 	ParseTestAndRunBlock(t, "set chipotle \"sauce\"", ExpectValueSetTo(t, "chipotle", "sauce"))
 	ParseTestAndRunBlock(t, "set to_many_arguments chipotle \"sauce\"", ExpectErrorValueAt(t, 1))
 }
 
 func TestSetValueIntoGlobalContextUsingShortcut(t *testing.T) {
-
 	ParseTestAndRunBlock(t, "chipotle: \"sauce\"", ExpectValueSetTo(t, "chipotle", "sauce"))
+}
 
+func TestAssignBlockWithSet(t *testing.T) {
+	ParseTestAndRunBlock(t, "set peppers {jalapeno:1; habanero: 2} |type", ExpectValue(t, NewIdentifier("dict")))
+}
+
+func TestAssignBlockWithLet(t *testing.T) {
+	ParseTestAndRunBlock(t, "let peppers {jalapeno:1; habanero: 2} |type", ExpectValue(t, NewIdentifier("block")))
 }
 
 func TestEcho(t *testing.T) {
