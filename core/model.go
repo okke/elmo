@@ -1547,8 +1547,8 @@ type argument struct {
 // Argument represent a function call parameter
 //
 type Argument interface {
-	String() string
-	Type() Type
+	Value
+
 	Value() Value
 }
 
@@ -1564,8 +1564,25 @@ func (argument *argument) Value() Value {
 	return argument.value
 }
 
-func (argument *argument) Enrich(dict DictionaryValue) {
+func (argument *argument) Info() TypeInfo {
+	return argument.value.Info()
+}
 
+func (argument *argument) Internal() interface{} {
+	return argument.value.Internal()
+}
+
+func (argument *argument) IsType(typeInfo TypeInfo) bool {
+	return argument.value.IsType(typeInfo)
+}
+
+func (argument *argument) UUID() uuid.UUID {
+	return argument.value.UUID()
+}
+
+func (argument *argument) Enrich(dict DictionaryValue) {
+	dict.Set(NewStringLiteral("value"), argument.value)
+	dict.Set(NewStringLiteral("type"), argument.value.Info().Name())
 }
 
 // NewArgument constructs a new function argument

@@ -25,3 +25,7 @@ func TestCalls(t *testing.T) {
 func TestBlock(t *testing.T) {
 	elmo.TestMoFile(t, "block", initTestContext)
 }
+
+func TestArguments(t *testing.T) {
+	elmo.TestMoFile(t, "arguments", initTestContext)
+}

@@ -12,7 +12,7 @@ var Module = elmo.NewModule("inspect", initModule)
 
 func initModule(context elmo.RunContext) elmo.Value {
 	return elmo.NewMappingForModule(context, []elmo.NamedValue{
-		meta(), calls(), block()})
+		meta(), calls(), arguments(), block()})
 }
 
 func meta() elmo.NamedValue {
@@ -84,6 +84,35 @@ func calls() elmo.NamedValue {
 
 		for i, call := range calls {
 			values[i] = call
+		}
+
+		return elmo.NewListValue(values)
+	})
+}
+
+func arguments() elmo.NamedValue {
+	return elmo.NewGoFunctionWithHelp("arguments", `
+	usage: arguments <call>
+	return a list of arguments that are used in the call
+	
+	`, func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+		_, err := elmo.CheckArguments(arguments, 1, 1, "arguments", "<call>")
+		if err != nil {
+			return err
+		}
+
+		value := elmo.EvalArgument(context, arguments[0])
+		if value.Type() != elmo.TypeCall {
+			return elmo.NewErrorValue("arguments expects a call")
+		}
+
+		call := value.(elmo.Call)
+		argumentsOfCall := call.Arguments()
+
+		values := make([]elmo.Value, len(argumentsOfCall), len(argumentsOfCall))
+
+		for i, arg := range argumentsOfCall {
+			values[i] = arg
 		}
 
 		return elmo.NewListValue(values)
