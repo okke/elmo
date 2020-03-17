@@ -52,3 +52,9 @@ func TestToValue(t *testing.T) {
 		 assert (bin.new jalapeno | bin.toValue | eq jalapeno)`, elmo.ExpectValue(t, elmo.True))
 
 }
+
+func TestBinaryLength(t *testing.T) {
+	elmo.ParseTestAndRunBlockWithinContext(t, binContext(),
+		`bin: (load bin)
+		 bin.new jalapeno | len`, elmo.ExpectValue(t, elmo.NewIntegerLiteral(78)))
+}

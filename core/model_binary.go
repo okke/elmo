@@ -100,6 +100,10 @@ func (binaryValue *binaryValue) ToRegular() Value {
 
 }
 
+func (binaryValue *binaryValue) Length() Value {
+	return NewIntegerLiteral(int64(len(binaryValue.data)))
+}
+
 // NewBinaryValue creates a new Binary
 //
 func NewBinaryValue(data []byte) Value {
