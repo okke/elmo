@@ -16,7 +16,6 @@ func initModule(context elmo.RunContext) elmo.Value {
 	return elmo.NewMappingForModule(context, []elmo.NamedValue{
 		_new(),
 		tuple(),
-		_len(),
 		at(),
 		_append(),
 		mutableAppend(),
@@ -48,27 +47,6 @@ func convertToList(value elmo.Value) ([]elmo.Value, elmo.ErrorValue) {
 func _new() elmo.NamedValue {
 	return elmo.NewGoFunction("new", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
 		return elmo.ListConstructor(context, arguments)
-	})
-}
-
-func _len() elmo.NamedValue {
-	return elmo.NewGoFunction("len", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
-
-		_, err := elmo.CheckArguments(arguments, 1, 1, "len", "<list>")
-		if err != nil {
-			return err
-		}
-
-		// first argument of a list function can be an identifier with the name of the list
-		//
-		list := elmo.EvalArgumentOrSolveIdentifier(context, arguments[0])
-
-		internal, err := convertToList(list)
-		if err != nil {
-			return err
-		}
-
-		return elmo.NewIntegerLiteral(int64(len(internal)))
 	})
 }
 

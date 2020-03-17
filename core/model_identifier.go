@@ -70,6 +70,10 @@ func (identifier *identifier) ToBinary() BinaryValue {
 	return NewBinaryValueFromInternal(typeInfoIdentifier.ID(), "", identifier.value)
 }
 
+func (identifier *identifier) Length() Value {
+	return NewIntegerLiteral(int64(len(identifier.String())))
+}
+
 // NewIdentifier creates a new identifier value
 //
 func NewIdentifier(value string) Value {

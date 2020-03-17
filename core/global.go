@@ -73,6 +73,7 @@ func NewGlobalContext() RunContext {
 	context.SetNamed(_panic())
 	context.SetNamed(help())
 	context.SetNamed(_close())
+	context.SetNamed(_len())
 	context.SetNamed(freeze())
 	context.SetNamed(frozen())
 	context.SetNamed(_uuid())
@@ -1763,6 +1764,29 @@ func _close() NamedValue {
 			}
 
 			return value
+		})
+}
+
+func _len() NamedValue {
+	return NewGoFunctionWithHelp("len",
+		`Determine length of given value
+		Usage: len <value>
+		Returns: int`,
+
+		func(context RunContext, arguments []Argument) Value {
+
+			_, err := CheckArguments(arguments, 1, 1, "len", "<value>")
+			if err != nil {
+				return err
+			}
+
+			value := EvalArgument(context, arguments[0])
+			if withLength, ok := value.(ValueWithLength); ok {
+				return withLength.Length()
+			}
+
+			return NewErrorValue(fmt.Sprintf("can not determine length of variable with type %s", value.Info().Name()))
+
 		})
 }
 

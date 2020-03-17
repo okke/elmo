@@ -16,7 +16,6 @@ var Module = elmo.NewModule("string", initModule)
 func initModule(context elmo.RunContext) elmo.Value {
 	return elmo.NewMappingForModule(context, []elmo.NamedValue{
 		at(),
-		_len(),
 		concat(),
 		trim(),
 		replace(),
@@ -25,23 +24,6 @@ func initModule(context elmo.RunContext) elmo.Value {
 		split(),
 		endsWith(),
 		startsWith()})
-}
-
-func _len() elmo.NamedValue {
-	return elmo.NewGoFunction("len", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
-
-		_, err := elmo.CheckArguments(arguments, 1, 1, "len", "<string>")
-		if err != nil {
-			return err
-		}
-
-		str := elmo.EvalArgument(context, arguments[0])
-		if str.Type() == elmo.TypeError {
-			return str
-		}
-
-		return elmo.NewIntegerLiteral(int64(len(str.String())))
-	})
 }
 
 func at() elmo.NamedValue {

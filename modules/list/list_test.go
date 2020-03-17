@@ -33,21 +33,6 @@ func TestTuple(t *testing.T) {
 
 }
 
-func TestLen(t *testing.T) {
-
-	elmo.ParseTestAndRunBlockWithinContext(t, listContext(),
-		`list: (load "list")
-    list.len [1 2 3]`, elmo.ExpectValue(t, elmo.NewIntegerLiteral(3)))
-
-	elmo.ParseTestAndRunBlockWithinContext(t, listContext(),
-		`list: (load "list")
-    list.len "chipotle"`, elmo.ExpectErrorValueAt(t, 2))
-
-	elmo.ParseTestAndRunBlockWithinContext(t, listContext(),
-		`list: (load "list")
-    list.len`, elmo.ExpectErrorValueAt(t, 2))
-}
-
 func TestAt(t *testing.T) {
 
 	elmo.ParseTestAndRunBlockWithinContext(t, listContext(),

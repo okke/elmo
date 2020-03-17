@@ -152,3 +152,9 @@ type NamedValue interface {
 	Value
 	Name() string
 }
+
+// ValueWithLength represents a value of which length can be determined
+//
+type ValueWithLength interface {
+	Length() Value
+}

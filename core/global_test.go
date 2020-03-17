@@ -1082,3 +1082,12 @@ func TestTime(t *testing.T) {
 		 t2: ((time $t) timestamp)
 		 eq $t $t2`, ExpectValue(t, True))
 }
+
+func TestLen(t *testing.T) {
+	ParseTestAndRunBlock(t, `len`, ExpectErrorValueAt(t, 1))
+	ParseTestAndRunBlock(t, `len (nil)`, ExpectValue(t, NewIntegerLiteral(0)))
+	ParseTestAndRunBlock(t, `len $true`, ExpectErrorValueAt(t, 1))
+	ParseTestAndRunBlock(t, `len chipotle`, ExpectValue(t, NewIntegerLiteral(8)))
+	ParseTestAndRunBlock(t, `len "chipotle"`, ExpectValue(t, NewIntegerLiteral(8)))
+	ParseTestAndRunBlock(t, `len ["c" "h" "i" "p" "o" "t" "l" "e"]`, ExpectValue(t, NewIntegerLiteral(8)))
+}

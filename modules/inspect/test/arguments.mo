@@ -1,5 +1,4 @@
 inspect: (load inspect)
-list: (load list)
 str: (load string)
 
 suite: {

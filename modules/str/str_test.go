@@ -29,28 +29,6 @@ func TestAt(t *testing.T) {
 
 }
 
-func TestLen(t *testing.T) {
-
-	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
-		`str: (load "string")
-		 str.len`, elmo.ExpectErrorValueAt(t, 2))
-
-	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
-		`str: (load "string")
-		 str.len "chipotle"`, elmo.ExpectValue(t, elmo.NewIntegerLiteral(8)))
-
-	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
-		`str: (load "string")
-     pepper: "chipotle"
-		 str.len (pepper 0 2)`, elmo.ExpectValue(t, elmo.NewIntegerLiteral(3)))
-
-	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
-		`str: (load "string")
-     pepper: "chipotle"
-     str.len (pepper 0 99)`, elmo.ExpectErrorValueAt(t, 3))
-
-}
-
 func TestConcat(t *testing.T) {
 
 	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),

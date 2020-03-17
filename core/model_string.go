@@ -138,6 +138,10 @@ func (stringLiteral *stringLiteral) ResolveBlocks(context RunContext) Value {
 	}))
 }
 
+func (stringLiteral *stringLiteral) Length() Value {
+	return NewIntegerLiteral(int64(len(stringLiteral.value)))
+}
+
 // NewStringLiteral creates a new string literal value
 //
 func NewStringLiteral(value string) Value {

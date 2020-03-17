@@ -1,5 +1,4 @@
 inspect: (load inspect)
-list: (load list)
 str: (load string)
 
 suite: {
@@ -13,7 +12,7 @@ suite: {
             puts chipotle
             puts jalapeno
         })
-        list.len $calls |eq 2 |assert
+        len $calls |eq 2 |assert
     })
 
     testPipedCallIsSingleCall: (func {
@@ -21,7 +20,7 @@ suite: {
             plus 5 3 | plus 8 |eq 16 |assert
         })
         
-        list.len $calls |eq 1 |assert
+        len $calls |eq 1 |assert
     })
 
     testCallsHaveMetaData: (func {

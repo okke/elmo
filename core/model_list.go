@@ -150,6 +150,10 @@ func (listValue *listValue) ToBinary() BinaryValue {
 	return NewBinaryValueFromInternal(typeInfoList.ID(), "", Serialize(listValue))
 }
 
+func (listValue *listValue) Length() Value {
+	return NewIntegerLiteral(int64(len(listValue.values)))
+}
+
 // NewListValue creates a new list of values
 //
 func NewListValue(values []Value) Value {
