@@ -38,6 +38,9 @@ func at() elmo.NamedValue {
 		if str.Type() == elmo.TypeError {
 			return str
 		}
+		if str.Type() == elmo.TypeString {
+			return str.(elmo.Runnable).Run(context, arguments[1:])
+		}
 
 		return elmo.NewStringLiteral(str.String()).(elmo.Runnable).Run(context, arguments[1:])
 	})

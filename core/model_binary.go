@@ -65,11 +65,11 @@ func (binaryValue *binaryValue) ToRegular() Value {
 		}
 		return NewNameSpacedIdentifier(actualData)
 	case typeInfoString.ID():
-		actualData := ""
+		actualData := []rune{}
 		if err := decoder.Decode(&actualData); err != nil {
 			return NewErrorValue(err.Error())
 		}
-		return NewStringLiteral(actualData)
+		return NewStringLiteralFromRunes(actualData)
 	case typeInfoInteger.ID():
 		actualData := int64(0)
 		if err := decoder.Decode(&actualData); err != nil {

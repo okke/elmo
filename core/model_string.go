@@ -4,7 +4,7 @@ import "strings"
 
 type stringLiteral struct {
 	baseValue
-	value  string
+	value  []rune
 	blocks []*blockAtPositionInString
 }
 
@@ -15,7 +15,7 @@ type blockAtPositionInString struct {
 
 func (stringLiteral *stringLiteral) String() string {
 	if stringLiteral.blocks == nil {
-		return stringLiteral.value
+		return string(stringLiteral.value)
 	}
 	return stringLiteral.resolveBlocksToString(nil, func(Block) string { return "\\{...}" })
 }
@@ -61,7 +61,7 @@ func (stringLiteral *stringLiteral) Run(context RunContext, arguments []Argument
 			return err
 		}
 
-		return NewStringLiteral(stringLiteral.value[i : i+1])
+		return NewStringLiteralFromRunes(stringLiteral.value[i : i+1])
 	}
 
 	if arglen == 2 {
@@ -85,7 +85,7 @@ func (stringLiteral *stringLiteral) Run(context RunContext, arguments []Argument
 			return NewStringLiteral(string(runes))
 		}
 
-		return NewStringLiteral(stringLiteral.value[i1 : i2+1])
+		return NewStringLiteralFromRunes(stringLiteral.value[i1 : i2+1])
 
 	}
 
@@ -108,7 +108,7 @@ func (stringLiteral *stringLiteral) resolveBlocksToString(context RunContext, wi
 
 	for _, blockPosition := range stringLiteral.blocks {
 		if at < blockPosition.at {
-			sb.WriteString(value[at:blockPosition.at])
+			sb.WriteString(string(value[at:blockPosition.at]))
 		}
 
 		sb.WriteString(withBlock(blockPosition.block))
@@ -117,7 +117,7 @@ func (stringLiteral *stringLiteral) resolveBlocksToString(context RunContext, wi
 	}
 
 	if at < len(value) {
-		sb.WriteString(value[at:])
+		sb.WriteString(string(value[at:]))
 	}
 
 	return sb.String()
@@ -145,6 +145,12 @@ func (stringLiteral *stringLiteral) Length() Value {
 // NewStringLiteral creates a new string literal value
 //
 func NewStringLiteral(value string) Value {
+	return &stringLiteral{baseValue: baseValue{info: typeInfoString}, value: []rune(value)}
+}
+
+// NewStringLiteralFromRunes creates a new string literal value
+//
+func NewStringLiteralFromRunes(value []rune) Value {
 	return &stringLiteral{baseValue: baseValue{info: typeInfoString}, value: value}
 }
 
@@ -152,5 +158,5 @@ func NewStringLiteral(value string) Value {
 // at which positions in the string dynamic content must be added
 //
 func newStringLiteralWithBlocks(value string, blocks []*blockAtPositionInString) Value {
-	return &stringLiteral{baseValue: baseValue{info: typeInfoString}, value: value, blocks: blocks}
+	return &stringLiteral{baseValue: baseValue{info: typeInfoString}, value: []rune(value), blocks: blocks}
 }

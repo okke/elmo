@@ -134,6 +134,19 @@ func TestStringAccess(t *testing.T) {
 	 	 s 99`, ExpectErrorValueAt(t, 2))
 }
 
+func TestStringAccessWithUTF8Strings(t *testing.T) {
+
+	ParseTestAndRunBlock(t,
+		`set s "😁😂😃"
+		 s 0`, ExpectValue(t, NewStringLiteral("😁")))
+	ParseTestAndRunBlock(t,
+		`set s "😁😂😃"
+		 s 1`, ExpectValue(t, NewStringLiteral("😂")))
+	ParseTestAndRunBlock(t,
+		`set s "😁😂😃"
+		 s -1`, ExpectValue(t, NewStringLiteral("😃")))
+}
+
 func TestLiteralsAsCalls(t *testing.T) {
 
 	ParseTestAndRunBlock(t,
