@@ -1,6 +1,6 @@
 # MIT License
 
-Copyright (c) 2016 **Okke van 't Verlaat**
+Copyright (c) 2020 **Okke van 't Verlaat**
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -24,9 +24,13 @@ SOFTWARE.
 
 This Software could not exist without the following great pieces of open source code:
 
-* https://github.com/peterh/liner, a very easy to use line input library 
-See https://github.com/peterh/liner/blob/master/COPYING
+
+* https://github.com/c-bata/go-prompt, A very convenient and complete line input library 
+See https://github.com/c-bata/go-prompt/blob/master/LICENSE
 
 * https://github.com/pointlander/peg, A wonderful parser generator
 See https://github.com/pointlander/peg/blob/master/LICENSE
+
+* https://github.com/google/uuid, Easy to use UUID generator
+See https://github.com/google/uuid/blob/master/LICENSE
 

@@ -17,11 +17,14 @@ import (
 	"github.com/okke/elmo/modules/list"
 	"github.com/okke/elmo/modules/str"
 	"github.com/okke/elmo/modules/sys"
-	"github.com/peterh/liner"
+
+	prompt "github.com/c-bata/go-prompt"
 )
 
 type runner struct {
-	context elmo.RunContext
+	context               elmo.RunContext
+	history               []string
+	shouldMakeSuggestions bool
 }
 
 // Runner represents the commandline usage of elmo
@@ -33,7 +36,7 @@ type Runner interface {
 // NewRunner constructs a new CommandLine
 //
 func NewRunner(context elmo.RunContext) Runner {
-	return &runner{context: context}
+	return &runner{context: context, history: make([]string, 0, 0), shouldMakeSuggestions: true}
 }
 
 // NewMainContext constructs a context with all elmo's default modules
@@ -68,110 +71,101 @@ func help() {
 	})
 }
 
-func (runner *runner) createCommandLine() *liner.State {
-	commandLine := liner.NewLiner()
+func (runner *runner) completer(in prompt.Document) []prompt.Suggest {
 
-	commandLine.SetCompleter(func(line string) (possibilities []string) {
+	s := []prompt.Suggest{}
+	if !runner.shouldMakeSuggestions {
+		return s
+	}
 
-		for cmd := range runner.context.Mapping() {
-			if strings.HasPrefix(cmd, strings.ToLower(line)) {
-				possibilities = append(possibilities, cmd)
+	word := strings.Trim(in.GetWordBeforeCursor(), "(){}[]$,;")
+	if word == "" {
+		return s
+	}
+
+	commands := make([]string, 0, 0)
+	for cmd := range runner.context.Mapping() {
+		if strings.HasPrefix(cmd, word) {
+			commands = append(commands, cmd)
+		}
+	}
+
+	for _, cmd := range commands {
+		description := ""
+		if value, found := runner.context.Get(cmd); found {
+			if help, ok := value.(elmo.HelpValue); ok {
+				description = help.Help().String()
 			}
 		}
-		return
-	})
+		newline := strings.IndexRune(description, '\n')
+		if newline > 0 {
+			description = description[:newline]
+		}
+		s = append(s, prompt.Suggest{Text: cmd, Description: description})
+	}
 
-	return commandLine
+	return s
 }
 
-func replReadMore(commandLine *liner.State, command string) string {
-	trimmed := strings.TrimSpace(command)
-	if len(trimmed) == 0 {
-		return trimmed
-	}
-	last := string(trimmed[len(trimmed)-1:])
+func (runner *runner) input(displayPrompt string, morePrompt string) string {
+	needText := true
+	in := ""
 
-	var inMultiLine = false
-	var current = trimmed
+	usePrompt := displayPrompt
+	for needText {
+		in = in + prompt.Input(usePrompt, runner.completer,
+			prompt.OptionTitle("elmo"),
+			prompt.OptionHistory(runner.history),
+			prompt.OptionPrefixTextColor(prompt.Yellow),
+			prompt.OptionPreviewSuggestionTextColor(prompt.Blue),
+			prompt.OptionSelectedSuggestionBGColor(prompt.LightGray),
+			prompt.OptionSuggestionBGColor(prompt.DarkGray))
 
-	for strings.Index("{}()[],;`", last) != -1 || strings.Count(trimmed, "`") == 1 || inMultiLine {
-
-		// TODO: 18okt2016 should check if character not with a string or a comment
-		//
-		fDepth := strings.Count(trimmed, "(") - strings.Count(trimmed, ")")
-		bDepth := strings.Count(trimmed, "{") - strings.Count(trimmed, "}")
-		lDepth := strings.Count(trimmed, "[") - strings.Count(trimmed, "]")
-
-		wantMore := strings.Index(",;", last) != -1
-
-		// poor mans multi line parsing
-		//
-		if inMultiLine {
-			if (strings.Count(current, "`") % 2) == 1 {
-				inMultiLine = false
-			} else {
-				if (strings.Count(current, "`{") % 2) == 0 {
-					wantMore = true
-				}
-			}
-		} else {
-			if (strings.Count(current, "`") % 2) == 1 {
-				if (strings.Count(current, "`{") % 2) == 0 {
-					wantMore = true
-
-					inMultiLine = true
-					wantMore = true
-				}
-			}
+		if !strings.HasSuffix(strings.TrimRight(in, " \t"), "\\") {
+			needText = false
 		}
-
-		if fDepth > 0 || bDepth > 0 || lDepth > 0 || wantMore {
-			if next, err := commandLine.Prompt("    : " + strings.Repeat("\t", bDepth)); err == nil {
-				if next == "--" {
-					return trimmed
-				}
-				trimmed = trimmed + next
-				last = string(trimmed[len(trimmed)-1:])
-				current = next
-			}
-		} else {
-			return trimmed
-		}
-
+		usePrompt = morePrompt
 	}
 
-	return trimmed
+	return in
 }
 
 func (runner *runner) repl() {
 
-	commandLine := runner.createCommandLine()
-
 	// provide an exit function so the repl can be stoppped
-	// (TODO 18oct2016 is an exit hook not better?)
 	//
 	runner.context.SetNamed(elmo.NewGoFunction("exit", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
-		commandLine.Close()
 		os.Exit(0)
 		return elmo.Nothing
 	}))
 
-	for {
-		if command, err := commandLine.Prompt("e>mo: "); err == nil {
+	// provide a function to change autocomplete behaviour
+	//
+	runner.context.SetNamed(elmo.NewGoFunctionWithHelp("autoComplete", "set auto complete on or off", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+		argLen, err := elmo.CheckArguments(arguments, 0, 1, "autoComplete", "<true|false>?")
+		if err != nil {
+			return err
+		}
 
-			command = replReadMore(commandLine, command)
-			value := elmo.ParseAndRun(runner.context, command)
-
-			if value != nil {
-				commandLine.AppendHistory(command)
-				if value != elmo.Nothing {
-					fmt.Printf("%v\n", value)
-				}
+		if argLen == 1 {
+			value := elmo.EvalArgument(context, arguments[0])
+			if value == nil || value.Type() != elmo.TypeBoolean {
+				return elmo.NewErrorValue("autoComplete expects a boolean value")
 			}
+			runner.shouldMakeSuggestions = value.Internal().(bool)
+		}
+		return elmo.NewBooleanLiteral(runner.shouldMakeSuggestions)
+	}))
 
+	for {
+		command := runner.input("e>mo: ", "    : ")
+		runner.history = append(runner.history, command)
+		value := elmo.ParseAndRun(runner.context, command)
+
+		if value != nil && value != elmo.Nothing {
+			fmt.Printf("%v\n", value)
 		}
 	}
-
 }
 
 func (runner *runner) read(source string) {
