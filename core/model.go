@@ -119,6 +119,7 @@ type ErrorValue interface {
 	Error() string
 	SetAt(meta ScriptMetaData, lineno int)
 	At() (ScriptMetaData, int)
+	AtAbs() (ScriptMetaData, int)
 	IsTraced() bool
 	Panic() ErrorValue
 	IsFatal() bool

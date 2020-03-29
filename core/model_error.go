@@ -9,6 +9,8 @@ type errorValue struct {
 	msg    string
 	fatal  bool
 	ignore bool
+
+	token *token32
 }
 
 func (errorValue *errorValue) String() string {
@@ -44,6 +46,13 @@ func (errorValue *errorValue) At() (meta ScriptMetaData, lineno int) {
 	return errorValue.meta, errorValue.lineno
 }
 
+func (errorValue *errorValue) AtAbs() (meta ScriptMetaData, pos int) {
+	if errorValue.token == nil {
+		return errorValue.meta, -1
+	}
+	return errorValue.meta, int(errorValue.token.end)
+}
+
 func (errorValue *errorValue) IsTraced() bool {
 	meta, lineno := errorValue.At()
 	return meta != nil && lineno > 0
@@ -72,4 +81,10 @@ func (errorValue *errorValue) CanBeIgnored() bool {
 //
 func NewErrorValue(msg string) ErrorValue {
 	return &errorValue{baseValue: baseValue{info: typeInfoError}, msg: msg}
+}
+
+// NewErrorValueWithToken creates a new Error and registers token
+//
+func NewErrorValueWithToken(msg string, token *token32) ErrorValue {
+	return &errorValue{baseValue: baseValue{info: typeInfoError}, msg: msg, token: token}
 }

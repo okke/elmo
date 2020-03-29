@@ -46,9 +46,9 @@ func ParseAndRun(context RunContext, s string) Value {
 func ParseAndRunWithFile(context RunContext, s string, fileName string) (val Value) {
 
 	defer func() {
-		//if r := recover(); r != nil {
-		//	val = NewErrorValue(fmt.Sprintf("%v", r))
-		//}
+		if r := recover(); r != nil {
+			val = NewErrorValue(fmt.Sprintf("%v", r))
+		}
 	}()
 
 	absPath, err := filepath.Abs(fileName)
@@ -66,6 +66,10 @@ func ParseAndRunWithFile(context RunContext, s string, fileName string) (val Val
 	grammar.Init()
 
 	if err := grammar.Parse(); err != nil {
+		parseErr, isParseError := err.(*parseError)
+		if isParseError {
+			return NewErrorValueWithToken(err.Error(), &parseErr.max)
+		}
 		return NewErrorValue(err.Error())
 	}
 
