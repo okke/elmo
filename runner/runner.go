@@ -71,6 +71,31 @@ func help() {
 	})
 }
 
+func (runner *runner) getCommandsForCompleter(word string) ([]string, string, elmo.DictionaryValue) {
+
+	parts := strings.Split(word, ".")
+
+	if len(parts) > 1 {
+		identifier := elmo.NewNameSpacedIdentifier(parts[:len(parts)-1]).(elmo.IdentifierValue)
+		_, dict, found := identifier.LookUp(runner.context)
+
+		if found && dict != nil && dict.Type() == elmo.TypeDictionary {
+			return dict.(elmo.DictionaryValue).Keys(), parts[len(parts)-1], dict.(elmo.DictionaryValue)
+		}
+	}
+
+	return runner.context.Keys(), word, nil
+}
+
+func (runner *runner) findCommand(cmd string, inDictionary elmo.DictionaryValue) (elmo.Value, bool) {
+	if inDictionary != nil {
+		value, found := inDictionary.Resolve(cmd)
+		return value, found
+	}
+	value, found := runner.context.Get(cmd)
+	return value, found
+}
+
 func (runner *runner) completer(in prompt.Document) []prompt.Suggest {
 
 	s := []prompt.Suggest{}
@@ -84,7 +109,8 @@ func (runner *runner) completer(in prompt.Document) []prompt.Suggest {
 	}
 
 	commands := make([]string, 0, 0)
-	for cmd := range runner.context.Mapping() {
+	possibleCommands, word, inDictionary := runner.getCommandsForCompleter(word)
+	for _, cmd := range possibleCommands {
 		if strings.HasPrefix(cmd, word) {
 			commands = append(commands, cmd)
 		}
@@ -92,7 +118,7 @@ func (runner *runner) completer(in prompt.Document) []prompt.Suggest {
 
 	for _, cmd := range commands {
 		description := ""
-		if value, found := runner.context.Get(cmd); found {
+		if value, found := runner.findCommand(cmd, inDictionary); found {
 			if help, ok := value.(elmo.HelpValue); ok {
 				description = help.Help().String()
 			}
