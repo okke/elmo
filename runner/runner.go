@@ -208,10 +208,13 @@ func (runner *runner) read(source string) {
 func (runner *runner) Main() {
 
 	replPtr := flag.Bool("repl", false, "enforce REPL mode, even after reading from file")
+	debugPtr := flag.Bool("debug", false, "enforce debug mode")
 	versionPtr := flag.Bool("version", false, "print version info and quit")
 	helpPtr := flag.Bool("help", false, "print help text and quit")
 
 	flag.Parse()
+
+	runner.context.RegisterModule(elmo.NewModule("debug", initDebugModule(*debugPtr)))
 
 	if *helpPtr {
 		help()
