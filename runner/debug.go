@@ -8,11 +8,12 @@ import (
 	elmo "github.com/okke/elmo/core"
 )
 
-func initDebugModule(debug bool) func(context elmo.RunContext) elmo.Value {
+func initDebugModule(runner Runner, debug bool) func(context elmo.RunContext) elmo.Value {
 	return func(context elmo.RunContext) elmo.Value {
 		return elmo.NewMappingForModule(context, []elmo.NamedValue{
-			_log(debug),
 			inDebug(debug),
+			_log(debug),
+			bp(runner, debug),
 		})
 	}
 }
@@ -22,6 +23,17 @@ func doNothing(name string) elmo.NamedValue {
 		func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
 
 			return elmo.Nothing
+		})
+}
+
+func inDebug(debug bool) elmo.NamedValue {
+
+	return elmo.NewGoFunctionWithHelp("inDebug", `check if elmo is running in debug mode`,
+		func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+			if debug {
+				return elmo.True
+			}
+			return elmo.False
 		})
 }
 
@@ -47,13 +59,25 @@ func _log(debug bool) elmo.NamedValue {
 		})
 }
 
-func inDebug(debug bool) elmo.NamedValue {
+func bp(runner Runner, debug bool) elmo.NamedValue {
 
-	return elmo.NewGoFunctionWithHelp("inDebug", `check if elmo is running in debug mode`,
+	if !debug {
+		return doNothing("bp")
+	}
+
+	return elmo.NewGoFunctionWithHelp("bp", `Breakpoint into repl
+		Usage bp <prompt prefix>?`,
 		func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
-			if debug {
-				return elmo.True
+
+			promptPrefix := "bp"
+
+			if len(arguments) > 0 {
+				promptPrefix = elmo.EvalArgument2String(context, arguments[0])
 			}
-			return elmo.False
+
+			childRunner := runner.New(context.CreateSubContext(), promptPrefix)
+			childRunner.Repl()
+
+			return elmo.Nothing
 		})
 }

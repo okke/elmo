@@ -4,7 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
-	"os"
 	"strings"
 
 	elmo "github.com/okke/elmo/core"
@@ -25,18 +24,40 @@ type runner struct {
 	context               elmo.RunContext
 	history               []string
 	shouldMakeSuggestions bool
+	running               bool
+	promptPrefix          string
 }
 
 // Runner represents the commandline usage of elmo
 //
 type Runner interface {
 	Main()
+	Repl()
+	RegisterReplExit(func(elmo.RunContext, []elmo.Argument) elmo.Value)
+	New(elmo.RunContext, string) Runner
+	Stop()
 }
 
 // NewRunner constructs a new CommandLine
 //
 func NewRunner(context elmo.RunContext) Runner {
-	return &runner{context: context, history: make([]string, 0, 0), shouldMakeSuggestions: true}
+	return &runner{context: context,
+		history:               make([]string, 0, 0),
+		shouldMakeSuggestions: true,
+		running:               true}
+}
+
+func (parent *runner) New(context elmo.RunContext, prefix string) Runner {
+	return &runner{
+		context:               context,
+		history:               parent.history,
+		shouldMakeSuggestions: parent.shouldMakeSuggestions,
+		running:               true,
+		promptPrefix:          prefix}
+}
+
+func (runner *runner) Stop() {
+	runner.running = false
 }
 
 // NewMainContext constructs a context with all elmo's default modules
@@ -156,14 +177,16 @@ func (runner *runner) input(displayPrompt string, morePrompt string) string {
 	return in
 }
 
-func (runner *runner) repl() {
+func (runner *runner) RegisterReplExit(f func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value) {
+	runner.context.SetNamed(elmo.NewGoFunction("exit", f))
+}
 
-	// provide an exit function so the repl can be stoppped
-	//
-	runner.context.SetNamed(elmo.NewGoFunction("exit", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
-		os.Exit(0)
+func (runner *runner) Repl() {
+
+	runner.RegisterReplExit(func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+		runner.Stop()
 		return elmo.Nothing
-	}))
+	})
 
 	// provide a function to change autocomplete behaviour
 	//
@@ -183,8 +206,12 @@ func (runner *runner) repl() {
 		return elmo.NewBooleanLiteral(runner.shouldMakeSuggestions)
 	}))
 
-	for {
-		command := runner.input("e>mo: ", "    : ")
+	prompt := "e>mo: "
+	if runner.promptPrefix != "" {
+		prompt = fmt.Sprintf("(%s) %s", runner.promptPrefix, prompt)
+	}
+	for runner.running {
+		command := runner.input(prompt, "    : ")
 		runner.history = append(runner.history, command)
 		value := elmo.ParseAndRun(runner.context, command)
 
@@ -214,7 +241,7 @@ func (runner *runner) Main() {
 
 	flag.Parse()
 
-	runner.context.RegisterModule(elmo.NewModule("debug", initDebugModule(*debugPtr)))
+	runner.context.RegisterModule(elmo.NewModule("debug", initDebugModule(runner, *debugPtr)))
 
 	if *helpPtr {
 		help()
@@ -229,12 +256,12 @@ func (runner *runner) Main() {
 	if flag.NArg() == 0 {
 		// no source specified so running elmo as a REPL
 		//
-		runner.repl()
+		runner.Repl()
 	} else {
 		runner.read(flag.Args()[0])
 
 		if *replPtr {
-			runner.repl()
+			runner.Repl()
 		}
 
 	}
