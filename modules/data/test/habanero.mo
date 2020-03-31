@@ -1,6 +1,6 @@
 data: (load data)
 
-habanero: (((file "./test/habanero.json") string) |data.json)
+habanero: (((file "./test/habanero.json") string) |data.fromJSON)
 
 type (habanero.name) |eq string |assert
 type (habanero.shu) |eq list |assert

@@ -123,6 +123,10 @@ func (listValue *listValue) Append(value Value) {
 	listValue.values = append(listValue.values, value)
 }
 
+func (listValue *listValue) List() []Value {
+	return listValue.values
+}
+
 func (listValue *listValue) Mutate(value interface{}) (Value, ErrorValue) {
 	if listValue.Frozen() {
 		return listValue, NewErrorValue("can not mutate frozen value")

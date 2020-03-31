@@ -1,7 +1,7 @@
 
 data: (load data)
 
-peppers: (((file "./test/peppers.csv") string) |data.csv)
+peppers: (((file "./test/peppers.csv") string) |data.fromCSV)
 
 first: (peppers 0)
 

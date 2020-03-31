@@ -53,6 +53,7 @@ type DictionaryValue interface {
 //
 type ListValue interface {
 	Append(Value)
+	List() []Value
 }
 
 // MathValue represents a value that knows how to apply basic arithmetics

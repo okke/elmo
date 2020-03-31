@@ -6,15 +6,18 @@ import (
 	elmo "github.com/okke/elmo/core"
 )
 
-
 func initTestContext(context elmo.RunContext) {
 	context.RegisterModule(Module)
 }
 
-func TestConvertCSV(t *testing.T) {
+func TestConvertFromCSV(t *testing.T) {
 	elmo.TestMoFile(t, "peppers", initTestContext)
 }
 
-func TestConvertJSON(t *testing.T) {
+func TestConvertFromJSON(t *testing.T) {
 	elmo.TestMoFile(t, "habanero", initTestContext)
+}
+
+func TestConvertToJSON(t *testing.T) {
+	elmo.TestMoFile(t, "to_json", initTestContext)
 }
