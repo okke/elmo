@@ -117,6 +117,10 @@ func (runner *runner) findCommand(cmd string, inDictionary elmo.DictionaryValue)
 	return value, found
 }
 
+const seperatorForCompleter = "(){}[]$,;"
+
+const seperatorForCompletion = "(){}[]$,;."
+
 func (runner *runner) completer(in prompt.Document) []prompt.Suggest {
 
 	s := []prompt.Suggest{}
@@ -124,7 +128,7 @@ func (runner *runner) completer(in prompt.Document) []prompt.Suggest {
 		return s
 	}
 
-	word := strings.Trim(in.GetWordBeforeCursor(), "(){}[]$,;")
+	word := strings.TrimLeft(in.GetWordBeforeCursor(), seperatorForCompleter)
 	if word == "" {
 		return s
 	}
@@ -161,6 +165,7 @@ func (runner *runner) input(displayPrompt string, morePrompt string) string {
 	usePrompt := displayPrompt
 	for needText {
 		in = in + prompt.Input(usePrompt, runner.completer,
+			prompt.OptionCompletionWordSeparator(seperatorForCompletion),
 			prompt.OptionTitle("elmo"),
 			prompt.OptionHistory(runner.history),
 			prompt.OptionPrefixTextColor(prompt.Yellow),
