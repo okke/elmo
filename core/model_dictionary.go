@@ -180,7 +180,7 @@ func (dictValue *dictValue) ToBinary() BinaryValue {
 // NewDictionaryValue creates a new map of values
 // TODO: 31okt2016 introduce interface for map parents
 //
-func NewDictionaryValue(parent interface{}, values map[string]Value) Value {
+func NewDictionaryValue(parent interface{}, values map[string]Value) DictionaryValue {
 	if parent == nil {
 		return &dictValue{baseValue: baseValue{info: typeInfoDictionary}, parent: nil, values: values}
 	}
@@ -189,7 +189,7 @@ func NewDictionaryValue(parent interface{}, values map[string]Value) Value {
 
 // NewDictionaryWithBlock constructs a new dictionary by evaluating given block
 //
-func NewDictionaryWithBlock(context RunContext, block Block) Value {
+func NewDictionaryWithBlock(context RunContext, block Block) DictionaryValue {
 
 	// use NewRunContext so block will be evaluated within same scope
 	//
@@ -202,6 +202,9 @@ func NewDictionaryWithBlock(context RunContext, block Block) Value {
 
 // NewDictionaryFromList constructs a dictionary from a list of values
 // where the list is of the form [key value key value]
+//
+// note, NewDictionaryFromList can return an ErrorValue as well instead of a DictionaryValue
+// when the list has off values
 //
 func NewDictionaryFromList(parent interface{}, values []Value) Value {
 

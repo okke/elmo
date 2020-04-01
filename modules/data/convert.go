@@ -63,7 +63,7 @@ func convertJSONStringToDictionary(in string) elmo.Value {
 }
 
 func convertValueToJSONString(in elmo.Value) string {
-	converted := elmo.ConvertValueToInterface(in)
+	converted := elmo.ConvertValueToInterface(in, elmo.TypeGoFunction, elmo.TypeBlock)
 	bytes, err := json.Marshal(converted)
 	if err != nil {
 		return err.Error()

@@ -80,3 +80,15 @@ func NewTypeInfo(name string) TypeInfo {
 	typeCounter = typeCounter + 1
 	return &typeInfo{id: typeCounter, name: name}
 }
+
+func TypeMap(types ...Type) map[Type]bool {
+	if types == nil {
+		return map[Type]bool{}
+	}
+
+	mapping := make(map[Type]bool, len(types))
+	for _, t := range types {
+		mapping[t] = true
+	}
+	return mapping
+}

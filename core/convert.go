@@ -67,11 +67,11 @@ func ConvertMapToValue(in map[string]interface{}) Value {
 	return NewDictionaryValue(nil, mapping)
 }
 
-func ConvertValueToInterface(in Value) interface{} {
-	return convertValueToInterface(make(map[uuid.UUID]bool, 0), in)
+func ConvertValueToInterface(in Value, ignore ...Type) interface{} {
+	return convertValueToInterface(make(map[uuid.UUID]bool, 0), in, TypeMap(ignore...))
 }
 
-func convertValueToInterface(converted map[uuid.UUID]bool, in Value) interface{} {
+func convertValueToInterface(converted map[uuid.UUID]bool, in Value, ignore map[Type]bool) interface{} {
 
 	uuid := in.(Value).UUID()
 	if _, done := converted[uuid]; done {
@@ -79,11 +79,15 @@ func convertValueToInterface(converted map[uuid.UUID]bool, in Value) interface{}
 	}
 	converted[uuid] = true
 
+	if _, found := ignore[in.Type()]; found {
+		return nil
+	}
+
 	switch in.Type() {
 	case TypeDictionary:
-		return convertDictionaryToMap(converted, in.(DictionaryValue))
+		return convertDictionaryToMap(converted, in.(DictionaryValue), ignore)
 	case TypeList:
-		return convertListToArray(converted, in.(ListValue))
+		return convertListToArray(converted, in.(ListValue), ignore)
 	case TypeString:
 		return string(in.Internal().([]rune))
 	default:
@@ -91,11 +95,11 @@ func convertValueToInterface(converted map[uuid.UUID]bool, in Value) interface{}
 	}
 }
 
-func ConvertListToArray(in ListValue) []interface{} {
-	return convertListToArray(make(map[uuid.UUID]bool, 0), in)
+func ConvertListToArray(in ListValue, ignore ...Type) []interface{} {
+	return convertListToArray(make(map[uuid.UUID]bool, 0), in, TypeMap(ignore...))
 }
 
-func convertListToArray(converted map[uuid.UUID]bool, in ListValue) []interface{} {
+func convertListToArray(converted map[uuid.UUID]bool, in ListValue, ignore map[Type]bool) []interface{} {
 
 	values := in.List()
 	if values == nil || len(values) == 0 {
@@ -104,24 +108,27 @@ func convertListToArray(converted map[uuid.UUID]bool, in ListValue) []interface{
 
 	array := make([]interface{}, len(values), len(values))
 	for i, value := range values {
-		array[i] = convertValueToInterface(converted, value)
+		array[i] = convertValueToInterface(converted, value, ignore)
 	}
 
 	return array
 }
 
-func ConvertDictionaryToMap(in DictionaryValue) map[string]interface{} {
-	return convertDictionaryToMap(make(map[uuid.UUID]bool, 0), in)
+func ConvertDictionaryToMap(in DictionaryValue, ignore ...Type) map[string]interface{} {
+	return convertDictionaryToMap(make(map[uuid.UUID]bool, 0), in, TypeMap(ignore...))
 }
 
-func convertDictionaryToMap(converted map[uuid.UUID]bool, in DictionaryValue) map[string]interface{} {
+func convertDictionaryToMap(converted map[uuid.UUID]bool, in DictionaryValue, ignore map[Type]bool) map[string]interface{} {
 
 	mapping := make(map[string]interface{})
 
 	for _, key := range in.Keys() {
 
 		value, _ := in.Resolve(key)
-		mapping[key] = convertValueToInterface(converted, value)
+		if _, found := ignore[value.Type()]; !found {
+			mapping[key] = convertValueToInterface(converted, value, ignore)
+		}
+
 	}
 
 	return mapping

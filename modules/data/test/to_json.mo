@@ -18,6 +18,24 @@ suite: {
         json: (data.toJSON $d)
         eq $json `{"Pepper":"Cayenne","notAsHotAs":["habanero","santaka"],"shu":{"max":50000,"min":30000}}` |assert
     })
+
+    testDictionaryWithFunctionToJSON: (func {
+        d: {
+            f: (func {})
+        }
+        json: (data.toJSON $d)
+        eq $json `{}` |assert
+    })
+
+    testDictionaryWithBlockToJSON: (func {
+        d: {
+            let block {
+                puts "chipotle"
+            }
+        }
+        json: (data.toJSON $d)
+        eq $json `{}` |assert
+    })
 }
 
 test suite

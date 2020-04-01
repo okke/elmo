@@ -42,6 +42,7 @@ type IncrementableValue interface {
 // DictionaryValue represents a value that can be used as dictionary
 //
 type DictionaryValue interface {
+	Value
 	Keys() []string
 	Resolve(string) (Value, bool)
 	Merge([]DictionaryValue) Value
@@ -52,6 +53,7 @@ type DictionaryValue interface {
 // ListValue represents a value that can be used as a list of values
 //
 type ListValue interface {
+	Value
 	Append(Value)
 	List() []Value
 }
