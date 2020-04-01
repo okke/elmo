@@ -3,7 +3,6 @@ package elmo
 import (
 	"errors"
 	"fmt"
-	"sort"
 	"strconv"
 	"strings"
 
@@ -118,10 +117,8 @@ func ConvertDictionaryToMap(in DictionaryValue) map[string]interface{} {
 func convertDictionaryToMap(converted map[uuid.UUID]bool, in DictionaryValue) map[string]interface{} {
 
 	mapping := make(map[string]interface{})
-	keys := in.Keys()
-	sort.Strings(keys)
 
-	for _, key := range keys {
+	for _, key := range in.Keys() {
 
 		value, _ := in.Resolve(key)
 		mapping[key] = convertValueToInterface(converted, value)

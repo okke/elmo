@@ -33,7 +33,7 @@ Elmo comes with a ``data`` module which contains some handy functions to work wi
 
 ```
 data: (load data)
-peppers: (((file "peppers.csv") string) |data.csv)
+peppers: (((file "peppers.csv") string) |data.fromCSV)
 ```
 
 Suppose the peppers.csv file contains data like
@@ -57,7 +57,33 @@ The same kind of mechanism can be used to read a file containing JSON data.
 
 ```
 data: (load data)
-peppers: (((file "peppers.json") string) |data.json)
+peppers: (((file "peppers.json") string) |data.fromJSON)
 ```
 
 Here the ``data.json`` function does the trick. It assumes the input data contains a JSON object and converts it to an elmo dictionary.
+
+## Producing JSON data
+
+Elmo dictionaries (and other value types) can be easily converted to strings containing JSON data.
+
+```elmo
+data: {
+    Pepper: "Cayenne"
+    shu: {
+        min: 30000
+        max: 50000
+    }
+    notAsHotAs: ["habanero", "santaka"]
+}
+json: (data.toJSON $data)
+puts $json
+```
+
+This will print one line of JSON (which looks almost the same as the original Elmo dictionary):
+
+```elmo
+{"Pepper":"Cayenne","notAsHotAs":["habanero","santaka"],"shu":{"max":50000,"min":30000}}
+```
+
+Note, the order of all properties is sorted by key name when converted to JSON.
+
