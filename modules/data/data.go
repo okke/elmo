@@ -1,6 +1,10 @@
 package data
 
 import (
+	"bytes"
+	"encoding/csv"
+	"fmt"
+
 	elmo "github.com/okke/elmo/core"
 )
 
@@ -10,11 +14,11 @@ var Module = elmo.NewModule("data", initModule)
 
 func initModule(context elmo.RunContext) elmo.Value {
 	return elmo.NewMappingForModule(context, []elmo.NamedValue{
-		fromCSV(), fromJSON(), toJSON()})
+		fromCSV(), toCSV(), fromJSON(), toJSON()})
 }
 
 func fromCSV() elmo.NamedValue {
-	return elmo.NewGoFunction(`fromCSV/converts comma separated values into a list of dictionaries
+	return elmo.NewGoFunctionWithHelp("fromCSV", `converts comma separated values into a list of dictionaries
     Usage: fromCSV <string>
 	Returns: list of dictionaries
 	
@@ -36,6 +40,61 @@ func fromCSV() elmo.NamedValue {
 
 			value := elmo.EvalArgument(context, arguments[0])
 			return convertCSVStringToListOfDictionaries(value.String())
+
+		})
+}
+
+func toCSV() elmo.NamedValue {
+	return elmo.NewGoFunctionWithHelp("toCSV", `converts an elmo list of dictionaries to csv
+    Usage: toCSV <list of header strings> <list of dictionaries>
+	Returns: CSV representation of value
+
+    `,
+		func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+
+			if _, err := elmo.CheckArguments(arguments, 2, 2, "toCSV", "<list of header strings> <list of dictionaries>"); err != nil {
+				return err
+			}
+
+			headersValue := elmo.EvalArgument(context, arguments[0])
+			if headersValue.Type() != elmo.TypeList {
+				return elmo.NewErrorValue("toCSV: expect a list of headers")
+			}
+
+			var buf bytes.Buffer
+			writer := csv.NewWriter(&buf)
+
+			headers := make([]string, 0, 0)
+			for _, header := range headersValue.(elmo.ListValue).List() {
+				headers = append(headers, header.String())
+			}
+			writer.Write(headers)
+
+			dataValue := elmo.EvalArgument(context, arguments[1])
+			if dataValue.Type() != elmo.TypeList {
+				return elmo.NewErrorValue("toCSV: expect a list with data")
+			}
+			data := make([]string, len(headers), len(headers))
+			for _, record := range dataValue.(elmo.ListValue).List() {
+				if record.Type() == elmo.TypeDictionary {
+					flat := elmo.ConvertDictionaryToFlatMap(record.(elmo.DictionaryValue))
+
+					for i, header := range headers {
+						if value, found := flat[header]; found {
+							data[i] = value.String()
+						} else {
+							data[i] = ""
+						}
+					}
+
+					writer.Write(data)
+				} else {
+					return elmo.NewErrorValue(fmt.Sprintf("toCSV: non dictionary (%v) of type (%s) found in list of data", record, record.Info().Name()))
+				}
+			}
+
+			writer.Flush()
+			return elmo.NewStringLiteral(buf.String())
 
 		})
 }

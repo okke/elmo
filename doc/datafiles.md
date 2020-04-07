@@ -62,6 +62,22 @@ peppers: (((file "peppers.json") string) |data.fromJSON)
 
 Here the ``data.json`` function does the trick. It assumes the input data contains a JSON object and converts it to an elmo dictionary.
 
+## Producing CSV data
+
+Elmo can convert a list of dictionaries into a string containing CSV data.
+
+```elmo
+data: (load data)
+
+# Load csv data (which returns a list of dictionaries)
+# 
+peppers: (((file "./test/peppers.csv") string) |data.fromCSV)
+
+# And produce csv again. But only use name and rating properties
+#
+puts (data.toCSV ["name" "rating"] $peppers)
+```
+
 ## Producing JSON data
 
 Elmo dictionaries (and other value types) can be easily converted to strings containing JSON data.

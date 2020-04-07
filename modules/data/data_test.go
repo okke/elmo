@@ -21,3 +21,7 @@ func TestConvertFromJSON(t *testing.T) {
 func TestConvertToJSON(t *testing.T) {
 	elmo.TestMoFile(t, "to_json", initTestContext)
 }
+
+func TestConvertToCSV(t *testing.T) {
+	elmo.TestMoFile(t, "to_csv", initTestContext)
+}

@@ -3,6 +3,7 @@ package elmo
 import (
 	"fmt"
 	"math"
+	"strconv"
 	"strings"
 )
 
@@ -12,7 +13,11 @@ type floatLiteral struct {
 }
 
 func (floatLiteral *floatLiteral) String() string {
-	return strings.TrimRight(fmt.Sprintf("%f", floatLiteral.value), "0")
+	asString := strconv.FormatFloat(floatLiteral.value, 'f', -1, 64)
+	if strings.ContainsRune(asString, '.') {
+		return asString
+	}
+	return fmt.Sprintf("%s.0", asString)
 }
 
 func (floatLiteral *floatLiteral) Type() Type {
