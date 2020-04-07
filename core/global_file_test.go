@@ -26,6 +26,18 @@ func TestFile(t *testing.T) {
 		`((file "file_testdata/nofile") exists)`, ExpectValue(t, NewBooleanLiteral(false)))
 
 	ParseTestAndRunBlock(t,
+		`f:  (file "file_testdata/nofile")
+		 defined f.exists`, ExpectValue(t, NewBooleanLiteral(true)))
+
+	ParseTestAndRunBlock(t,
+		`f:  (file "file_testdata/nofile")
+		 defined f.string`, ExpectValue(t, NewBooleanLiteral(true)))
+
+	ParseTestAndRunBlock(t,
+		`f:  (file "file_testdata/nofile")
+		 defined f.absPath`, ExpectValue(t, NewBooleanLiteral(false)))
+
+	ParseTestAndRunBlock(t,
 		`((file ".") string)`, ExpectErrorValueAt(t, 1))
 
 }

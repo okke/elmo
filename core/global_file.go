@@ -37,9 +37,9 @@ func file() NamedValue {
 			info, err := os.Stat(path.String())
 			if err != nil {
 				if os.IsNotExist(err) {
-					return NewDictionaryValue(nil, map[string]Value{
+					return addFunctionsToFile(NewDictionaryValue(nil, map[string]Value{
 						"exists": NewBooleanLiteral(false),
-						"path":   path})
+						"path":   path}))
 
 				}
 				return NewErrorValue(err.Error())
@@ -50,19 +50,20 @@ func file() NamedValue {
 				return NewErrorValue(err.Error())
 			}
 
-			file := NewDictionaryValue(nil, map[string]Value{
+			return addFunctionsToFile(NewDictionaryValue(nil, map[string]Value{
 				"exists":  NewBooleanLiteral(true),
 				"name":    NewStringLiteral(info.Name()),
 				"path":    NewStringLiteral(path.String()),
 				"absPath": NewStringLiteral(absPath),
 				"mode":    NewStringLiteral(info.Mode().String()),
-				"isDir":   NewBooleanLiteral(info.IsDir())}).(DictionaryValue)
-
-			file.Set(NewIdentifier("binary"), fileBinaryContent(file))
-			file.Set(NewIdentifier("string"), fileStringContent(file))
-
-			return file.(Value)
+				"isDir":   NewBooleanLiteral(info.IsDir())}).(DictionaryValue))
 		})
+}
+
+func addFunctionsToFile(file DictionaryValue) DictionaryValue {
+	file.Set(NewIdentifier("binary"), fileBinaryContent(file))
+	file.Set(NewIdentifier("string"), fileStringContent(file))
+	return file
 }
 
 func getFileContent(file DictionaryValue, transform func([]byte) Value) Value {
@@ -81,7 +82,7 @@ func getFileContent(file DictionaryValue, transform func([]byte) Value) Value {
 }
 
 func fileBinaryContent(file DictionaryValue) NamedValue {
-	return NewGoFunction(`binary/Returns the binary content of a file
+	return NewGoFunctionWithHelp("binary", `Returns the binary content of a file
 		Usage: file.binary 
 		Returns: file content as a binary value`,
 
@@ -93,7 +94,7 @@ func fileBinaryContent(file DictionaryValue) NamedValue {
 }
 
 func fileStringContent(file DictionaryValue) NamedValue {
-	return NewGoFunction(`string/Returns the content of a file as string
+	return NewGoFunctionWithHelp("string", `Returns the content of a file as string
 		Usage: file.string
 		Returns: file content as a string value`,
 
