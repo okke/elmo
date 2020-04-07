@@ -1,6 +1,9 @@
 package elmo
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 type dictValue struct {
 	baseValue
@@ -10,7 +13,25 @@ type dictValue struct {
 }
 
 func (dictValue *dictValue) String() string {
-	return fmt.Sprintf("%v", dictValue.values)
+	var builder strings.Builder
+	builder.WriteString("{")
+	writeSep := false
+
+	for _, key := range dictValue.Keys() {
+		if writeSep {
+			builder.WriteString("; ")
+		} else {
+			writeSep = true
+		}
+		builder.WriteString(key)
+		builder.WriteString(": ")
+		value, _ := dictValue.Resolve(key)
+		builder.WriteString(value.String())
+
+	}
+
+	builder.WriteString("}")
+	return builder.String()
 }
 
 func (dictValue *dictValue) Type() Type {
