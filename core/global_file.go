@@ -1,6 +1,7 @@
 package elmo
 
 import (
+	"bytes"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -63,6 +64,7 @@ func file() NamedValue {
 func addFunctionsToFile(file DictionaryValue) DictionaryValue {
 	file.Set(NewIdentifier("binary"), fileBinaryContent(file))
 	file.Set(NewIdentifier("string"), fileStringContent(file))
+	file.Set(NewIdentifier("write"), fileWrite(file))
 	return file
 }
 
@@ -102,5 +104,36 @@ func fileStringContent(file DictionaryValue) NamedValue {
 			return getFileContent(file, func(content []byte) Value {
 				return NewStringLiteral(string(content))
 			})
+		})
+}
+
+func fileWrite(file DictionaryValue) NamedValue {
+	return NewGoFunctionWithHelp("write", `Writes content to a file
+		Usage: file.write <value> 
+		Returns: the file itself`,
+
+		func(context RunContext, arguments []Argument) Value {
+
+			path, found := file.Resolve("path")
+			if !found {
+				return NewErrorValue("missing path in file dictionary")
+			}
+
+			var buf bytes.Buffer
+
+			for _, arg := range arguments {
+				data := EvalArgument(context, arg)
+				if data.Type() == TypeBinary {
+					buf.Write(data.(BinaryValue).AsBytes())
+				} else {
+					buf.WriteString(data.String())
+				}
+			}
+
+			if err := ioutil.WriteFile(path.String(), buf.Bytes(), 0644); err != nil {
+				return NewErrorValue(err.Error())
+			}
+
+			return file
 		})
 }

@@ -1,6 +1,6 @@
 # Working with files
 
-## Reading files
+## Reading and writing files
 
 Elmo comes with a build-in function to read files. The ``file`` function. It actually does a bit more than just reading, it provides information about a file returned as an elmo dictionary.
 
@@ -19,12 +19,27 @@ The ``file`` function returns a dictionary with the following properties:
 - ``path`` (the relative path)
 - ``binary`` (a function returning the content as binary value)
 - ``string`` (a function returning the content as string value)
+- ``write`` (a function to write content to the file)
 
 To retrieve the content of a file, simply use the returned ``string`` function:
 
 ```elmo
 content: ((file README.md) string)
 puts $content
+```
+
+And to write something to a file, simply use the returned ``write`` function:
+
+```elmo
+f: (file data.txt)
+f.write "nice!"
+```
+
+A simple trick to read content from a file, process it and write it to another file is by combining read and write in a pipe construction:
+
+```elmo
+str: (load string)
+((file in.data) string) | (func s { str.replace all $s "a" "o" }) | ((file out.data) write)
 ```
 
 ## Reading CSV files
