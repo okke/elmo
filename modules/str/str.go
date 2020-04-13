@@ -51,7 +51,7 @@ func at() elmo.NamedValue {
 func concat() elmo.NamedValue {
 	return elmo.NewGoFunction("concat", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
 
-		argLen, err := elmo.CheckArguments(arguments, 2, math.MaxInt16, "join", "<string> <string>+")
+		argLen, err := elmo.CheckArguments(arguments, 2, math.MaxInt16, "concat", "<string> <string>+")
 		if err != nil {
 			return err
 		}

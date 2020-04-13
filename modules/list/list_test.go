@@ -237,36 +237,36 @@ func TestMap(t *testing.T) {
 
 }
 
-func TestFilter(t *testing.T) {
+func TestWhere(t *testing.T) {
 
 	elmo.ParseTestAndRunBlockWithinContext(t, listContext(),
 		`list: (load "list")
-     list.filter [a b c] v {
+     list.where [a b c] v {
 		   true
 	   }`, elmo.ExpectValue(t, elmo.ParseAndRun(elmo.NewGlobalContext(), "[a b c]")))
 
 	elmo.ParseTestAndRunBlockWithinContext(t, listContext(),
 		`list: (load "list")
-	   list.filter [1 2 3] v {
+	   list.where [1 2 3] v {
 	 		  eq (v) 2
 	 	 }`, elmo.ExpectValue(t, elmo.ParseAndRun(elmo.NewGlobalContext(), "[2]")))
 
 	elmo.ParseTestAndRunBlockWithinContext(t, listContext(),
 		`list: (load "list")
-		 list.filter [1 2 3] v {
+		 list.where [1 2 3] v {
 				ne (v) 2
 		 }`, elmo.ExpectValue(t, elmo.ParseAndRun(elmo.NewGlobalContext(), "[1 3]")))
 
 	elmo.ParseTestAndRunBlockWithinContext(t, listContext(),
 		`list: (load "list")
-	 	 list.filter [2 1 0] v i {
+	 	 list.where [2 1 0] v i {
 	 	   ne $v $i
 	 	 }`, elmo.ExpectValue(t, elmo.ParseAndRun(elmo.NewGlobalContext(), "[2 0]")))
 
 	elmo.ParseTestAndRunBlockWithinContext(t, listContext(),
 		`list: (load "list")
 		 f: (func v {return (ne (v) 2)})
-	 	 list.filter [1 2 3] &f`, elmo.ExpectValue(t, elmo.ParseAndRun(elmo.NewGlobalContext(), "[1 3]")))
+	 	 list.where [1 2 3] &f`, elmo.ExpectValue(t, elmo.ParseAndRun(elmo.NewGlobalContext(), "[1 3]")))
 }
 
 func TestSort(t *testing.T) {
@@ -283,6 +283,14 @@ func TestSort(t *testing.T) {
 		 l: [3 2 1]
 		 list.sort! $l
 		 eq $l [1 2 3]`, elmo.ExpectValue(t, elmo.True))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, listContext(),
+		`list: (load "list")
+		 [c h i p o t l e] |list.sort |eq [c e h i l o p t]`, elmo.ExpectValue(t, elmo.True))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, listContext(),
+		`list: (load "list")
+		 [c h i p o t l e] |list.sort! |eq [c e h i l o p t]`, elmo.ExpectValue(t, elmo.True))
 }
 
 func TestUnMutableSort(t *testing.T) {

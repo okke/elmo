@@ -62,7 +62,7 @@ f.append "second line"
 
 ## Temporary files
 
-Elmo has build in support to work with temporary fileswhich are removed after being using. This is done through the ``tempFile`` function. ``tempFile`` Creates a temporary file in the default directory for temporary files. It then executes the provided block of elmo code, passing the associated file dictionary as variable, and removed the file.
+Elmo has build in support to work with temporary fileswhich are removed after being using. This is done through the ``tempFile`` function. ``tempFile`` Creates a temporary file in the default directory for temporary files. It then executes the provided block of elmo code, passing the associated file dictionary as variable, and removes the file afterwards.
 
 ```elmo
 result: (tempFile tmp {

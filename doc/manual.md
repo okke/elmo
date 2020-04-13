@@ -4,6 +4,8 @@
 
 [Working with functions](functions.md)
 
+[Working with lists](lists.md)
+
 [Working with files (and how read CSV or JSON data)](datafiles.md)
 
 [Embedding Elmo](embedding.md)

@@ -23,7 +23,7 @@ func initModule(context elmo.RunContext) elmo.Value {
 		mutablePrepend(),
 		each(),
 		_map(),
-		filter(),
+		where(),
 		_sort(),
 		mutableSort()})
 }
@@ -272,13 +272,13 @@ func _map() elmo.NamedValue {
 	})
 }
 
-func filter() elmo.NamedValue {
-	return elmo.NewGoFunction("filter", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+func where() elmo.NamedValue {
+	return elmo.NewGoFunction("where", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
 
 		list, valueName, indexName, block, valid := getValueIndexAndBlock(context, arguments)
 
 		if !valid {
-			return elmo.NewErrorValue("invalid call to filter: usage filter <list> <value identifier> <index identifier>? <block>")
+			return elmo.NewErrorValue("invalid call to where: usage where <list> <value identifier> <index identifier>? <block>")
 		}
 
 		oldValues, err := convertToList(list)
@@ -346,7 +346,7 @@ func _sort() elmo.NamedValue {
 		copy(copyOfInternal, internal)
 
 		sort.Slice(copyOfInternal, func(i, j int) bool {
-			c, _ := internal[i].(elmo.ComparableValue).Compare(context, internal[j])
+			c, _ := copyOfInternal[i].(elmo.ComparableValue).Compare(context, copyOfInternal[j])
 			return c < 0
 		})
 
