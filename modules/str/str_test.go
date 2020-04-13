@@ -309,3 +309,17 @@ func TestEndsWith(t *testing.T) {
     str.endsWith "chipotle" "tla"`, elmo.ExpectValue(t, elmo.NewBooleanLiteral(false)))
 
 }
+
+func TestUpper(t *testing.T) {
+
+	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
+		`str: (load "string")
+         str.upper "upper" |eq "UPPER" |assert`, elmo.ExpectValue(t, elmo.True))
+}
+
+func TestLower(t *testing.T) {
+
+	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
+		`str: (load "string")
+         str.lower "LOWER" |eq "lower" |assert`, elmo.ExpectValue(t, elmo.True))
+}

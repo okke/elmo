@@ -23,7 +23,9 @@ func initModule(context elmo.RunContext) elmo.Value {
 		count(),
 		split(),
 		endsWith(),
-		startsWith()})
+		startsWith(),
+		upper(),
+		lower()})
 }
 
 func at() elmo.NamedValue {
@@ -376,6 +378,46 @@ func startsWith() elmo.NamedValue {
 		}
 
 		return elmo.NewBooleanLiteral(strings.HasPrefix(str.String(), prefix.String()))
+
+	})
+}
+
+func upper() elmo.NamedValue {
+	return elmo.NewGoFunctionWithHelp("upper", `converts a string to all uppercase characters
+	usage str.upper <string>
+
+	example:
+
+	string (load string)
+	string.upper "upper" |eq "UPPER" |assert
+	`, func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+
+		_, err := elmo.CheckArguments(arguments, 1, 1, "upper", "<string>")
+		if err != nil {
+			return err
+		}
+
+		return elmo.NewStringLiteral(strings.ToUpper(elmo.EvalArgument2String(context, arguments[0])))
+
+	})
+}
+
+func lower() elmo.NamedValue {
+	return elmo.NewGoFunctionWithHelp("lower", `converts a string to all lowercase characters
+	usage str.lower <string>
+
+	example:
+
+	string (load string)
+	string.lower "LOWER" |eq "lower" |assert
+	`, func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+
+		_, err := elmo.CheckArguments(arguments, 1, 1, "lower", "<string>")
+		if err != nil {
+			return err
+		}
+
+		return elmo.NewStringLiteral(strings.ToLower(elmo.EvalArgument2String(context, arguments[0])))
 
 	})
 }

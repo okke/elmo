@@ -31,11 +31,15 @@ A simple example:
 escaped: "bla\n\t\\\"bla"
 ```
 
+### Multiline strings
+
 Multiline strings declared using backticks do not support escape characters. Everything between the backticks is taken literal. The only exception is a double backtick that can be used to include a backtick character in a multiline string.
 
 ```elmo
 multi: `bla``bla`
 ```
+
+### Strings are functions
 
 Strings, like most things in Elmo, act as functions. Sound strange? Well, it's not. The arguments passed to a string are used to access a strings content.
 
@@ -80,12 +84,52 @@ pepper: ("chipotle" -1 0)
 assert (eq $pepper "eltopihc")
 ```
 
+### Code interpolation in strings
 
-# The String module
+Elmo supports the interpolation of code execution results, mostly used to include variables inside strings, through the usage of a special escape sequence: ``\{}``
+
+A simple example:
+
+```elmo
+pepper: "jalapeno"
+sku: "2500"
+
+puts "I love \{pepper} because it's not that hot (\{sku})"
+```
+
+Everything between ``\{`` and ``}`` will be evaluated as elmo code. An example
+
+```
+i: 3
+puts "incr \{$i} = \{incr i}"
+puts "incr \{$i} = \{incr i}"
+```
+
+### String templates
+
+String with code interpolation are directly evaluated. But it's also possible to treat them as kind of templates by evaluating them later. A template is created by the use of the special ``&`` construction which is also used to refer to functions. ``&`` Followed by a string constructs an unevaluated string template.
+
+```elmo
+template: &"I love \{pepper} but I really love \{hotterPepper}"
+```
+
+This wil create a template that looks like ``I love \{...}but I really love \{...}`` Which can be excuted like this:
+
+```elmo
+pepper: jalapeno
+hotterPepper: habanero
+puts (eval $template)
+```
+
+### String length
+
+Elmo has a ``len`` function that will return the length of elmo values. ``len`` Supports strings. So the retrieve the length of a string simply use ``len "something"``
+
+## The String module
 
 Elmo comes a with a build in module with some handy functions that operate on strings.
 
-## string.at
+### string.at
 
 Functions exactly like accessing a string using itself.
 
@@ -95,17 +139,7 @@ chip: (string.at "chipotle" 0 3)
 assert (eq $chip "chip")
 ```
 
-## string.len
-
-Get the length of a string
-
-```elmo
-string: (load string)
-len: (string.len "chipotle")
-assert (eq $len 8)
-```
-
-## string.concat
+### string.concat
 
 Concat multiple strings into one new string
 
@@ -115,7 +149,7 @@ pepper: (string concat "chi" "po" "tle")
 assert (eq $pepper "chipotle")
 ```
 
-## string.trim
+### string.trim
 
 Remove characters from the beginning and ending of a trim.  This function operates
 in different modes. By default it trims from both the beginning and the ending of a string.
@@ -164,7 +198,7 @@ pepper: (string.trim prefix "http://chipotle.com" "http://")
 assert (eq $pepper "chipotle.com")
 ```
 
-## string.replace
+### string.replace
 
 Replace values in string with something else.
 
@@ -192,7 +226,7 @@ pepper: (string.replace last "jalapeno" "a" "o")
 assert (eq $pepper "jalopeno")
 ```
 
-## string.find
+### string.find
 
 Scans a string to search for a specified value. By default it returns the
 index of the first occurrence.
@@ -219,7 +253,7 @@ all: (string.find all "chipotle in a jar in a jar" "in")
 assert (eq $all [9 18])
 ```
 
-## string count
+### string count
 
 Count the occurrences of a specific value in a string.
 
@@ -239,7 +273,7 @@ count: string.find all "chipotle in a jar in a jar" "in" | list.len
 assert (eq $count 2)
 ```
 
-## string.split
+### string.split
 
 Splits a string into substrings. When no divider is given, the string will be
 split into a list of characters.
@@ -258,7 +292,7 @@ split: (string.split "chipotle,jalapeno,chilli" ",")
 assert (eq $split ["chipotle" "jalapeno" "chilli"])
 ```
 
-## string.startsWith
+### string.startsWith
 
 Checks if a string starts with a given value.
 
@@ -267,11 +301,29 @@ string: (load string)
 assert (string.startsWith "chipotle" "chip")
 ```
 
-## string.endsWith
+### string.endsWith
 
 Checks if a string ends with a given value.
 
 ```elmo
 string: (load string)
 assert (string.endsWith "jalapeno" "peno")
+```
+
+### string.upper
+
+Convert a string to uppercase characters
+
+```elmo
+string (load string)
+string.upper "upper" |eq "UPPER" |assert
+```
+
+### string.lower
+
+Convert a string to lowercase characters
+
+```elmo
+string (load string)
+string.lower "LOWER" |eq "lower" |assert
 ```
