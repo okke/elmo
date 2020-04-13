@@ -79,6 +79,7 @@ func NewGlobalContext() RunContext {
 	context.SetNamed(_uuid())
 	context.SetNamed(_time())
 	context.SetNamed(file())
+	context.SetNamed(tempFile())
 	context.SetNamed(test())
 
 	return context

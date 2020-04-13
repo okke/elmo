@@ -14,12 +14,17 @@ The ``file`` function returns a dictionary with the following properties:
 - ``absPath`` (gives the absolute path)
 - ``exists`` (checks if file exists)
 - ``isDir`` (checks if file is a directory)
+- ``size`` (file size)
 - ``mode`` (unix style string representation of the file mode. e.g. -rw-r--r--)
 - ``name`` (well, the name of the file)
 - ``path`` (the relative path)
 - ``binary`` (a function returning the content as binary value)
 - ``string`` (a function returning the content as string value)
 - ``write`` (a function to write content to the file)
+- ``append`` (a function to append content to the file)
+
+
+### read
 
 To retrieve the content of a file, simply use the returned ``string`` function:
 
@@ -27,6 +32,8 @@ To retrieve the content of a file, simply use the returned ``string`` function:
 content: ((file README.md) string)
 puts $content
 ```
+
+### write
 
 And to write something to a file, simply use the returned ``write`` function:
 
@@ -40,6 +47,30 @@ A simple trick to read content from a file, process it and write it to another f
 ```elmo
 str: (load string)
 ((file in.data) string) | (func s { str.replace all $s "a" "o" }) | ((file out.data) write)
+```
+
+### append
+
+Writing to files will overwrite existing content. It's also possible to append content to a file using a file's ``append`` function.
+
+```elmo
+f: (file data.txt)
+f.append "first line"
+f.append "\n"
+f.append "second line"
+```
+
+## Temporary files
+
+Elmo has build in support to work with temporary fileswhich are removed after being using. This is done through the ``tempFile`` function. ``tempFile`` Creates a temporary file in the default directory for temporary files. It then executes the provided block of elmo code, passing the associated file dictionary as variable, and removed the file.
+
+```elmo
+result: (tempFile tmp {
+    
+    # do something with $tmp
+
+    return $tmp.absPath
+})
 ```
 
 ## Reading CSV files

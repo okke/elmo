@@ -1,17 +1,43 @@
 package elmo
 
 import (
-	"bytes"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 )
 
+func newFileDictionary(path string) Value {
+	info, err := os.Stat(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return addFunctionsToFile(NewDictionaryValue(nil, map[string]Value{
+				"exists": NewBooleanLiteral(false),
+				"path":   NewStringLiteral(path)}))
+
+		}
+		return NewErrorValue(err.Error())
+	}
+
+	absPath, err := filepath.Abs(path)
+	if err != nil {
+		return NewErrorValue(err.Error())
+	}
+
+	return addFunctionsToFile(NewDictionaryValue(nil, map[string]Value{
+		"exists":  NewBooleanLiteral(true),
+		"name":    NewStringLiteral(info.Name()),
+		"path":    NewStringLiteral(path),
+		"absPath": NewStringLiteral(absPath),
+		"mode":    NewStringLiteral(info.Mode().String()),
+		"size":    NewIntegerLiteral(info.Size()),
+		"isDir":   NewBooleanLiteral(info.IsDir())}).(DictionaryValue))
+}
+
 // file return the file command which creates a dictionary with file info and
 // functions to read the content of the file.
 //
 func file() NamedValue {
-	return NewGoFunction(`file/Returns a dictionary with file information based on a given path
+	return NewGoFunctionWithHelp("file", `Returns a dictionary with file information based on a given path
 		Usage: file <path>
 		Returns: dictionary {
 		  exists (boolean)
@@ -20,13 +46,16 @@ func file() NamedValue {
 		  absPath (string)
 		  mode (string)
 		  isDir (boolean)
+		  size (integer)
 		  binary (function)
 		  string (function)
+		  write (function)
+		  append (function)
 		}
 		when the file does not exists, only given path and exists indicator are set in returned dictionary`,
 
 		func(context RunContext, arguments []Argument) Value {
-			if _, err := CheckArguments(arguments, 1, 1, "file", "<path>?"); err != nil {
+			if _, err := CheckArguments(arguments, 1, 1, "file", "<path>"); err != nil {
 				return err
 			}
 
@@ -35,29 +64,53 @@ func file() NamedValue {
 				return path
 			}
 
-			info, err := os.Stat(path.String())
-			if err != nil {
-				if os.IsNotExist(err) {
-					return addFunctionsToFile(NewDictionaryValue(nil, map[string]Value{
-						"exists": NewBooleanLiteral(false),
-						"path":   path}))
+			return newFileDictionary(path.String())
+		})
+}
 
-				}
+func tempFile() NamedValue {
+	return NewGoFunctionWithHelp("tempFile", `creates a temporary file, run some code and remove it
+		Usage: tempFile <identifier> <block>
+		Returns: resulting value of code execution
+		
+		example usage:
+
+		tempFile tmp {
+			tmp.append "some content"
+			return tmp.string
+		}
+
+		another example which shows temporary files are deleted after temFile as executed the block of code:
+
+		f: (file (tempFile tmp { return $tmp.absPath }))
+		not $f.exists |assert
+		`,
+
+		func(context RunContext, arguments []Argument) Value {
+			if _, err := CheckArguments(arguments, 2, 2, "tempFile", "<identifier> <code>"); err != nil {
+				return err
+			}
+
+			name := EvalArgument2String(context, arguments[0])
+			block := EvalArgument(context, arguments[1])
+			if block.Type() != TypeBlock {
+				return NewErrorValue("tmpFile expects a block of elmo code as last parameter")
+			}
+
+			tmpFile, err := ioutil.TempFile("", "elmo")
+			if err != nil {
 				return NewErrorValue(err.Error())
 			}
 
-			absPath, err := filepath.Abs(path.String())
-			if err != nil {
-				return NewErrorValue(err.Error())
-			}
+			defer os.Remove(tmpFile.Name())
 
-			return addFunctionsToFile(NewDictionaryValue(nil, map[string]Value{
-				"exists":  NewBooleanLiteral(true),
-				"name":    NewStringLiteral(info.Name()),
-				"path":    NewStringLiteral(path.String()),
-				"absPath": NewStringLiteral(absPath),
-				"mode":    NewStringLiteral(info.Mode().String()),
-				"isDir":   NewBooleanLiteral(info.IsDir())}).(DictionaryValue))
+			file := newFileDictionary(tmpFile.Name())
+
+			subContext := context.CreateSubContext()
+			subContext.Set(name, file)
+
+			return block.(Block).Run(subContext, []Argument{})
+
 		})
 }
 
@@ -65,6 +118,7 @@ func addFunctionsToFile(file DictionaryValue) DictionaryValue {
 	file.Set(NewIdentifier("binary"), fileBinaryContent(file))
 	file.Set(NewIdentifier("string"), fileStringContent(file))
 	file.Set(NewIdentifier("write"), fileWrite(file))
+	file.Set(NewIdentifier("append"), fileAppend(file))
 	return file
 }
 
@@ -119,21 +173,41 @@ func fileWrite(file DictionaryValue) NamedValue {
 				return NewErrorValue("missing path in file dictionary")
 			}
 
-			var buf bytes.Buffer
-
-			for _, arg := range arguments {
-				data := EvalArgument(context, arg)
-				if data.Type() == TypeBinary {
-					buf.Write(data.(BinaryValue).AsBytes())
-				} else {
-					buf.WriteString(data.String())
-				}
-			}
+			buf := EvalArguments2Buffer(context, arguments)
 
 			if err := ioutil.WriteFile(path.String(), buf.Bytes(), 0644); err != nil {
 				return NewErrorValue(err.Error())
 			}
 
-			return file
+			return newFileDictionary(path.String())
+		})
+}
+
+func fileAppend(file DictionaryValue) NamedValue {
+	return NewGoFunctionWithHelp("append", `Append content to a file
+		Usage: file.append <value> 
+		Returns: the file itself`,
+
+		func(context RunContext, arguments []Argument) Value {
+
+			path, found := file.Resolve("path")
+			if !found {
+				return NewErrorValue("missing path in file dictionary")
+			}
+
+			buf := EvalArguments2Buffer(context, arguments)
+
+			f, err := os.OpenFile(path.String(), os.O_APPEND|os.O_WRONLY, 0644)
+			if err != nil {
+				return NewErrorValue(err.Error())
+			}
+
+			defer f.Close()
+
+			if _, err = f.Write(buf.Bytes()); err != nil {
+				panic(err)
+			}
+
+			return newFileDictionary(path.String())
 		})
 }

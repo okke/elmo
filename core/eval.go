@@ -1,6 +1,9 @@
 package elmo
 
-import "fmt"
+import (
+	"bytes"
+	"fmt"
+)
 
 func valueOrNil(value Value) Value {
 	if value == nil {
@@ -64,4 +67,22 @@ func EvalArgument2String(context RunContext, argument Argument) string {
 
 	return EvalArgument(context, argument).String()
 
+}
+
+// EvalArguments2Buffer evaluates all given arguments and write result into a byte buffer
+//
+func EvalArguments2Buffer(context RunContext, arguments []Argument) *bytes.Buffer {
+
+	buf := bytes.NewBuffer(make([]byte, 0, 0))
+
+	for _, arg := range arguments {
+		data := EvalArgument(context, arg)
+		if data.Type() == TypeBinary {
+			buf.Write(data.(BinaryValue).AsBytes())
+		} else {
+			buf.WriteString(data.String())
+		}
+	}
+
+	return buf
 }

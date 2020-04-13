@@ -41,3 +41,39 @@ func TestFile(t *testing.T) {
 		`((file ".") string)`, ExpectErrorValueAt(t, 1))
 
 }
+
+func TestTempFile(t *testing.T) {
+	ParseTestAndRunBlock(t,
+		`f: (file (tempFile tmp { return $tmp.absPath }))
+		not $f.exists |assert`, ExpectValue(t, True))
+}
+
+func TestFileWrite(t *testing.T) {
+	ParseTestAndRunBlock(t,
+		`tempFile tmp { 
+			f: (tmp.write "chipotle")
+			return $f.size
+		}`, ExpectValue(t, NewIntegerLiteral(8)))
+
+	ParseTestAndRunBlock(t,
+		`tempFile tmp { 
+			f: (tmp.write "chipotle")
+			f: (tmp.write "jalapeno")
+			return $f.size
+		}`, ExpectValue(t, NewIntegerLiteral(8)))
+}
+
+func TestFileAppend(t *testing.T) {
+	ParseTestAndRunBlock(t,
+		`tempFile tmp { 
+			f: (tmp.append "chipotle")
+			return $f.size
+		}`, ExpectValue(t, NewIntegerLiteral(8)))
+
+	ParseTestAndRunBlock(t,
+		`tempFile tmp { 
+			f: (tmp.append "chipotle")
+			f: (tmp.append "jalapeno")
+			return $f.size
+		}`, ExpectValue(t, NewIntegerLiteral(16)))
+}
