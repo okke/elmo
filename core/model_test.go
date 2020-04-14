@@ -207,6 +207,20 @@ func TestPipeMultipleReturnValues(t *testing.T) {
 		 f |g`, ExpectValue(t, NewIntegerLiteral(12)))
 }
 
+func TestPipeToList(t *testing.T) {
+	ParseTestAndRunBlock(t,
+		`f: (func {return 1})
+		 l: [99 98 97]
+		 f |l`, ExpectValue(t, NewIntegerLiteral(98)))
+}
+
+func TestPipeToString(t *testing.T) {
+	ParseTestAndRunBlock(t,
+		`f: (func {return 1})
+		 s: "chipotle"
+		 f |s`, ExpectValue(t, NewStringLiteral("h")))
+}
+
 func TestBlockWithoutCallsShouldReturnNothing(t *testing.T) {
 
 	result := NewBlock(nil, nil, []Call{}).Run(NewRunContext(nil), []Argument{})

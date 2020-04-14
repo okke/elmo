@@ -44,7 +44,7 @@ func Ast2Call(node *node32, meta ScriptMetaData) Call {
 
 	var firstArg Argument
 	var arguments = []Argument{}
-	var pipeTo Call
+	var pipeTo Runnable
 
 	if children[childrenLength-1].pegRule == rulePipedOutput {
 		pipeTo = Ast2Call(nodeChildren(children[childrenLength-1])[1], meta)

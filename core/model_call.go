@@ -11,7 +11,7 @@ type call struct {
 	firstArgument Argument
 	function      GoFunction
 	arguments     []Argument
-	pipe          Call
+	pipe          Runnable
 }
 
 // Call is a function call
@@ -51,8 +51,11 @@ func (call *call) addInfoWhenError(value Value) Value {
 			return value
 		}
 
-		lineno, _ := call.meta.PositionOf(int(call.BeginsAt()))
+		meta := call.meta
+
+		lineno, _ := meta.PositionOf(int(call.BeginsAt()))
 		value.(ErrorValue).SetAt(call.meta, lineno)
+
 	}
 	return value
 }
@@ -161,14 +164,15 @@ func (call *call) Run(context RunContext, additionalArguments []Argument) Value 
 			}()
 		}
 
+		runnable, isRunnable := value.(Runnable)
+
 		if value.Type() == TypeGoFunction {
-			return call.pipeResult(context, call.addInfoWhenError(value.(Runnable).Run(context, useArguments)))
+			return call.pipeResult(context, call.addInfoWhenError(runnable.Run(context, useArguments)))
 		}
 
 		// runnable values can be used as functions to access their content
 		//
-		runnable, isRunnable := value.(Runnable)
-		if (isRunnable) && (len(call.arguments) > 0) {
+		if (isRunnable) && (len(useArguments) > 0) {
 			return call.pipeResult(context, call.addInfoWhenError(runnable.Run(context, useArguments)))
 		}
 
@@ -193,7 +197,7 @@ func (call *call) Internal() interface{} {
 func (call *call) Enrich(dict DictionaryValue) {
 
 	if call.pipe != nil {
-		dict.Set(NewStringLiteral("pipe"), call.pipe)
+		dict.Set(NewStringLiteral("pipe"), call.pipe.(Value))
 	}
 
 	dict.Set(NewStringLiteral("name"), NewStringLiteral(call.Name()))
@@ -201,14 +205,14 @@ func (call *call) Enrich(dict DictionaryValue) {
 
 // NewCall contstructs a new function call
 //
-func NewCall(meta ScriptMetaData, node *node32, firstArg Argument, arguments []Argument, pipeTo Call) Call {
+func NewCall(meta ScriptMetaData, node *node32, firstArg Argument, arguments []Argument, pipeTo Runnable) Call {
 	return &call{astNode: astNode{meta: meta, node: node}, baseValue: baseValue{info: typeInfoCall},
 		firstArgument: firstArg, arguments: arguments, pipe: pipeTo}
 }
 
 // NewCallWithFunction constructs a call that does not need to be resolved
 //
-func NewCallWithFunction(meta ScriptMetaData, node *node32, function GoFunction, arguments []Argument, pipeTo Call) Call {
+func NewCallWithFunction(meta ScriptMetaData, node *node32, function GoFunction, arguments []Argument, pipeTo Runnable) Call {
 	return &call{astNode: astNode{meta: meta, node: node}, baseValue: baseValue{info: typeInfoCall},
 		function: function, arguments: arguments, pipe: pipeTo}
 }
