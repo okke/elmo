@@ -1,6 +1,6 @@
 package actor
 
-import "github.com/okke/elmo/core"
+import elmo "github.com/okke/elmo/core"
 
 // ActorModule contains functions that operate on actors
 //
@@ -17,7 +17,7 @@ func initModule(context elmo.RunContext) elmo.Value {
 const currentActorKey = "-actor"
 
 func _new() elmo.NamedValue {
-	return elmo.NewGoFunction("new", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+	return elmo.NewGoFunctionWithHelp("new", `create a new actor`, func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
 
 		_, err := elmo.CheckArguments(arguments, 1, 1, "new", "{...}")
 		if err != nil {
@@ -52,7 +52,10 @@ func _new() elmo.NamedValue {
 }
 
 func send() elmo.NamedValue {
-	return elmo.NewGoFunction("send", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+	return elmo.NewGoFunctionWithHelp("send", `send message to actor
+	usage: send <actor> <message>?
+	When no message is provide, a boolean true value will be send
+	`, func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
 
 		argLen, err := elmo.CheckArguments(arguments, 1, 2, "send", "actor <message>?")
 		if err != nil {
@@ -80,7 +83,7 @@ func send() elmo.NamedValue {
 }
 
 func receive() elmo.NamedValue {
-	return elmo.NewGoFunction("receive", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+	return elmo.NewGoFunctionWithHelp("receive", `receive message that has been send to actor`, func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
 
 		_, err := elmo.CheckArguments(arguments, 0, 0, "receive", "")
 		if err != nil {
@@ -98,7 +101,7 @@ func receive() elmo.NamedValue {
 }
 
 func current() elmo.NamedValue {
-	return elmo.NewGoFunction("current", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+	return elmo.NewGoFunctionWithHelp("current", `returns the actor this code is running in`, func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
 
 		_, err := elmo.CheckArguments(arguments, 0, 0, "current", "")
 		if err != nil {

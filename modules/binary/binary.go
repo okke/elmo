@@ -17,7 +17,7 @@ func initModule(context elmo.RunContext) elmo.Value {
 }
 
 func _new() elmo.NamedValue {
-	return elmo.NewGoFunction(`new/converts a regular elmo value to a binary representation
+	return elmo.NewGoFunctionWithHelp("new", `converts a regular elmo value to a binary representation
     Usage: new <value>
     Returns: binary value
     `,
@@ -44,7 +44,7 @@ func _new() elmo.NamedValue {
 }
 
 func toValue() elmo.NamedValue {
-	return elmo.NewGoFunction(`toValue/converts a binary value into original representation
+	return elmo.NewGoFunctionWithHelp("toValue", `converts a binary value into original representation
     Usage: toValue <binary>
     Returns: regular value
     `,

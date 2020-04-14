@@ -16,7 +16,7 @@ func initModule(context elmo.RunContext) elmo.Value {
 // , within the the context of this module, to os executable commands
 //
 func undefined() elmo.NamedValue {
-	return elmo.NewGoFunction("?", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+	return elmo.NewGoFunctionWithHelp("?", "", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
 		_, err := elmo.CheckArguments(arguments, 2, 2, "?", "<name> <args>")
 		if err != nil {
 			return err
@@ -46,7 +46,7 @@ func undefined() elmo.NamedValue {
 }
 
 func _exec() elmo.NamedValue {
-	return elmo.NewGoFunction("exec", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+	return elmo.NewGoFunctionWithHelp("exec", `Executes a command`, func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
 		_, err := elmo.CheckArguments(arguments, 1, 1, "exec", "<command>")
 		if err != nil {
 			return err

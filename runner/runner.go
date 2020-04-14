@@ -183,7 +183,7 @@ func (runner *runner) input(displayPrompt string, morePrompt string) string {
 }
 
 func (runner *runner) RegisterReplExit(f func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value) {
-	runner.context.SetNamed(elmo.NewGoFunction("exit", f))
+	runner.context.SetNamed(elmo.NewGoFunctionWithHelp("exit", `quit elmo`, f))
 }
 
 func (runner *runner) Repl() {

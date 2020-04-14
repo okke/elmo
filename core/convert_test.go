@@ -13,7 +13,7 @@ func TestConvertEmptyDictionary(t *testing.T) {
 func TestConvertWithIgnoreType(t *testing.T) {
 
 	if value := ConvertValueToInterface(
-		NewGoFunction("f", func(RunContext, []Argument) Value { return nil }),
+		NewGoFunctionWithHelp("f", "", func(RunContext, []Argument) Value { return nil }),
 		TypeGoFunction); value != nil {
 
 		t.Errorf("did not expect to convert a function, got %v", value)
@@ -62,7 +62,7 @@ func TestConvertDictionaryWithValues(t *testing.T) {
 func TestConvertDictionaryWithFunction(t *testing.T) {
 
 	goMap := ConvertDictionaryToMap(NewDictionaryValue(nil, map[string]Value{
-		"f": NewGoFunction("f", func(RunContext, []Argument) Value { return nil }),
+		"f": NewGoFunctionWithHelp("f", "", func(RunContext, []Argument) Value { return nil }),
 	}), TypeGoFunction)
 	if len(goMap) != 0 {
 		t.Errorf("expected an empty map, got %v", goMap["f"])

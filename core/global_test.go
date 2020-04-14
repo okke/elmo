@@ -619,7 +619,7 @@ func TestLoad(t *testing.T) {
 
 	context.RegisterModule(NewModule("yippie", func(context RunContext) Value {
 
-		return NewMappingForModule(context, []NamedValue{NewGoFunction("nop", func(context RunContext, arguments []Argument) Value {
+		return NewMappingForModule(context, []NamedValue{NewGoFunctionWithHelp("nop", "", func(context RunContext, arguments []Argument) Value {
 			return Nothing
 		})})
 

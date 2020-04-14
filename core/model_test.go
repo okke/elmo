@@ -271,7 +271,7 @@ func TestBlockCallToNativeFunctionShouldExecuteFunction(t *testing.T) {
 
 	context := NewRunContext(nil)
 
-	context.SetNamed(NewGoFunction("sauce", func(functionContext RunContext, arguments []Argument) Value {
+	context.SetNamed(NewGoFunctionWithHelp("sauce", "", func(functionContext RunContext, arguments []Argument) Value {
 		return NewStringLiteral("chipotle")
 	}))
 
@@ -290,7 +290,7 @@ func TestGoFunctionWithOneArgumentCanReturnArgumentValue(t *testing.T) {
 
 	context := NewRunContext(nil)
 
-	context.SetNamed(NewGoFunction("echo", func(functionContext RunContext, arguments []Argument) Value {
+	context.SetNamed(NewGoFunctionWithHelp("echo", "", func(functionContext RunContext, arguments []Argument) Value {
 		return arguments[0].Value()
 	}))
 
@@ -306,7 +306,7 @@ func TestGoFunctionCanAlterContext(t *testing.T) {
 
 	context := NewRunContext(nil)
 
-	context.SetNamed(NewGoFunction("alter", func(functionContext RunContext, arguments []Argument) Value {
+	context.SetNamed(NewGoFunctionWithHelp("alter", "", func(functionContext RunContext, arguments []Argument) Value {
 		context.Set(arguments[0].Value().String(), arguments[1].Value())
 		return Nothing
 	}))

@@ -29,7 +29,7 @@ func initModule(context elmo.RunContext) elmo.Value {
 }
 
 func at() elmo.NamedValue {
-	return elmo.NewGoFunction("at", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+	return elmo.NewGoFunctionWithHelp("at", `get character at position`, func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
 
 		_, err := elmo.CheckArguments(arguments, 2, 3, "at", "<string> <from> <to>?")
 		if err != nil {
@@ -49,7 +49,7 @@ func at() elmo.NamedValue {
 }
 
 func concat() elmo.NamedValue {
-	return elmo.NewGoFunction("concat", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+	return elmo.NewGoFunctionWithHelp("concat", `concatenate/join strings`, func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
 
 		argLen, err := elmo.CheckArguments(arguments, 2, math.MaxInt16, "concat", "<string> <string>+")
 		if err != nil {
@@ -72,7 +72,7 @@ func concat() elmo.NamedValue {
 }
 
 func trim() elmo.NamedValue {
-	return elmo.NewGoFunction("trim", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+	return elmo.NewGoFunctionWithHelp("trim", `trim left|right|prefix|suffix a string`, func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
 
 		argLen, err := elmo.CheckArguments(arguments, 1, 3, "trim", "(left|right|prefix|suffix)? <string> <cutset>?")
 		if err != nil {
@@ -162,7 +162,7 @@ func allLastFirst(cmd string, value elmo.Value) (bool, bool, bool, elmo.ErrorVal
 }
 
 func replace() elmo.NamedValue {
-	return elmo.NewGoFunction("replace", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+	return elmo.NewGoFunctionWithHelp("replace", `replace first|last|all <old> <new>`, func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
 
 		_, err := elmo.CheckArguments(arguments, 3, 4, "replace", "(first|last|all)? <string> <old> <new>")
 		if err != nil {
@@ -224,7 +224,7 @@ func replace() elmo.NamedValue {
 }
 
 func find() elmo.NamedValue {
-	return elmo.NewGoFunction("find", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+	return elmo.NewGoFunctionWithHelp("find", `lookup first|last|all occurences`, func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
 
 		_, err := elmo.CheckArguments(arguments, 2, 3, "find", "(first|last|all)? <string> <value>")
 		if err != nil {
@@ -282,7 +282,7 @@ func find() elmo.NamedValue {
 }
 
 func count() elmo.NamedValue {
-	return elmo.NewGoFunction("count", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+	return elmo.NewGoFunctionWithHelp("count", `count the number of occurences of a value inside a string`, func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
 
 		_, err := elmo.CheckArguments(arguments, 2, 2, "count", "<string> <value>")
 		if err != nil {
@@ -305,7 +305,7 @@ func count() elmo.NamedValue {
 }
 
 func split() elmo.NamedValue {
-	return elmo.NewGoFunction("split", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+	return elmo.NewGoFunctionWithHelp("split", `split a string / reverse joins`, func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
 
 		argLen, err := elmo.CheckArguments(arguments, 1, 2, "split", "<string> <value>?")
 		if err != nil {
@@ -337,7 +337,7 @@ func split() elmo.NamedValue {
 }
 
 func endsWith() elmo.NamedValue {
-	return elmo.NewGoFunction("endsWith", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+	return elmo.NewGoFunctionWithHelp("endsWith", `checks if string ends with value`, func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
 
 		_, err := elmo.CheckArguments(arguments, 2, 2, "endsWith", "<string> <value>")
 		if err != nil {
@@ -360,7 +360,7 @@ func endsWith() elmo.NamedValue {
 }
 
 func startsWith() elmo.NamedValue {
-	return elmo.NewGoFunction("startsWith", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+	return elmo.NewGoFunctionWithHelp("startsWith", `checks if string starts with value`, func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
 
 		_, err := elmo.CheckArguments(arguments, 2, 2, "startsWith", "<string> <value>")
 		if err != nil {

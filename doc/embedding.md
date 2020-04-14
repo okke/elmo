@@ -27,7 +27,7 @@ does nothing, just like jalapeno, looks like this:
 
 ```go
 func jalapeno() elmo.NamedValue {
-	return elmo.NewGoFunction("jalapeno", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+	return elmo.NewGoFunctionWithHelp("jalapeno", "help for jalapeno function", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
 
 		// Do it your self
 		//
@@ -47,7 +47,7 @@ string multiple times. Chipotle looks like:
 
 ```go
 func chipotle() elmo.NamedValue {
-	return elmo.NewGoFunction("chipotle", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+	return elmo.NewGoFunctionWithHelp("chipotle", "help for chipotle function", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
 
 		argLen, err := elmo.CheckArguments(arguments, 0, 1, "chipotle", "<string>")
 		if err != nil {

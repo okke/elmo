@@ -100,7 +100,7 @@ func toCSV() elmo.NamedValue {
 }
 
 func fromJSON() elmo.NamedValue {
-	return elmo.NewGoFunction(`fromJSON/converts json into a dictionary
+	return elmo.NewGoFunctionWithHelp("fromJSON", `converts json into a dictionary
     Usage: fromJSON <string>
 	Returns: Dictionary representation of given json 
 
@@ -123,7 +123,7 @@ func fromJSON() elmo.NamedValue {
 }
 
 func toJSON() elmo.NamedValue {
-	return elmo.NewGoFunction(`toJSON/converts an elmo value to json
+	return elmo.NewGoFunctionWithHelp("toJSON", `converts an elmo value to json
     Usage: toJSON <value>
 	Returns: JSON representation of value
 

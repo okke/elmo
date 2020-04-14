@@ -116,7 +116,7 @@ func CheckArguments(arguments []Argument, min int, max int, fname string, usage 
 }
 
 func _type() NamedValue {
-	return NewGoFunction(`type/Get type information of a runtime value.
+	return NewGoFunctionWithHelp("type", `Get type information of a runtime value.
 		Usage: type value
 
 		Examples:
@@ -237,7 +237,7 @@ func let() NamedValue {
 }
 
 func get() NamedValue {
-	return NewGoFunction(`get/Gets a the value of a variable
+	return NewGoFunctionWithHelp("get", `Gets a the value of a variable
 		Usage: get <symbol>
 		Returns: content of variable denoted by symbol
 
@@ -283,7 +283,7 @@ func get() NamedValue {
 }
 
 func first() NamedValue {
-	return NewGoFunction(`first/Gets a the first value of given arguments
+	return NewGoFunctionWithHelp("first", `Gets a the first value of given arguments
 		Usage: first <symbol>*
 		Returns: first value and ignore other parameters
 		
@@ -302,7 +302,7 @@ func first() NamedValue {
 }
 
 func defined() NamedValue {
-	return NewGoFunction(`defined/Check if a variable is defined
+	return NewGoFunctionWithHelp("defined", `Check if a variable is defined
 		Usage: defined <symbol>
 		Returns: true or false
 
@@ -342,7 +342,7 @@ func defined() NamedValue {
 }
 
 func once() NamedValue {
-	return NewGoFunction(`once/Sets a variable only once
+	return NewGoFunctionWithHelp("once", `Sets a variable only once
 		Usage: once <symbol> <value>
 		Returns value that was set
 
@@ -373,7 +373,7 @@ func once() NamedValue {
 }
 
 func incr() NamedValue {
-	return NewGoFunction(`incr/Increments variable with 1 or given value
+	return NewGoFunctionWithHelp("incr", `Increments variable with 1 or given value
 		Usage: incr <symbol> <value>?
 		Returns: incremented value
 
@@ -446,7 +446,7 @@ func incr() NamedValue {
 }
 
 func _return() NamedValue {
-	return NewGoFunction(`return/Stops processing and returns a value to caller
+	return NewGoFunctionWithHelp("return", `Stops processing and returns a value to caller
 		Usage return <value>*
 		Returns: returned value as value or as a multiple return value
 
@@ -489,7 +489,7 @@ func _return() NamedValue {
 }
 
 func ampersand() NamedValue {
-	return NewGoFunction("&/Internal function, can't be used",
+	return NewGoFunctionWithHelp("&", "Internal function, can't be used",
 		func(context RunContext, arguments []Argument) Value {
 			// no argument checks are needed, ampersand (&) is an internal function
 			// part of elmo's syntax
@@ -519,7 +519,7 @@ func ampersand() NamedValue {
 }
 
 func _func() NamedValue {
-	return NewGoFunction(`func/Create a new function
+	return NewGoFunctionWithHelp("func", `Create a new function
 		Usage: func <help>? <symbol>* {...}
 		Returns: a new function
 
@@ -612,7 +612,7 @@ func _func() NamedValue {
 }
 
 func _if() NamedValue {
-	return NewGoFunction(`if/Conditionally execute (a block of) code
+	return NewGoFunctionWithHelp("if", `Conditionally execute (a block of) code
 	  Usage: if <condition> {...} (else {...})?
 		Returns: value of executed (block of) code
 
@@ -698,7 +698,7 @@ func createLoop(name string, stopCondition bool) func(context RunContext, argume
 }
 
 func while() NamedValue {
-	return NewGoFunction(`while/Repeat (a block of) code while a given condition is true
+	return NewGoFunctionWithHelp("while", `Repeat (a block of) code while a given condition is true
 	  Usage: while <condition> {...}
 		Returns: result of given code or nil when code is not executed
 
@@ -715,7 +715,7 @@ func while() NamedValue {
 }
 
 func until() NamedValue {
-	return NewGoFunction(`until/Repeat (a block of) code until a given condition is true
+	return NewGoFunctionWithHelp("until", `Repeat (a block of) code until a given condition is true
 	  Usage: until <condition> {...}
 		Returns: result of given code  or nil when code is not executed
 
@@ -730,7 +730,7 @@ func until() NamedValue {
 }
 
 func do() NamedValue {
-	return NewGoFunction(`do/Special variant of while and until
+	return NewGoFunctionWithHelp("do", `Special variant of while and until
 		Usage: do {...} (while|until) <condition>
 		Returns: value of executed code
 
@@ -780,7 +780,7 @@ func do() NamedValue {
 }
 
 func mixin() NamedValue {
-	return NewGoFunction(`mixin/Mixin all key value pairs of a given dictionary as variables
+	return NewGoFunctionWithHelp("mixin", `Mixin all key value pairs of a given dictionary as variables
 		Usage: mixin <dictionary>*
 
 		Examples:
@@ -837,7 +837,7 @@ func mixin() NamedValue {
 }
 
 func puts() NamedValue {
-	return NewGoFunction(`puts/Write values to stdout
+	return NewGoFunctionWithHelp("puts", `Write values to stdout
 		Usage puts <value>*
 		Returns: nil
 
@@ -863,7 +863,7 @@ func puts() NamedValue {
 }
 
 func echo() NamedValue {
-	return NewGoFunction(`echo/Returns given value
+	return NewGoFunctionWithHelp("echo", `Returns given value
 		Usage: echo <value>
 		Returns: given value
 
@@ -887,7 +887,7 @@ func echo() NamedValue {
 }
 
 func toS() NamedValue {
-	return NewGoFunction(`to_s/Converts given value to a string
+	return NewGoFunctionWithHelp("to_s", `Converts given value to a string
 		Usage: to_s <value>
 		Returns: string representation of value
 
@@ -908,7 +908,7 @@ func toS() NamedValue {
 }
 
 func sleep() NamedValue {
-	return NewGoFunction(`sleep/Pause for given number of milliseconds
+	return NewGoFunctionWithHelp("sleep", `Pause for given number of milliseconds
 		Usage: sleep <number>
 		Returns: nil
 
@@ -938,7 +938,7 @@ func sleep() NamedValue {
 }
 
 func load() NamedValue {
-	return NewGoFunction(`load/Loads given module or script
+	return NewGoFunctionWithHelp("load", `Loads given module or script
 		Usage: load <module|script>
 		Returns: A dictionary containing loaded variables
 
@@ -989,7 +989,7 @@ func load() NamedValue {
 }
 
 func eval() NamedValue {
-	return NewGoFunction(`eval/Evaluate a block of code
+	return NewGoFunctionWithHelp("eval", `Evaluate a block of code
 		Usage: eval <dict>? <block>
 		Returns: evaluation result
 
@@ -1053,7 +1053,7 @@ func eval() NamedValue {
 }
 
 func parse() NamedValue {
-	return NewGoFunction(`parse/Parses a string of elmo code and returns a block of code
+	return NewGoFunctionWithHelp("parse", `Parses a string of elmo code and returns a block of code
 		Usage: parse string
 		Returns: elmo code block
 		`,
@@ -1087,7 +1087,7 @@ func compareValues(context RunContext, v1 Value, v2 Value, f func(int) Value) Va
 }
 
 func eq() NamedValue {
-	return NewGoFunction(`eq/Checks if two arguments are the same
+	return NewGoFunctionWithHelp("eq", `Checks if two arguments are the same
 		Usage: eq <value> <value>
 		Returns: true (equal) or false (differ)
 
@@ -1135,7 +1135,7 @@ func eq() NamedValue {
 }
 
 func ne() NamedValue {
-	return NewGoFunction(`ne/Checks if two arguments are different
+	return NewGoFunctionWithHelp("ne", `Checks if two arguments are different
 		Usage: ne <value> <value>
 		Returns: true (differ) or false (same)
 
@@ -1179,7 +1179,7 @@ func ne() NamedValue {
 }
 
 func gt() NamedValue {
-	return NewGoFunction(`gt/Checks if first argument is greater than second argument
+	return NewGoFunctionWithHelp("gt", `Checks if first argument is greater than second argument
 		Usage: gt <value> <value>
 		Returns: true (greater than) or false (less or equal)
 
@@ -1211,7 +1211,7 @@ func gt() NamedValue {
 }
 
 func gte() NamedValue {
-	return NewGoFunction(`gte/Checks if first argument is greater than or equal to second argument
+	return NewGoFunctionWithHelp("gte", `Checks if first argument is greater than or equal to second argument
 		Usage: gte <value> <value>
 		Returns: true (greater than or equal) or false (less than)
 
@@ -1241,7 +1241,7 @@ func gte() NamedValue {
 }
 
 func lt() NamedValue {
-	return NewGoFunction(`lt/Checks if first argument is less than second argument
+	return NewGoFunctionWithHelp("lt", `Checks if first argument is less than second argument
 		Usage: lt <value> <value>
 		Returns: true (less than) or false (greater or equal)
 
@@ -1271,7 +1271,7 @@ func lt() NamedValue {
 }
 
 func lte() NamedValue {
-	return NewGoFunction(`lte/Checks if first argument is greater than or equal to second argument
+	return NewGoFunctionWithHelp("lte", `Checks if first argument is greater than or equal to second argument
 		Usage: lte <value> <value>
 		Returns: true (less than or equal) or false (greater than)
 
@@ -1301,7 +1301,7 @@ func lte() NamedValue {
 }
 
 func compare() NamedValue {
-	return NewGoFunction(`compare/Compares two values 
+	return NewGoFunctionWithHelp("compare", `Compares two values 
 		Usage: comnpare <value> <value>
 		Returns: true -1 (first value is less then second), 0 (values are equal) or 1 (first value is greater than second value)
 
@@ -1328,7 +1328,7 @@ func compare() NamedValue {
 }
 
 func and() NamedValue {
-	return NewGoFunction(`and/Logical and operation on multiple boolean values
+	return NewGoFunctionWithHelp("and", `Logical and operation on multiple boolean values
 		Usage: and <boolean>*
 		Returns: true (all arguments are true) or false (at least one argument is false)
 
@@ -1370,7 +1370,7 @@ func and() NamedValue {
 }
 
 func or() NamedValue {
-	return NewGoFunction(`or/Logical or operation on multiple boolean values
+	return NewGoFunctionWithHelp("or", `Logical or operation on multiple boolean values
 		Usage: or <boolean>*
 		Returns: true (at least one arguments is true) or false (all arguments are false)
 
@@ -1412,7 +1412,7 @@ func or() NamedValue {
 }
 
 func not() NamedValue {
-	return NewGoFunction(`not/reverses a boolean value
+	return NewGoFunctionWithHelp("not", `reverses a boolean value
 		Usage: not <boolean>
 		Returns inverted boolean value
 
@@ -1463,7 +1463,7 @@ func arithmeticOperation(context RunContext, arguments []Argument, name string, 
 }
 
 func plus() NamedValue {
-	return NewGoFunction(`plus/Add two numbers
+	return NewGoFunctionWithHelp("plus", `Add two numbers
 		Usage: plus <number> <number>
 		Returns: the sum of the two numbers
 
@@ -1484,7 +1484,7 @@ func plus() NamedValue {
 }
 
 func minus() NamedValue {
-	return NewGoFunction(`minus/Subtracts two numbers
+	return NewGoFunctionWithHelp("minus", `Subtracts two numbers
 		Usage: minus <number> <number>
 		Returns: the subtraction of the two numbers
 
@@ -1505,7 +1505,7 @@ func minus() NamedValue {
 }
 
 func multiply() NamedValue {
-	return NewGoFunction(`multiply/Multiplies two numbers
+	return NewGoFunctionWithHelp("multiply", `Multiplies two numbers
 		Usage: multiply <number> <number>
 		Returns: the product of the two numbers
 
@@ -1526,7 +1526,7 @@ func multiply() NamedValue {
 }
 
 func divide() NamedValue {
-	return NewGoFunction(`divide/divides two numbers
+	return NewGoFunctionWithHelp("divide", `divides two numbers
 		Usage: devide <number> <number>
 		Returns: the division result
 
@@ -1551,7 +1551,7 @@ func divide() NamedValue {
 }
 
 func modulo() NamedValue {
-	return NewGoFunction(`modulo/calculates the remainder of a division
+	return NewGoFunctionWithHelp("modulo", `calculates the remainder of a division
 		Usage: modulo <number> <integer>
 		Returns: the division result
 
@@ -1576,7 +1576,7 @@ func modulo() NamedValue {
 }
 
 func assert() NamedValue {
-	return NewGoFunction(`assert/Evaluate a boolean value and return an error when false
+	return NewGoFunctionWithHelp("assert", `Evaluate a boolean value and return an error when false
 		Usage: assert <boolean> <error>?
 		Returns: true or an error
 
@@ -1615,7 +1615,7 @@ func assert() NamedValue {
 }
 
 func _error() NamedValue {
-	return NewGoFunction(`error/constructs an error with a user defined message
+	return NewGoFunctionWithHelp("error", `constructs an error with a user defined message
 		Usage: error <message>
 		Returns: a user defined error
 
@@ -1638,7 +1638,7 @@ func _error() NamedValue {
 }
 
 func _panic() NamedValue {
-	return NewGoFunction(`panic/constructs a fatal error with a user defined message
+	return NewGoFunctionWithHelp("panic", `constructs a fatal error with a user defined message
 		Usage: panic <message>
 		Returns: a user defined fatal error
 
@@ -1675,7 +1675,7 @@ func formatHelp(s string) string {
 }
 
 func help() NamedValue {
-	return NewGoFunction("help/Get help. Usage 'help' or 'help symbol'", func(context RunContext, arguments []Argument) Value {
+	return NewGoFunctionWithHelp("help", "Get help. Usage 'help' or 'help symbol'", func(context RunContext, arguments []Argument) Value {
 
 		argLen, err := CheckArguments(arguments, 0, 1, "help", "<symbol>?")
 		if err != nil {
@@ -1739,7 +1739,7 @@ func help() NamedValue {
 }
 
 func _close() NamedValue {
-	return NewGoFunction(`close/Closes a value (in case this is supported by given value)
+	return NewGoFunctionWithHelp("close", `Closes a value (in case this is supported by given value)
 		Usage: close <value>
 		Returns: value`,
 
@@ -1792,7 +1792,7 @@ func _len() NamedValue {
 }
 
 func freeze() NamedValue {
-	return NewGoFunction(`freeze!/Freezes a value (makes a value immutable)
+	return NewGoFunctionWithHelp("freeze!", `Freezes a value (makes a value immutable)
 		Usage: freeze <value>
 		Returns: frozen value`,
 
@@ -1813,7 +1813,7 @@ func freeze() NamedValue {
 }
 
 func frozen() NamedValue {
-	return NewGoFunction(`frozen/Checks if a value is frozen (immutable)
+	return NewGoFunctionWithHelp("frozen", `Checks if a value is frozen (immutable)
 		Usage: frozen <value>
 		Returns: boolean (true when frozen, false when not)`,
 
@@ -1836,7 +1836,7 @@ func frozen() NamedValue {
 }
 
 func _uuid() NamedValue {
-	return NewGoFunction(`uuid/Returns a unique id for given value or a new id when no value is given
+	return NewGoFunctionWithHelp("uuid", `Returns a unique id for given value or a new id when no value is given
 		Usage: uuid <value>?
 		Returns: uuid`,
 
@@ -1871,7 +1871,7 @@ func TimeDictionary(t time.Time) Value {
 }
 
 func _time() NamedValue {
-	return NewGoFunction(`time/Generate a time dictionary based on given input
+	return NewGoFunctionWithHelp("time", `Generate a time dictionary based on given input
 		Usage: 
 		> time // without arguments time will return the current time
 		> time <int> // with one integer argument, time will convert given timestamp to time dictionary
@@ -1964,7 +1964,7 @@ func _time() NamedValue {
 }
 
 func test() NamedValue {
-	return NewGoFunction(`test/Runs all test functions in a given dictionary
+	return NewGoFunctionWithHelp("test", `Runs all test functions in a given dictionary
 	`, func(context RunContext, arguments []Argument) Value {
 		if _, err := CheckArguments(arguments, 1, 1, "test", "<suite>"); err != nil {
 			return err

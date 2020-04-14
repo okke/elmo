@@ -27,7 +27,7 @@ func initModule(context elmo.RunContext) elmo.Value {
 }
 
 func client() elmo.NamedValue {
-	return elmo.NewGoFunction(`client/create a new http client
+	return elmo.NewGoFunctionWithHelp("client", `create a new http client
 	`, func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
 
 		_, err := elmo.CheckArguments(arguments, 1, 1, "client", "url")
@@ -79,7 +79,7 @@ func getPathAndParamatersArg(arguments []elmo.Argument, pathArgNo int, parameter
 }
 
 func get() elmo.NamedValue {
-	return elmo.NewGoFunction(`get/executes an HTTP GET request on an http client
+	return elmo.NewGoFunctionWithHelp("get", `executes an HTTP GET request on an http client
 	`, func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
 
 		_, err := elmo.CheckArguments(arguments, 1, 3, "get", "<client> <path>? <parameters>?")
@@ -141,17 +141,17 @@ func postOrPut(method HTTPMethod) func(context elmo.RunContext, arguments []elmo
 }
 
 func post() elmo.NamedValue {
-	return elmo.NewGoFunction(`post/executes an HTTP POST request on an http client
+	return elmo.NewGoFunctionWithHelp("post", `executes an HTTP POST request on an http client
 	`, postOrPut(HTTP_POST))
 }
 
 func put() elmo.NamedValue {
-	return elmo.NewGoFunction(`put/executes an HTTP PUT request on an http client
+	return elmo.NewGoFunctionWithHelp("put", `executes an HTTP PUT request on an http client
 	`, postOrPut(HTTP_PUT))
 }
 
 func cookies() elmo.NamedValue {
-	return elmo.NewGoFunction(`cookies/return all cookies of http client
+	return elmo.NewGoFunctionWithHelp("cookies", `return all cookies of http client
 	`, func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
 		_, err := elmo.CheckArguments(arguments, 1, 1, "cookies", "<client>")
 		if err != nil {
@@ -176,7 +176,7 @@ func cookies() elmo.NamedValue {
 }
 
 func setHeaders() elmo.NamedValue {
-	return elmo.NewGoFunction(`setHeaders/set the headers for all request an http client will make
+	return elmo.NewGoFunctionWithHelp("setHeaders", `set the headers for all request an http client will make
 	`, func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
 		_, err := elmo.CheckArguments(arguments, 2, 2, "setHeaders", "<client> <headers as dictionary>")
 		if err != nil {
@@ -213,7 +213,7 @@ func setHeaders() elmo.NamedValue {
 }
 
 func testServer() elmo.NamedValue {
-	return elmo.NewGoFunction(`testServer/create a new http test server
+	return elmo.NewGoFunctionWithHelp("testServer", `create a new http test server
 	`, func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
 		if _, err := elmo.CheckArguments(arguments, 1, 1, "testServer", "<block>"); err != nil {
 			return err
@@ -231,7 +231,7 @@ func testServer() elmo.NamedValue {
 }
 
 func testURL() elmo.NamedValue {
-	return elmo.NewGoFunction(`testURL/retrieves the url of a given test server
+	return elmo.NewGoFunctionWithHelp("testURL", `retrieves the url of a given test server
 	`, func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
 		if _, err := elmo.CheckArguments(arguments, 1, 1, "testURL", "<test_server>"); err != nil {
 			return err

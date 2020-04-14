@@ -45,13 +45,13 @@ func convertToList(value elmo.Value) ([]elmo.Value, elmo.ErrorValue) {
 }
 
 func _new() elmo.NamedValue {
-	return elmo.NewGoFunction("new", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+	return elmo.NewGoFunctionWithHelp("new", `create a new list`, func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
 		return elmo.ListConstructor(context, arguments)
 	})
 }
 
 func tuple() elmo.NamedValue {
-	return elmo.NewGoFunction("tuple", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+	return elmo.NewGoFunctionWithHelp("tuple", `convert a list to a tuple which can be piped into a function`, func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
 
 		_, err := elmo.CheckArguments(arguments, 1, 1, "tuple", "<list>")
 		if err != nil {
@@ -70,7 +70,7 @@ func tuple() elmo.NamedValue {
 }
 
 func at() elmo.NamedValue {
-	return elmo.NewGoFunction("at", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+	return elmo.NewGoFunctionWithHelp("at", "acces list content", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
 
 		_, err := elmo.CheckArguments(arguments, 2, 3, "at", "<list> <from> <to>?")
 		if err != nil {
@@ -91,7 +91,7 @@ func at() elmo.NamedValue {
 }
 
 func appendAndOptionallyChange(name string, change bool) elmo.NamedValue {
-	return elmo.NewGoFunction(name, func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+	return elmo.NewGoFunctionWithHelp(name, "append items to a list", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
 
 		argLen, err := elmo.CheckArguments(arguments, 2, math.MaxInt16, "append", "<list> <value>*")
 		if err != nil {
@@ -135,7 +135,7 @@ func mutableAppend() elmo.NamedValue {
 }
 
 func prependAndOptionallyChange(name string, change bool) elmo.NamedValue {
-	return elmo.NewGoFunction(name, func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+	return elmo.NewGoFunctionWithHelp(name, "prepend items to a list", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
 		argLen, err := elmo.CheckArguments(arguments, 2, math.MaxInt16, "prepend", "<list> <value>*")
 		if err != nil {
 			return err
@@ -220,7 +220,7 @@ func runInBlock(context elmo.RunContext, valueName string, value elmo.Value, ind
 }
 
 func each() elmo.NamedValue {
-	return elmo.NewGoFunction("each", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+	return elmo.NewGoFunctionWithHelp("each", `iterate over items in list and executes block of code`, func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
 
 		list, valueName, indexName, block, valid := getValueIndexAndBlock(context, arguments)
 
@@ -247,7 +247,7 @@ func each() elmo.NamedValue {
 }
 
 func _map() elmo.NamedValue {
-	return elmo.NewGoFunction("map", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+	return elmo.NewGoFunctionWithHelp("map", `map all items to values returned by block of code`, func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
 
 		list, valueName, indexName, block, valid := getValueIndexAndBlock(context, arguments)
 
@@ -273,7 +273,7 @@ func _map() elmo.NamedValue {
 }
 
 func where() elmo.NamedValue {
-	return elmo.NewGoFunction("where", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+	return elmo.NewGoFunctionWithHelp("where", `filter items`, func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
 
 		list, valueName, indexName, block, valid := getValueIndexAndBlock(context, arguments)
 
@@ -300,7 +300,7 @@ func where() elmo.NamedValue {
 }
 
 func mutableSort() elmo.NamedValue {
-	return elmo.NewGoFunction("sort!", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+	return elmo.NewGoFunctionWithHelp("sort!", `sort items in list`, func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
 
 		_, err := elmo.CheckArguments(arguments, 1, 1, "sort!", "<list>")
 		if err != nil {
@@ -326,7 +326,7 @@ func mutableSort() elmo.NamedValue {
 }
 
 func _sort() elmo.NamedValue {
-	return elmo.NewGoFunction("sort", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+	return elmo.NewGoFunctionWithHelp("sort", `created a sorted list`, func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
 
 		_, err := elmo.CheckArguments(arguments, 1, 1, "sort", "<list>")
 		if err != nil {

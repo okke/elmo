@@ -15,7 +15,7 @@ var Module = elmo.NewModule("example", func(context elmo.RunContext) elmo.Value 
 })
 
 func chipotle() elmo.NamedValue {
-	return elmo.NewGoFunction("chipotle", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+	return elmo.NewGoFunctionWithHelp("chipotle", "", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
 
 		argLen, err := elmo.CheckArguments(arguments, 0, 1, "chipotle", "<string>")
 		if err != nil {
@@ -36,7 +36,7 @@ func chipotle() elmo.NamedValue {
 }
 
 func jalapeno() elmo.NamedValue {
-	return elmo.NewGoFunction("jalapeno", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+	return elmo.NewGoFunctionWithHelp("jalapeno", "", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
 
 		// Do it your self
 		//

@@ -18,9 +18,11 @@ func initModule(context elmo.RunContext) elmo.Value {
 }
 
 func new() elmo.NamedValue {
-	return elmo.NewGoFunction("new", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+	return elmo.NewGoFunctionWithHelp("new", `creates a new dictionary
+	usage: new <parent-dictionary> <block|dictionary>?
+	`, func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
 
-		argLen, err := elmo.CheckArguments(arguments, 1, 2, "new", "<parent> <block|dictionary>")
+		argLen, err := elmo.CheckArguments(arguments, 1, 2, "new", "<parent> <block|dictionary>?")
 		if err != nil {
 			return err
 		}
@@ -55,7 +57,11 @@ func new() elmo.NamedValue {
 }
 
 func keys() elmo.NamedValue {
-	return elmo.NewGoFunction("keys", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+	return elmo.NewGoFunctionWithHelp("keys", `get all keys in a dictionary
+	usage keys < dictionary>
+
+	keys are returned as sorted list of identifiers
+	`, func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
 
 		_, err := elmo.CheckArguments(arguments, 1, 1, "keys", "<dictionary>")
 		if err != nil {
@@ -104,7 +110,8 @@ func knowsOrGet(name string, context elmo.RunContext, arguments []elmo.Argument)
 }
 
 func knows() elmo.NamedValue {
-	return elmo.NewGoFunction("knows", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+	return elmo.NewGoFunctionWithHelp("knows", `check if a dictionary knows a given given
+	usage knows <dictionary> <key>`, func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
 
 		result, found := knowsOrGet("knows", context, arguments)
 		if found {
@@ -122,7 +129,9 @@ func knows() elmo.NamedValue {
 }
 
 func get() elmo.NamedValue {
-	return elmo.NewGoFunction("get", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+	return elmo.NewGoFunctionWithHelp("get", `retrieve a value from a dictionary by key
+	usage get <dictionary> <key>
+	get will return a typle of the found value and a boolean telling if the key was found`, func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
 
 		// get can act as knows by returning multiple return values
 		//
@@ -145,7 +154,9 @@ func get() elmo.NamedValue {
 }
 
 func merge() elmo.NamedValue {
-	return elmo.NewGoFunction("merge", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+	return elmo.NewGoFunctionWithHelp("merge", `merges dictionaries to one dictionary
+	usage merge <dictionary> <dictionray>+`, func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+
 		argLen, err := elmo.CheckArguments(arguments, 2, math.MaxInt16, "merge", "<dictionary> <dictionary>+")
 		if err != nil {
 			return err
@@ -169,8 +180,9 @@ func merge() elmo.NamedValue {
 }
 
 func set() elmo.NamedValue {
-	return elmo.NewGoFunction("set!", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
-		_, err := elmo.CheckArguments(arguments, 3, 3, "set", "<dictionary> <symbol> <value>")
+	return elmo.NewGoFunctionWithHelp("set!", `sets a value in a dictionary
+	usage set <dictionary> <key> <value>`, func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+		_, err := elmo.CheckArguments(arguments, 3, 3, "set", "<dictionary> <key> <value>")
 		if err != nil {
 			return err
 		}
@@ -192,8 +204,9 @@ func set() elmo.NamedValue {
 }
 
 func remove() elmo.NamedValue {
-	return elmo.NewGoFunction("remove!", func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
-		_, err := elmo.CheckArguments(arguments, 2, 2, "remove", "<dictionary> <symbol>")
+	return elmo.NewGoFunctionWithHelp("remove!", `removes a value from a dictionary
+	usage: remove <dictionary> <key>`, func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+		_, err := elmo.CheckArguments(arguments, 2, 2, "remove", "<dictionary> <key>")
 		if err != nil {
 			return err
 		}
@@ -203,7 +216,7 @@ func remove() elmo.NamedValue {
 		dict, ok := elmo.EvalArgumentOrSolveIdentifier(context, arguments[0]).(elmo.DictionaryValue)
 
 		if !ok {
-			return elmo.NewErrorValue(fmt.Sprintf("invalid call to set!, expect a dictionary as first argument instead of %v", arguments[0]))
+			return elmo.NewErrorValue(fmt.Sprintf("invalid call to remove!, expect a dictionary as first argument instead of %v", arguments[0]))
 		}
 
 		if _, err := dict.Remove(elmo.EvalArgument(context, arguments[1])); err != nil {
