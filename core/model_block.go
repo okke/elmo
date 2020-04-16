@@ -19,6 +19,8 @@ type Block interface {
 	Value
 	// Block can be executed
 	Runnable
+	// Block can be inspected
+	Inspectable
 
 	Calls() []Call
 	CopyWithinContext(RunContext) Block

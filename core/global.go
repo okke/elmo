@@ -606,7 +606,7 @@ func _func() NamedValue {
 
 				return block.(Block).Run(subContext, NoArguments)
 
-			}, block.(Block))
+			}, argNames, block.(Block))
 
 		})
 }

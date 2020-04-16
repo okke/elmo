@@ -44,19 +44,40 @@ func (goFunction *goFunction) Help() Value {
 	return goFunction.help
 }
 
-func (goFunction *goFunction) Block() Block {
-	return goFunction.block
+type inspectableGoFunction struct {
+	goFunction
+	argNames []string
+}
+
+func (inspectableGoFunction *inspectableGoFunction) Block() Block {
+	return inspectableGoFunction.goFunction.block
+}
+
+func (inspectableGoFunction *inspectableGoFunction) Meta() ScriptMetaData {
+	return inspectableGoFunction.goFunction.block.Meta()
+}
+
+func (inspectableGoFunction *inspectableGoFunction) BeginsAt() uint32 {
+	return inspectableGoFunction.goFunction.block.BeginsAt()
+}
+
+func (inspectableGoFunction *inspectableGoFunction) EndsAt() uint32 {
+	return inspectableGoFunction.goFunction.block.EndsAt()
+}
+
+func (inspectableGoFunction *inspectableGoFunction) Enrich(dict DictionaryValue) {
+	dict.Set(NewStringLiteral("arguments"), NewListValueFromStrings(inspectableGoFunction.argNames))
 }
 
 // NewGoFunctionWithBlock creates a new go function and stores the block of code for later inspection
 //
-func NewGoFunctionWithBlock(name string, help string, value GoFunction, block Block) NamedValue {
-	return &goFunction{
+func NewGoFunctionWithBlock(name string, help string, value GoFunction, argNames []string, block Block) NamedValue {
+	return &inspectableGoFunction{goFunction: goFunction{
 		baseValue: baseValue{info: typeInfoGoFunction},
 		name:      name,
 		help:      NewStringLiteral(help),
 		value:     value,
-		block:     block}
+		block:     block}, argNames: argNames}
 }
 
 // NewGoFunctionWithHelp creates a new go function
