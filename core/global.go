@@ -984,7 +984,7 @@ func load() NamedValue {
 				return loaded.(ErrorValue).Panic()
 			}
 
-			return context.Mixin(loaded)
+			return loaded
 		})
 }
 

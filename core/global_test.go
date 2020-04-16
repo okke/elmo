@@ -613,7 +613,7 @@ func TestDictionaryFunctionsKnowDictionary(t *testing.T) {
 		  sauce.same`, ExpectErrorValueAt(t, 2))
 }
 
-func TestLoad(t *testing.T) {
+func TestLoadModule(t *testing.T) {
 
 	context := NewGlobalContext()
 
@@ -628,6 +628,19 @@ func TestLoad(t *testing.T) {
 	ParseTestAndRunBlockWithinContext(t, context,
 		`yy: (load "yippie")
 		 yy.nop`, ExpectNothing(t))
+}
+
+func TestLoadFile(t *testing.T) {
+
+	context := NewGlobalContext()
+
+	ParseTestAndRunBlockWithinContext(t, context,
+		`yy: (load "loader_testdata/simple-functions")
+		 yy.soup`, ExpectValue(t, NewStringLiteral("lovely beans with jalapeno soup")))
+
+	ParseTestAndRunBlockWithinContext(t, context,
+		`yy: (load "loader_testdata/simple-functions")
+		 soup`, ExpectErrorValueAt(t, 2))
 }
 
 func TestEvalWithBlock(t *testing.T) {

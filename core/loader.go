@@ -2,7 +2,6 @@ package elmo
 
 import (
 	"fmt"
-	"github.com/pkg/errors"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -10,6 +9,8 @@ import (
 	"path/filepath"
 	"plugin"
 	"strings"
+
+	"github.com/pkg/errors"
 )
 
 type loader struct {
@@ -114,11 +115,15 @@ func (loader *loader) Load(name string) Value {
 	// try relative from current script
 	//
 	scriptName := loader.context.ScriptName()
+
+	var result Value
 	if scriptName != nil {
-		result := loader.loadFromDir(path.Dir(scriptName.String()), name)
-		if result != nil {
-			return result
-		}
+		result = loader.loadFromDir(path.Dir(scriptName.String()), name)
+	} else {
+		result = loader.loadFromDir(".", name)
+	}
+	if result != nil {
+		return result
 	}
 
 	// try known folders
