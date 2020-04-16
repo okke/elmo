@@ -68,6 +68,14 @@ func (dictValue *dictValue) Resolve(key string) (Value, bool) {
 	return Nothing, false
 }
 
+func (dictValue *dictValue) Replace(with DictionaryValue) {
+	newMap := make(map[string]Value)
+	for _, key := range with.Keys() {
+		newMap[key], _ = with.Resolve(key)
+	}
+	dictValue.values = newMap
+}
+
 func (dictValue *dictValue) Merge(withAll []DictionaryValue) Value {
 	newMap := make(map[string]Value)
 

@@ -46,6 +46,7 @@ type DictionaryValue interface {
 	Keys() []string
 	Resolve(string) (Value, bool)
 	Merge([]DictionaryValue) Value
+	Replace(DictionaryValue)
 	Set(symbol Value, value Value) (Value, ErrorValue)
 	Remove(symbol Value) (Value, ErrorValue)
 }

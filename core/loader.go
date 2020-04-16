@@ -10,6 +10,7 @@ import (
 	"plugin"
 	"strings"
 
+	"github.com/fsnotify/fsnotify"
 	"github.com/pkg/errors"
 )
 
@@ -81,33 +82,81 @@ func (loader *loader) loadFromPlugin(folderName string, name string) Value {
 	return module.Content(loader.context)
 }
 
+func (loader *loader) addFileWatcher(source string, loaded DictionaryValue) {
+
+	// TODO should we do this always or only when debugging?
+
+	watcher, err := fsnotify.NewWatcher()
+	if err != nil {
+		panic(err)
+	}
+
+	go func() {
+		for {
+			select {
+			case event, ok := <-watcher.Events:
+				if !ok {
+					return
+				}
+
+				if event.Op&fsnotify.Write == fsnotify.Write {
+
+					reconstructed, _, _ := loader.constructDictionary(source)
+
+					if reconstructed != nil {
+						loaded.Replace(reconstructed)
+					}
+				}
+			case _, ok := <-watcher.Errors:
+				if !ok {
+					return
+				}
+			}
+		}
+	}()
+
+	err = watcher.Add(source)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func (loader *loader) constructDictionary(source string) (DictionaryValue, ErrorValue, error) {
+
+	b, err := ioutil.ReadFile(source)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	subContext := loader.context.CreateSubContext()
+
+	result := ParseAndRunWithFile(subContext, string(b), source)
+
+	if result.Type() == TypeError {
+		result.(ErrorValue).Panic()
+		return nil, result.(ErrorValue), nil
+	}
+
+	return NewDictionaryValue(nil, subContext.Mapping()), nil, nil
+
+}
+
 func (loader *loader) loadFromDir(folderName string, name string) Value {
 	source := strings.Join([]string{folderName, "/", name, ".mo"}, "")
 
-	b, err := ioutil.ReadFile(source)
-	if err == nil {
-
-		subContext := loader.context.CreateSubContext()
-
-		result := ParseAndRunWithFile(subContext, string(b), source)
-
-		if result.Type() == TypeError {
-			result.(ErrorValue).Panic()
-			return result
-		}
-
-		return NewDictionaryValue(nil, subContext.Mapping())
+	constructed, loadError, _ := loader.constructDictionary(source)
+	if constructed != nil {
+		loader.addFileWatcher(source, constructed)
+		return constructed
 	}
-
-	// when file exists but could not be read, return error
-	//
-	if fileExists(source) {
-		return NewErrorValue(err.Error())
+	if loadError != nil {
+		return loadError
 	}
 
 	// could be a golang plugin
 	//
 	return loader.loadFromPlugin(folderName, name)
+
 }
 
 func (loader *loader) Load(name string) Value {
