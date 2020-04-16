@@ -15,7 +15,7 @@ func ElmoPlugin(name string) elmo.Module {
 }
 
 func dosomething() elmo.NamedValue {
-	return elmo.NewGoFunction(`forthytwo/the answer to everything
+	return elmo.NewGoFunctionWithHelp("forthytwo", `the answer to everything
 		Usage: forthytwo
 		Returns: 42`,
 
