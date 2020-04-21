@@ -82,37 +82,43 @@ func (loader *loader) loadFromPlugin(folderName string, name string) Value {
 	return module.Content(loader.context)
 }
 
+func (loader *loader) watchFile(watcher *fsnotify.Watcher, source string, loaded DictionaryValue) {
+
+	for {
+		select {
+		case event, ok := <-watcher.Events:
+			if !ok {
+				return
+			}
+
+			if event.Op&fsnotify.Write == fsnotify.Write {
+
+				reconstructed, _, _ := loader.constructDictionary(source)
+
+				if reconstructed != nil {
+					loaded.Replace(reconstructed)
+				}
+			} else if (event.Op&fsnotify.Rename == fsnotify.Rename) || (event.Op&fsnotify.Remove == fsnotify.Remove) {
+				loaded.Replace(NewDictionaryValue(nil, map[string]Value{}))
+			}
+		case _, ok := <-watcher.Errors:
+			if !ok {
+				return
+			}
+		}
+	}
+}
+
 func (loader *loader) addFileWatcher(source string, loaded DictionaryValue) {
 
-	// TODO should we do this always or only when debugging?
-
 	watcher, err := fsnotify.NewWatcher()
+
 	if err != nil {
 		panic(err)
 	}
 
 	go func() {
-		for {
-			select {
-			case event, ok := <-watcher.Events:
-				if !ok {
-					return
-				}
-
-				if event.Op&fsnotify.Write == fsnotify.Write {
-
-					reconstructed, _, _ := loader.constructDictionary(source)
-
-					if reconstructed != nil {
-						loaded.Replace(reconstructed)
-					}
-				}
-			case _, ok := <-watcher.Errors:
-				if !ok {
-					return
-				}
-			}
-		}
+		loader.watchFile(watcher, source, loaded)
 	}()
 
 	err = watcher.Add(source)
@@ -146,7 +152,9 @@ func (loader *loader) loadFromDir(folderName string, name string) Value {
 
 	constructed, loadError, _ := loader.constructDictionary(source)
 	if constructed != nil {
-		loader.addFileWatcher(source, constructed)
+		if GlobalSettings().HotReload {
+			loader.addFileWatcher(source, constructed)
+		}
 		return constructed
 	}
 	if loadError != nil {

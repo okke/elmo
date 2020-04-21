@@ -278,11 +278,11 @@ func TestStartsWith(t *testing.T) {
 
 	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
 		`str: (load "string")
-    str.startsWith "chipotle" "chi"`, elmo.ExpectValue(t, elmo.NewBooleanLiteral(true)))
+    str.startsWith "chipotle" "chi"`, elmo.ExpectValue(t, elmo.True))
 
 	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
 		`str: (load "string")
-    str.startsWith "chipotle" "cho"`, elmo.ExpectValue(t, elmo.NewBooleanLiteral(false)))
+    str.startsWith "chipotle" "cho"`, elmo.ExpectValue(t, elmo.False))
 
 }
 
@@ -302,11 +302,11 @@ func TestEndsWith(t *testing.T) {
 
 	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
 		`str: (load "string")
-    str.endsWith "chipotle" "tle"`, elmo.ExpectValue(t, elmo.NewBooleanLiteral(true)))
+    str.endsWith "chipotle" "tle"`, elmo.ExpectValue(t, elmo.True))
 
 	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
 		`str: (load "string")
-    str.endsWith "chipotle" "tla"`, elmo.ExpectValue(t, elmo.NewBooleanLiteral(false)))
+    str.endsWith "chipotle" "tla"`, elmo.ExpectValue(t, elmo.False))
 
 }
 

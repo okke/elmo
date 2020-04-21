@@ -11,7 +11,6 @@ import (
 func initDebugModule(runner Runner, debug bool) func(context elmo.RunContext) elmo.Value {
 	return func(context elmo.RunContext) elmo.Value {
 		return elmo.NewMappingForModule(context, []elmo.NamedValue{
-			inDebug(debug),
 			_log(debug),
 			bp(runner, debug),
 		})
@@ -23,17 +22,6 @@ func doNothing(name string) elmo.NamedValue {
 		func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
 
 			return elmo.Nothing
-		})
-}
-
-func inDebug(debug bool) elmo.NamedValue {
-
-	return elmo.NewGoFunctionWithHelp("inDebug", `check if elmo is running in debug mode`,
-		func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
-			if debug {
-				return elmo.True
-			}
-			return elmo.False
 		})
 }
 

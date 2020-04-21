@@ -9,11 +9,11 @@ type booleanLiteral struct {
 
 // True represents boolean value true
 //
-var True = NewBooleanLiteral(true)
+var True = newBooleanLiteral(true)
 
 // False represents boolean value false
 //
-var False = NewBooleanLiteral(false)
+var False = newBooleanLiteral(false)
 
 func (booleanLiteral *booleanLiteral) String() string {
 	return fmt.Sprintf("%v", booleanLiteral.value)
@@ -48,8 +48,17 @@ func (booleanLiteral *booleanLiteral) Compare(context RunContext, value Value) (
 	return -1, nil
 }
 
-// NewBooleanLiteral creates a new integer value
+// newBooleanLiteral creates a new integer value
 //
-func NewBooleanLiteral(value bool) Value {
+func newBooleanLiteral(value bool) Value {
 	return &booleanLiteral{baseValue: baseValue{info: typeInfoBoolean}, value: value}
+}
+
+// TrueOrFalse return the elmo equivalent of true or false
+//
+func TrueOrFalse(value bool) Value {
+	if value {
+		return True
+	}
+	return False
 }

@@ -11,7 +11,7 @@ func newFileDictionary(path string) Value {
 	if err != nil {
 		if os.IsNotExist(err) {
 			return addFunctionsToFile(NewDictionaryValue(nil, map[string]Value{
-				"exists": NewBooleanLiteral(false),
+				"exists": False,
 				"path":   NewStringLiteral(path)}))
 
 		}
@@ -24,13 +24,13 @@ func newFileDictionary(path string) Value {
 	}
 
 	return addFunctionsToFile(NewDictionaryValue(nil, map[string]Value{
-		"exists":  NewBooleanLiteral(true),
+		"exists":  True,
 		"name":    NewStringLiteral(info.Name()),
 		"path":    NewStringLiteral(path),
 		"absPath": NewStringLiteral(absPath),
 		"mode":    NewStringLiteral(info.Mode().String()),
 		"size":    NewIntegerLiteral(info.Size()),
-		"isDir":   NewBooleanLiteral(info.IsDir())}).(DictionaryValue))
+		"isDir":   TrueOrFalse(info.IsDir())}).(DictionaryValue))
 }
 
 // file return the file command which creates a dictionary with file info and

@@ -81,6 +81,7 @@ func NewGlobalContext() RunContext {
 	context.SetNamed(file())
 	context.SetNamed(tempFile())
 	context.SetNamed(test())
+	context.SetNamed(globalSettings())
 
 	return context
 }
@@ -1826,7 +1827,7 @@ func frozen() NamedValue {
 
 			value := EvalArgument(context, arguments[0])
 			if freezable, ok := value.(FreezableValue); ok {
-				return NewBooleanLiteral(freezable.Frozen())
+				return TrueOrFalse(freezable.Frozen())
 			}
 
 			// by default, all non freezable values are frozen

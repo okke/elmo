@@ -2,6 +2,7 @@ package elmo
 
 import (
 	"fmt"
+	"reflect"
 	"strings"
 )
 
@@ -255,4 +256,70 @@ func NewDictionaryFromList(parent interface{}, values []Value) Value {
 
 	return NewDictionaryValue(parent, mapping)
 
+}
+
+func getStructFieldValue(reflectValue reflect.Value) Value {
+
+	switch reflectValue.Kind() {
+	case reflect.Bool:
+		return TrueOrFalse(reflectValue.Bool())
+	case reflect.String:
+		return NewStringLiteral(reflectValue.String())
+	case reflect.Int64:
+		return NewIntegerLiteral(reflectValue.Int())
+	case reflect.Float64:
+		return NewFloatLiteral(reflectValue.Float())
+	default:
+		return Nothing
+	}
+}
+
+func setStructFieldValue(reflectValue reflect.Value, value Value) Value {
+
+	switch reflectValue.Kind() {
+	case reflect.Bool:
+		if value.Type() != TypeBoolean {
+			return NewErrorValue("expected a boolean value")
+		}
+
+		reflectValue.SetBool(value.Internal().(bool))
+	case reflect.String:
+		reflectValue.SetString(value.String())
+	case reflect.Int64:
+		reflectValue.SetInt(value.Internal().(int64))
+	case reflect.Float64:
+		reflectValue.SetFloat(value.Internal().(float64))
+	default:
+		return Nothing
+	}
+	return value
+}
+
+// NewDictionaryFromStruct construct a dictionary based on the given pointer to a struct
+//
+//
+func NewDictionaryFromStruct(parent interface{}, data interface{}) DictionaryValue {
+	functions := make(map[string]Value, 0)
+
+	structVal := reflect.ValueOf(data).Elem()
+
+	for i := 0; i < structVal.NumField(); i++ {
+
+		fieldType := structVal.Type().Field(i)
+		fieldValue := structVal.Field(i)
+
+		functions[fieldType.Name] = NewGoFunctionWithHelp(fieldType.Name, fmt.Sprintf("get %s (no arguments) or set %s (1 argument)", fieldType.Name, fieldType.Name), func(context RunContext, arguments []Argument) Value {
+			if len(arguments) == 0 {
+				// getter
+				return getStructFieldValue(fieldValue)
+			}
+			if len(arguments) == 1 {
+				// setter
+				return setStructFieldValue(fieldValue, EvalArgument(context, arguments[0]))
+			}
+			return NewErrorValue("invalid number of arguments")
+		})
+	}
+
+	return NewDictionaryValue(parent, functions)
 }

@@ -354,7 +354,7 @@ func endsWith() elmo.NamedValue {
 			return suffix
 		}
 
-		return elmo.NewBooleanLiteral(strings.HasSuffix(str.String(), suffix.String()))
+		return elmo.TrueOrFalse(strings.HasSuffix(str.String(), suffix.String()))
 
 	})
 }
@@ -377,7 +377,7 @@ func startsWith() elmo.NamedValue {
 			return prefix
 		}
 
-		return elmo.NewBooleanLiteral(strings.HasPrefix(str.String(), prefix.String()))
+		return elmo.TrueOrFalse(strings.HasPrefix(str.String(), prefix.String()))
 
 	})
 }

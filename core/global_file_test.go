@@ -14,28 +14,28 @@ func TestFile(t *testing.T) {
 		`((file "file_testdata/peppers.txt") binary) | type`, ExpectValue(t, NewIdentifier("binary")))
 
 	ParseTestAndRunBlock(t,
-		`((file "file_testdata/peppers.txt") exists)`, ExpectValue(t, NewBooleanLiteral(true)))
+		`((file "file_testdata/peppers.txt") exists)`, ExpectValue(t, True))
 
 	ParseTestAndRunBlock(t,
-		`((file "file_testdata") exists)`, ExpectValue(t, NewBooleanLiteral(true)))
+		`((file "file_testdata") exists)`, ExpectValue(t, True))
 
 	ParseTestAndRunBlock(t,
-		`((file "file_testdata") isDir)`, ExpectValue(t, NewBooleanLiteral(true)))
+		`((file "file_testdata") isDir)`, ExpectValue(t, True))
 
 	ParseTestAndRunBlock(t,
-		`((file "file_testdata/nofile") exists)`, ExpectValue(t, NewBooleanLiteral(false)))
-
-	ParseTestAndRunBlock(t,
-		`f:  (file "file_testdata/nofile")
-		 defined f.exists`, ExpectValue(t, NewBooleanLiteral(true)))
+		`((file "file_testdata/nofile") exists)`, ExpectValue(t, False))
 
 	ParseTestAndRunBlock(t,
 		`f:  (file "file_testdata/nofile")
-		 defined f.string`, ExpectValue(t, NewBooleanLiteral(true)))
+		 defined f.exists`, ExpectValue(t, True))
 
 	ParseTestAndRunBlock(t,
 		`f:  (file "file_testdata/nofile")
-		 defined f.absPath`, ExpectValue(t, NewBooleanLiteral(false)))
+		 defined f.string`, ExpectValue(t, True))
+
+	ParseTestAndRunBlock(t,
+		`f:  (file "file_testdata/nofile")
+		 defined f.absPath`, ExpectValue(t, False))
 
 	ParseTestAndRunBlock(t,
 		`((file ".") string)`, ExpectErrorValueAt(t, 1))

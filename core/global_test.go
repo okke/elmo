@@ -539,7 +539,7 @@ func TestMixin(t *testing.T) {
 		   mixin (hot_or_not)
 	   }
 		 mixin $well_tell_me
-  	 chipotle`, ExpectValue(t, NewBooleanLiteral(false)))
+  	 chipotle`, ExpectValue(t, False))
 }
 
 func TestDictionaryAccessShortcut(t *testing.T) {

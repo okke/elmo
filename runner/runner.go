@@ -208,7 +208,7 @@ func (runner *runner) Repl() {
 			}
 			runner.shouldMakeSuggestions = value.Internal().(bool)
 		}
-		return elmo.NewBooleanLiteral(runner.shouldMakeSuggestions)
+		return elmo.TrueOrFalse(runner.shouldMakeSuggestions)
 	}))
 
 	prompt := "e>mo: "
@@ -241,12 +241,16 @@ func (runner *runner) Main() {
 
 	replPtr := flag.Bool("repl", false, "enforce REPL mode, even after reading from file")
 	debugPtr := flag.Bool("debug", false, "enforce debug mode")
+	hotReloadPtr := flag.Bool("hotreload", false, "enable hot reloading")
 	versionPtr := flag.Bool("version", false, "print version info and quit")
 	helpPtr := flag.Bool("help", false, "print help text and quit")
 
 	flag.Parse()
 
-	runner.context.RegisterModule(elmo.NewModule("debug", initDebugModule(runner, *debugPtr)))
+	elmo.GlobalSettings().Debug = *debugPtr
+	elmo.GlobalSettings().HotReload = *hotReloadPtr
+
+	runner.context.RegisterModule(elmo.NewModule("debug", initDebugModule(runner, elmo.GlobalSettings().Debug)))
 
 	if *helpPtr {
 		help()

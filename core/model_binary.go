@@ -87,7 +87,7 @@ func (binaryValue *binaryValue) ToRegular() Value {
 		if err := decoder.Decode(&actualData); err != nil {
 			return NewErrorValue(err.Error())
 		}
-		return NewBooleanLiteral(actualData)
+		return TrueOrFalse(actualData)
 	case typeInfoList.ID(), typeInfoDictionary.ID():
 		actualData := SerializationResult{}
 		if err := decoder.Decode(&actualData); err != nil {
