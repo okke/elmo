@@ -33,7 +33,16 @@ escaped: "bla\n\t\\\"bla"
 
 ### Multiline strings
 
-Multiline strings declared using backticks do not support escape characters. Everything between the backticks is taken literal. The only exception is a double backtick that can be used to include a backtick character in a multiline string.
+Multiline strings declared using backticks do not support escape characters. Everything between the backticks is taken literal. So you can dump a block of text including newlines into a variable like this:
+
+```elmo
+text: `
+first line
+second line
+`
+```
+
+If you want to include a backtick in your text, simply use the double backtick:
 
 ```elmo
 multi: `bla``bla`
@@ -99,15 +108,25 @@ puts "I love \{pepper} because it's not that hot (\{sku})"
 
 Everything between ``\{`` and ``}`` will be evaluated as elmo code. An example
 
-```
+```elmo
 i: 3
 puts "incr \{$i} = \{incr i}"
 puts "incr \{$i} = \{incr i}"
 ```
 
+Multiline strings (backtick strings) support interpolation as well. Use a `` `{} `` escape sequence
+
+```elmo
+puts `
+first line
+second line
+and say hello `{name}
+`
+```
+
 ### String templates
 
-String with code interpolation are directly evaluated. But it's also possible to treat them as kind of templates by evaluating them later. A template is created by the use of the special ``&`` construction which is also used to refer to functions. ``&`` Followed by a string constructs an unevaluated string template.
+String with code interpolation are directly evaluated. But it's also possible to treat them as kind of templates by evaluating them later. A template is created by the use of the special ``&`` construction which is also used to refer to functions. ``&``, Followed by a string, constructs an unevaluated string template.
 
 ```elmo
 template: &"I love \{pepper} but I really love \{hotterPepper}"
@@ -119,6 +138,22 @@ This wil create a template that looks like ``I love \{...}but I really love \{..
 pepper: jalapeno
 hotterPepper: habanero
 puts (eval $template)
+```
+
+Elmo has a build in ``template`` function that can be used to make life easy when working with templates. The ``template`` function works like the ``func`` function but instead of accepting a code block, it accepts a template string.
+
+```elmo
+pepper: "jalapeno"
+twolapeno: (template &"\{$pepper}-\{$pepper}")
+puts (twolapeno)
+```
+
+Previous example used a global variable called pepper. But template, just like func, accepts parameter names and applies parameter values to evaluate the template string. Example:
+
+```elmo
+goFileGen: (template packageName code &"package \{$packageName}\n\{$code}")
+goFile: (goFileGen "mypackage" "// lots of golang code")
+puts $goFile
 ```
 
 ### String length

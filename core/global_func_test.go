@@ -156,3 +156,28 @@ func TestUserDefinedFunctionWithHelp(t *testing.T) {
 	 	 fsauce "jalapeno"`, ExpectValue(t, NewStringLiteral("jalapeno")))
 
 }
+
+func TestUserDefinedTemplate(t *testing.T) {
+
+	ParseTestAndRunBlock(t,
+		`pepper: "jalapeno"
+		 t: (template &"\{$pepper}\{$pepper}")
+		 t
+		`, ExpectValue(t, NewStringLiteral("jalapenojalapeno")))
+
+	ParseTestAndRunBlock(t,
+		`t: (template pepper &"\{$pepper}\{$pepper}")
+		 t "chipotle"
+		`, ExpectValue(t, NewStringLiteral("chipotlechipotle")))
+
+	ParseTestAndRunBlock(t,
+		`
+		 t: (template "help!" &"\{$pepper}\{$pepper}")
+		 help t
+	    `, ExpectValue(t, NewStringLiteral("help!")))
+
+	ParseTestAndRunBlock(t,
+		`t: (template "double pepper" pepper &"\{$pepper}\{$pepper}")
+		 help t
+		`, ExpectValue(t, NewStringLiteral("double pepper")))
+}

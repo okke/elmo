@@ -41,6 +41,7 @@ func NewGlobalContext() RunContext {
 	context.SetNamed(_return())
 	context.SetNamed(ampersand())
 	context.SetNamed(_func())
+	context.SetNamed(template())
 	context.SetNamed(_if())
 	context.SetNamed(while())
 	context.SetNamed(until())
