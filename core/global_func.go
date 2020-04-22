@@ -2,10 +2,9 @@ package elmo
 
 import (
 	"fmt"
-	"math"
 )
 
-func createGoFunc(argNames []string, block Block) func(innerContext RunContext, innerArguments []Argument) Value {
+func createGoFunc(argNames []string, evaluator func(evalContext RunContext) Value) func(innerContext RunContext, innerArguments []Argument) Value {
 	return func(innerContext RunContext, innerArguments []Argument) Value {
 
 		if len(argNames) != len(innerArguments) {
@@ -26,9 +25,20 @@ func createGoFunc(argNames []string, block Block) func(innerContext RunContext, 
 			subContext.Set(argNames[i], EvalArgument(innerContext, v))
 		}
 
-		return block.Run(subContext, NoArguments)
+		return evaluator(subContext)
 
 	}
+}
+
+func splitArgumentsForFunc(context RunContext, argStart int, arguments []Argument) ([]string, Value) {
+	argNamesAsArgument := arguments[argStart : len(arguments)-1]
+	code := EvalArgument(context, arguments[len(arguments)-1])
+	argNames := make([]string, len(argNamesAsArgument))
+
+	for i, v := range argNamesAsArgument {
+		argNames[i] = EvalArgument2String(context, v)
+	}
+	return argNames, code
 }
 
 func _func() NamedValue {
@@ -59,9 +69,9 @@ func _func() NamedValue {
 
 		func(context RunContext, arguments []Argument) Value {
 
-			argLen, err := CheckArguments(arguments, 1, math.MaxInt16, "func", "<identifier>* {...}")
-			if err != nil {
-				return err
+			argLen := len(arguments)
+			if argLen == 0 {
+				return NewErrorValue("func expects <identifier>* {...}")
 			}
 
 			argStart := 0
@@ -75,29 +85,19 @@ func _func() NamedValue {
 				argStart = 1
 			}
 
-			argNamesAsArgument := arguments[argStart : len(arguments)-1]
-			block := EvalArgument(context, arguments[len(arguments)-1])
-			argNames := make([]string, len(argNamesAsArgument))
+			argNames, code := splitArgumentsForFunc(context, argStart, arguments)
 
-			if argLen == 1 && block.Type() != TypeBlock {
-				// block is not a block, maybe its an identifier that can be used
-				// to lookup a function insted of creating on
-				//
-				result, found := context.Get(EvalArgument2String(context, arguments[len(arguments)-1]))
-				if found && result.Type() == TypeGoFunction {
-					return result
-				}
-			}
-
-			for i, v := range argNamesAsArgument {
-				argNames[i] = EvalArgument2String(context, v)
-			}
-
-			if block.Type() != TypeBlock {
+			if code.Type() != TypeBlock {
 				return NewErrorValue("invalid call to func, last parameter must be a block: usage func <identifier> <identifier>* {...}")
 			}
 
-			return NewGoFunctionWithBlock("anonymous", help, createGoFunc(argNames, block.(Block)), argNames, block.(Block))
+			block := code.(Block)
+
+			evaluator := func(evalContext RunContext) Value {
+				return block.Run(evalContext, NoArguments)
+			}
+
+			return NewGoFunctionWithBlock("anonymous", help, createGoFunc(argNames, evaluator), argNames, code.(Block))
 
 		})
 }

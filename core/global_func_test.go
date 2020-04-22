@@ -35,13 +35,6 @@ func TestUserDefinedFunctionReUse(t *testing.T) {
 
 	ParseTestAndRunBlock(t,
 		`fsauce: (func {
-			 return "chipotle"
-		 })
-		 fsoup: (func fsauce)
-		 set soup (fsoup)`, ExpectValueSetTo(t, "soup", "chipotle"))
-
-	ParseTestAndRunBlock(t,
-		`fsauce: (func {
  			 return "chipotle"
  		 })
  		 fsoup: &fsauce
