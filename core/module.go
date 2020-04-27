@@ -37,7 +37,7 @@ func NewModule(name string, initializer ModuleInitializer) Module {
 
 // NewMappingForModule creates a new dictionary holding a modules functions
 //
-func NewMappingForModule(context RunContext, namedValues []NamedValue) Value {
+func NewMappingForModule(context RunContext, namedValues []NamedValue) DictionaryValue {
 	mapping := make(map[string]Value)
 
 	for _, v := range namedValues {

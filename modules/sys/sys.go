@@ -9,7 +9,10 @@ var Module = elmo.NewModule("sys", initModule)
 func initModule(context elmo.RunContext) elmo.Value {
 	return elmo.NewMappingForModule(context, []elmo.NamedValue{
 		undefined(),
-		_exec()})
+		_exec(),
+		env(),
+		setEnv(),
+	})
 }
 
 // use elmo's undefined feature to convert all undefined function calls
@@ -63,5 +66,40 @@ func _exec() elmo.NamedValue {
 		actualCommand := resolvedCommand.Internal().(Command)
 
 		return actualCommand.Execute()
+	})
+}
+
+func env() elmo.NamedValue {
+	return elmo.NewGoFunctionWithHelp("env", `get all environment variables or one specified variable`, func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+		argLen, err := elmo.CheckArguments(arguments, 0, 1, "env", "<value>?")
+		if err != nil {
+			return err
+		}
+
+		if argLen == 1 {
+			value, found := allEnvironmentVariables.Resolve(elmo.EvalArgument2String(context, arguments[0]))
+			if !found {
+				return elmo.Nothing
+			}
+			return value
+		}
+
+		return allEnvironmentVariables
+	})
+}
+
+func setEnv() elmo.NamedValue {
+	return elmo.NewGoFunctionWithHelp("setEnv", `Sets an environment variable`, func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+		_, err := elmo.CheckArguments(arguments, 2, 2, "setEnv", "<name> <value>")
+		if err != nil {
+			return err
+		}
+
+		name := elmo.EvalArgument2String(context, arguments[0])
+		value := elmo.EvalArgument2String(context, arguments[1])
+
+		setEnvVar(name, value)
+
+		return elmo.NewStringLiteral(value)
 	})
 }

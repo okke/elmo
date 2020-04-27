@@ -39,3 +39,14 @@ func TestAsList(t *testing.T) {
      mixin (load list)
      ls "./testdata" |append "espelette.txt"`, elmo.ExpectValue(t, elmo.ParseAndRun(elmo.NewGlobalContext(), "[\"chipotle.txt\" \"jalapeno.txt\" \"espelette.txt\"]")))
 }
+
+func TestEnv(t *testing.T) {
+	elmo.ParseTestAndRunBlockWithinContext(t, sysContext(),
+		`mixin (load sys)
+		type (env) |eq dict |assert`, elmo.ExpectValue(t, elmo.True))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, sysContext(),
+		`mixin (load sys)
+		setEnv "UBGDOGSUAODHUFGSGY" "chipotle"
+		(env UBGDOGSUAODHUFGSGY) |eq "chipotle" |assert`, elmo.ExpectValue(t, elmo.True))
+}
