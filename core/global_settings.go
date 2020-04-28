@@ -7,6 +7,7 @@ import "sync"
 type GlobalSettingData struct {
 	Debug     bool
 	HotReload bool
+	StartRepl bool
 }
 
 var createGlobalSettingsOnce sync.Once

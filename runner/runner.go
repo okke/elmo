@@ -1,9 +1,9 @@
 package runner
 
 import (
-	"flag"
 	"fmt"
 	"io/ioutil"
+	"os"
 	"strings"
 
 	elmo "github.com/okke/elmo/core"
@@ -26,6 +26,7 @@ type runner struct {
 	shouldMakeSuggestions bool
 	running               bool
 	promptPrefix          string
+	arguments             *runnerArgs
 }
 
 // Runner represents the commandline usage of elmo
@@ -44,7 +45,9 @@ func NewRunner(context elmo.RunContext) Runner {
 	return &runner{context: context,
 		history:               make([]string, 0, 0),
 		shouldMakeSuggestions: true,
-		running:               true}
+		running:               true,
+		arguments:             newRunnerArgs(),
+	}
 }
 
 func (parent *runner) New(context elmo.RunContext, prefix string) Runner {
@@ -53,7 +56,9 @@ func (parent *runner) New(context elmo.RunContext, prefix string) Runner {
 		history:               parent.history,
 		shouldMakeSuggestions: parent.shouldMakeSuggestions,
 		running:               true,
-		promptPrefix:          prefix}
+		promptPrefix:          prefix,
+		arguments:             newRunnerArgs(),
+	}
 }
 
 func (runner *runner) Stop() {
@@ -76,20 +81,6 @@ func NewMainContext() elmo.RunContext {
 	context.RegisterModule(inspect.Module)
 
 	return context
-}
-
-func help() {
-
-	// flag.printDefault also prints test flags so
-	// let's print something useful ourselves
-	//
-	fmt.Printf("usage: elmo <flags>? <source>?\n")
-	flag.VisitAll(func(f *flag.Flag) {
-		if strings.HasPrefix(f.Name, "test.") {
-			return
-		}
-		fmt.Printf(" -%s : %s\n", f.Name, f.Usage)
-	})
 }
 
 func (runner *runner) getCommandsForCompleter(word string) ([]string, string, elmo.DictionaryValue) {
@@ -237,42 +228,70 @@ func (runner *runner) read(source string) {
 	}
 }
 
+func (runner *runner) storeArgs() {
+
+	flagValues := make(map[string]elmo.Value)
+	for k, v := range runner.arguments.userFlags {
+		flagValues[k] = elmo.ConvertAnyToValue(v)
+	}
+
+	runner.context.Set("args", elmo.NewDictionaryValue(nil, map[string]elmo.Value{
+		"script": elmo.NewStringLiteral(runner.arguments.elmoFile),
+		"flags":  elmo.NewDictionaryValue(nil, flagValues),
+		"args":   elmo.NewListValueFromStrings(runner.arguments.userArgs),
+		"raw":    elmo.NewListValueFromStrings(runner.arguments.rawUserArgs),
+	}))
+
+}
+
+const debugFlag = "debug"
+const autoreloadFlag = "autoreload"
+const replFlag = "repl"
+const versionFlag = "version"
+const helpFlag = "help"
+
+func help() {
+
+	fmt.Println("usage: elmo <flags>? <script-file>? <script-flags>? <script-args>?")
+	fmt.Printf("  %-15v  start elmo in debug mode\n", "-"+debugFlag)
+	fmt.Printf("  %-15v  start elmo in auto reload mode\n", "-"+autoreloadFlag)
+	fmt.Printf("  %-15v  open repl after script execution\n", "-"+replFlag)
+	fmt.Printf("  %-15v  print elmo's version\n", "-"+versionFlag)
+}
+
+// Main starts the elmo runtime. Either in repl mode or by interpreting an elmo source file
+//
 func (runner *runner) Main() {
 
-	replPtr := flag.Bool("repl", false, "enforce REPL mode, even after reading from file")
-	debugPtr := flag.Bool("debug", false, "enforce debug mode")
-	hotReloadPtr := flag.Bool("hotreload", false, "enable hot reloading")
-	versionPtr := flag.Bool("version", false, "print version info and quit")
-	helpPtr := flag.Bool("help", false, "print help text and quit")
+	parseArguments(os.Args[1:], runner.arguments)
+	runner.storeArgs()
 
-	flag.Parse()
-
-	elmo.GlobalSettings().Debug = *debugPtr
-	elmo.GlobalSettings().HotReload = *hotReloadPtr
-
-	runner.context.RegisterModule(elmo.NewModule("debug", initDebugModule(runner, elmo.GlobalSettings().Debug)))
-
-	if *helpPtr {
+	if _, needHelp := runner.arguments.elmoFlags[helpFlag]; needHelp {
 		help()
 		return
 	}
 
-	if *versionPtr {
+	if _, wantsVersion := runner.arguments.elmoFlags[versionFlag]; wantsVersion {
 		fmt.Printf("%v\n", elmo.Version)
 		return
 	}
 
-	if flag.NArg() == 0 {
+	_, elmo.GlobalSettings().Debug = runner.arguments.elmoFlags[debugFlag]
+	_, elmo.GlobalSettings().HotReload = runner.arguments.elmoFlags[autoreloadFlag]
+	_, elmo.GlobalSettings().StartRepl = runner.arguments.elmoFlags[replFlag]
+
+	runner.context.RegisterModule(elmo.NewModule("debug", initDebugModule(runner, elmo.GlobalSettings().Debug)))
+
+	if runner.arguments.elmoFile == "" {
 		// no source specified so running elmo as a REPL
 		//
 		runner.Repl()
 	} else {
-		runner.read(flag.Args()[0])
 
-		if *replPtr {
+		runner.read(runner.arguments.elmoFile)
+
+		if elmo.GlobalSettings().StartRepl {
 			runner.Repl()
 		}
-
 	}
-
 }
