@@ -47,12 +47,13 @@ NewLine <- ([\n\r] Spacing)+
 # IDENTIFIERS
 #
 
-Identifier <- IdNondigit IdChar* Spacing
+Identifier <- IdNondigit IdChar* (IdEnd? Spacing / IdEnd Spacing?) / IdEnd Spacing
 
-IdNondigit <- [a-z] / [A-Z] / [_?!]
+IdNondigit <- [a-z] / [A-Z] / '_'
 
-IdChar <- [a-z] / [A-Z] / [0-9] / [_?!]
+IdChar <- [a-z] / [A-Z] / [0-9] / '_'
 
+IdEnd <- [?!]
 
 #
 # STRING LITERALS
