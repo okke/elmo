@@ -215,7 +215,10 @@ func runInBlock(context elmo.RunContext, valueName string, value elmo.Value, ind
 	}
 
 	if block.Type() == elmo.TypeGoFunction {
-		return block.(elmo.Runnable).Run(context, []elmo.Argument{elmo.NewDynamicArgument(value)})
+		// TODO: find out how many parameters the given function expects
+		// and when its 1, only pass value and when it's 2, pass both value and index
+		//
+		return block.(elmo.Runnable).Run(context, []elmo.Argument{elmo.NewDynamicArgument(value), elmo.NewDynamicArgument(elmo.NewIntegerLiteral(int64(index)))})
 	}
 
 	return elmo.NewErrorValue(fmt.Sprintf("invalid block %v", block))

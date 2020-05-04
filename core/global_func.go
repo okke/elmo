@@ -1,15 +1,7 @@
 package elmo
 
-import (
-	"fmt"
-)
-
 func createGoFunc(argNames []string, evaluator func(evalContext RunContext) Value) func(innerContext RunContext, innerArguments []Argument) Value {
 	return func(innerContext RunContext, innerArguments []Argument) Value {
-
-		if len(argNames) != len(innerArguments) {
-			return NewErrorValue(fmt.Sprintf("invalid call to user defined function: expect %d parameters instead of %d", len(argNames), len(innerArguments)))
-		}
 
 		cloneFrom := innerContext
 		if cloneFrom.Parent() != nil {
@@ -21,8 +13,11 @@ func createGoFunc(argNames []string, evaluator func(evalContext RunContext) Valu
 			subContext.Set("this", innerContext.This())
 		}
 
+		maxArgs := len(argNames)
 		for i, v := range innerArguments {
-			subContext.Set(argNames[i], EvalArgument(innerContext, v))
+			if i < maxArgs {
+				subContext.Set(argNames[i], EvalArgument(innerContext, v))
+			}
 		}
 
 		return evaluator(subContext)

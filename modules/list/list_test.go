@@ -16,7 +16,7 @@ func TestNew(t *testing.T) {
 
 	elmo.ParseTestAndRunBlockWithinContext(t, listContext(),
 		`list: (load "list")
-    l: (list.new 1 2 3)
+		l: (list.new 1 2 3)
 		l`, elmo.ExpectValue(t, elmo.ParseAndRun(elmo.NewGlobalContext(), "[1 2 3]")))
 }
 
@@ -45,7 +45,7 @@ func TestAt(t *testing.T) {
 
 	elmo.ParseTestAndRunBlockWithinContext(t, listContext(),
 		`list: (load "list")
-    list.at [1 2 3] 0`, elmo.ExpectValue(t, elmo.NewIntegerLiteral(1)))
+		list.at [1 2 3] 0`, elmo.ExpectValue(t, elmo.NewIntegerLiteral(1)))
 
 	elmo.ParseTestAndRunBlockWithinContext(t, listContext(),
 		`list: (load "list")
@@ -73,33 +73,33 @@ func TestAppend(t *testing.T) {
 
 	elmo.ParseTestAndRunBlockWithinContext(t, listContext(),
 		`list: (load "list")
-    l: [1 2 3]
-    l: (list.append (l) 4)
+		l: [1 2 3]
+		l: (list.append (l) 4)
 		l`, elmo.ExpectValue(t, elmo.ParseAndRun(elmo.NewGlobalContext(), "[1 2 3 4]")))
 
 	elmo.ParseTestAndRunBlockWithinContext(t, listContext(),
 		`list: (load "list")
-    l1: [1 2 3]
-    l2: (list.append (l1) 4)
+		l1: [1 2 3]
+		l2: (list.append (l1) 4)
 		l1`, elmo.ExpectValue(t, elmo.ParseAndRun(elmo.NewGlobalContext(), "[1 2 3]")))
 
 	elmo.ParseTestAndRunBlockWithinContext(t, listContext(),
 		`list: (load "list")
-    l: [1 2 3]
-    l: (list.append (l) 4 5 6)
+		l: [1 2 3]
+		l: (list.append (l) 4 5 6)
 		l`, elmo.ExpectValue(t, elmo.ParseAndRun(elmo.NewGlobalContext(), "[1 2 3 4 5 6]")))
 
 	elmo.ParseTestAndRunBlockWithinContext(t, listContext(),
 		`list: (load "list")
-    l: [1 2 3]
-    l: (list.append l 4 )
+		l: [1 2 3]
+		l: (list.append l 4 )
 		l`, elmo.ExpectValue(t, elmo.ParseAndRun(elmo.NewGlobalContext(), "[1 2 3 4]")))
 
 	elmo.ParseTestAndRunBlockWithinContext(t, listContext(),
 		`list: (load "list")
-	   l: [1 2 3]
-	   list.append! $l 4
-		 l`, elmo.ExpectValue(t, elmo.ParseAndRun(elmo.NewGlobalContext(), "[1 2 3 4]")))
+		l: [1 2 3]
+		list.append! $l 4
+		l`, elmo.ExpectValue(t, elmo.ParseAndRun(elmo.NewGlobalContext(), "[1 2 3 4]")))
 
 	elmo.ParseTestAndRunBlockWithinContext(t, listContext(),
 		`list: (load "list")
@@ -113,21 +113,21 @@ func TestPrepend(t *testing.T) {
 
 	elmo.ParseTestAndRunBlockWithinContext(t, listContext(),
 		`list: (load "list")
-    l: [1 2 3]
-    l: (list.prepend l 4)
+		l: [1 2 3]
+		l: (list.prepend l 4)
 		l`, elmo.ExpectValue(t, elmo.ParseAndRun(elmo.NewGlobalContext(), "[4 1 2 3]")))
 
 	elmo.ParseTestAndRunBlockWithinContext(t, listContext(),
 		`list: (load "list")
-    l: [1 2 3]
-    l: (list.prepend l 4 5 6)
+		l: [1 2 3]
+		l: (list.prepend l 4 5 6)
 		l`, elmo.ExpectValue(t, elmo.ParseAndRun(elmo.NewGlobalContext(), "[6 5 4 1 2 3]")))
 
 	elmo.ParseTestAndRunBlockWithinContext(t, listContext(),
 		`list: (load "list")
 		l: [1 2 3]
 		list.prepend! l 4 5 6
-	  l`, elmo.ExpectValue(t, elmo.ParseAndRun(elmo.NewGlobalContext(), "[6 5 4 1 2 3]")))
+		l`, elmo.ExpectValue(t, elmo.ParseAndRun(elmo.NewGlobalContext(), "[6 5 4 1 2 3]")))
 
 	elmo.ParseTestAndRunBlockWithinContext(t, listContext(),
 		`list: (load "list")
@@ -144,41 +144,46 @@ func TestEach(t *testing.T) {
 
 	elmo.ParseTestAndRunBlockWithinContext(t, listContext(),
 		`list: (load "list")
-    l: [1 2 3]
-    list.each l v {
+    	 l: [1 2 3]
+    	 list.each l v {
 		  once result []
 			result: (list.append result (v))
-	  }`, elmo.ExpectValue(t, elmo.ParseAndRun(elmo.NewGlobalContext(), "[1 2 3]")))
+	  	 }`, elmo.ExpectValue(t, elmo.ParseAndRun(elmo.NewGlobalContext(), "[1 2 3]")))
 
 	elmo.ParseTestAndRunBlockWithinContext(t, listContext(),
 		`list: (load "list")
 	    l: [a b c]
 	    list.each l v i {
-			  once result []
-				result: (list.append result (i) (v))
-		  }`, elmo.ExpectValue(t, elmo.ParseAndRun(elmo.NewGlobalContext(), "[0 a 1 b 2 c]")))
+			once result []
+			result: (list.append result (i) (v))
+		}`, elmo.ExpectValue(t, elmo.ParseAndRun(elmo.NewGlobalContext(), "[0 a 1 b 2 c]")))
 
 	elmo.ParseTestAndRunBlockWithinContext(t, listContext(),
 		`list: (load "list")
-			l: [1 2 3]
-			touch: 99
-			list.each l v {
-				touch: (v)
-			}
-			touch`, elmo.ExpectValue(t, elmo.NewIntegerLiteral(99)))
+		l: [1 2 3]
+		touch: 99
+		list.each l v {
+			touch: (v)
+		}
+		touch`, elmo.ExpectValue(t, elmo.NewIntegerLiteral(99)))
 
 	elmo.ParseTestAndRunBlockWithinContext(t, listContext(),
 		`list: (load "list")
-			l: [1 2 3]
-			stepsize: 99
-			list.each l v {
-				incr index (stepsize)
-			}`, elmo.ExpectValue(t, elmo.NewIntegerLiteral(297)))
+		 l: [1 2 3]
+		 stepsize: 99
+		 list.each l v {
+			incr index (stepsize)
+		 }`, elmo.ExpectValue(t, elmo.NewIntegerLiteral(297)))
 
 	elmo.ParseTestAndRunBlockWithinContext(t, listContext(),
 		`list: (load "list")
-		 f: (func x {return $x})
-	 	 [1 2 3] |list.each &f`, elmo.ExpectValue(t, elmo.NewIntegerLiteral(3)))
+		 f: (func v i {return [$i $v]})
+		 [a b c] |list.each &f |eq [2 c]`, elmo.ExpectValue(t, elmo.True))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, listContext(),
+		`list: (load "list")
+		 f: (func v {return [$v $v]})
+		 [a b c] |list.each &f |eq [c c]`, elmo.ExpectValue(t, elmo.True))
 
 }
 
@@ -186,10 +191,10 @@ func TestMap(t *testing.T) {
 
 	elmo.ParseTestAndRunBlockWithinContext(t, listContext(),
 		`list: (load "list")
-    l: [a b c]
-    list.map l v {
-		  true
-	  }`, elmo.ExpectValue(t, elmo.ParseAndRun(elmo.NewGlobalContext(), "[(true) (true) (true)]")))
+    	 l: [a b c]
+    	 list.map l v {
+			true
+	     }`, elmo.ExpectValue(t, elmo.ParseAndRun(elmo.NewGlobalContext(), "[(true) (true) (true)]")))
 
 	elmo.ParseTestAndRunBlockWithinContext(t, listContext(),
 		`list: (load "list")
@@ -214,26 +219,31 @@ func TestMap(t *testing.T) {
 
 	elmo.ParseTestAndRunBlockWithinContext(t, listContext(),
 		`list: (load "list")
-	 	  l: [a b c]
-	 	  list.map l v i {
+	 	 l: [a b c]
+	 	 list.map l v i {
 	 			[(i) (v)]
-	 		}`, elmo.ExpectValue(t, elmo.ParseAndRun(elmo.NewGlobalContext(), "[[0 a] [1 b] [2 c]]")))
+	 	 }`, elmo.ExpectValue(t, elmo.ParseAndRun(elmo.NewGlobalContext(), "[[0 a] [1 b] [2 c]]")))
 
 	elmo.ParseTestAndRunBlockWithinContext(t, listContext(),
 		`list: (load list)
-		 f: (func i {return (multiply $i $i)})
-		 [1 2 3] |list.map &f`, elmo.ExpectValue(t, elmo.ParseAndRun(elmo.NewGlobalContext(), "[1 4 9]")))
+		 f: (func v i {return (multiply $v $i)})
+		 [2 3 4] |list.map &f`, elmo.ExpectValue(t, elmo.ParseAndRun(elmo.NewGlobalContext(), "[0 3 8]")))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, listContext(),
+		`list: (load list)
+		 f: (func v {return (multiply $v $v)})
+		 [2 3 4] |list.map &f`, elmo.ExpectValue(t, elmo.ParseAndRun(elmo.NewGlobalContext(), "[4 9 16]")))
 
 	elmo.ParseTestAndRunBlockWithinContext(t, listContext(),
 		`list: (load "list")
-			l: [a b c]
-			list.map l v i {
-				if (eq (i) 1) {
-					[(i) (v)]
-				} else {
-					return 99
-				}
-			}`, elmo.ExpectValue(t, elmo.ParseAndRun(elmo.NewGlobalContext(), "[99 [1 b] 99]")))
+		 l: [a b c]
+		 list.map l v i {
+			if (eq (i) 1) {
+				[(i) (v)]
+			} else {
+				return 99
+			}
+		 }`, elmo.ExpectValue(t, elmo.ParseAndRun(elmo.NewGlobalContext(), "[99 [1 b] 99]")))
 
 }
 
@@ -265,8 +275,13 @@ func TestWhere(t *testing.T) {
 
 	elmo.ParseTestAndRunBlockWithinContext(t, listContext(),
 		`list: (load "list")
+		 f: (func v i {return (ne (v) 2)})
+		  list.where [1 2 3] &f`, elmo.ExpectValue(t, elmo.ParseAndRun(elmo.NewGlobalContext(), "[1 3]")))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, listContext(),
+		`list: (load "list")
 		 f: (func v {return (ne (v) 2)})
-	 	 list.where [1 2 3] &f`, elmo.ExpectValue(t, elmo.ParseAndRun(elmo.NewGlobalContext(), "[1 3]")))
+		 list.where [1 2 3] &f`, elmo.ExpectValue(t, elmo.ParseAndRun(elmo.NewGlobalContext(), "[1 3]")))
 }
 
 func TestSort(t *testing.T) {
