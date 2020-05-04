@@ -186,9 +186,7 @@ assert (eq $pepper "chipotle")
 
 ### string.trim
 
-Remove characters from the beginning and ending of a trim.  This function operates
-in different modes. By default it trims from both the beginning and the ending of a string.
-And by default it trims spaces and tabs
+Remove characters from the beginning and ending of a trim.
 
 ```elmo
 string: (load string)
@@ -204,34 +202,48 @@ pepper: (string.trim "...chipotle..." ".ec")
 assert (eq $pepper "hipotl")
 ```
 
+### string.trimLeft
+
 It's possible to trim only from the beginning.
 
 ```elmo
 string: (load string)
-pepper: (string.trim left "...chipotle..." ".ec")
+pepper: (string.trimLeft "...chipotle..." ".ec")
 assert (eq $pepper "hipotle...")
 ```
+
+### string.trimRight
 
 And only from the end.
 
 ```elmo
 string: (load string)
-pepper: (string.trim right "...chipotle..." ".ec")
+pepper: (string.trimRight "...chipotle..." ".ec")
 assert (eq $pepper "...chipotl")
 ```
 
-Instead of specifying a set of characters, it's also possible to specify a prefix
-or suffix that need to be trimmed.
+### string.trimPrefix
+
+Instead of specifying a set of characters to trim, it's also possible to specify a prefix
 
 ```elmo
 string: (load string)
 
-pepper: (string.trim suffix "chipotle.json" ".json")
-assert (eq $pepper "chipotle")
-
-pepper: (string.trim prefix "http://chipotle.com" "http://")
+pepper: (string.trimPrefix "http://chipotle.com" "http://")
 assert (eq $pepper "chipotle.com")
 ```
+
+### string.trimSuffix
+
+Or specifiy a suffix that need to be trimmed.
+
+```elmo
+string: (load string)
+
+pepper: (string.trimSuffix "chipotle.json" ".json")
+assert (eq $pepper "chipotle")
+```
+
 
 ### string.replace
 
