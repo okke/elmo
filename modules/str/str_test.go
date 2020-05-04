@@ -100,64 +100,26 @@ func TestTrimPrefix(t *testing.T) {
          str.trimPrefix "jar_with_chipotle" "jar_with_"`, elmo.ExpectValue(t, elmo.NewStringLiteral("chipotle")))
 }
 
-func TestReplace(t *testing.T) {
+func TestReplaceAll(t *testing.T) {
+	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
+		`str: (load "string")
+ 		 str.replaceAll "chipotle in a jar" "in" "out"`, elmo.ExpectValue(t, elmo.NewStringLiteral("chipotle out a jar")))
 
 	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
 		`str: (load "string")
-     str.replace`, elmo.ExpectErrorValueAt(t, 2))
+ 		 str.replaceAll "chipotle in a jar of chipotles" "chipotle" "jalapeno"`, elmo.ExpectValue(t, elmo.NewStringLiteral("jalapeno in a jar of jalapenos")))
+}
 
+func TestReplaceFirst(t *testing.T) {
 	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
 		`str: (load "string")
-     str.replace "chipotle in a jar" "in" "out"`, elmo.ExpectValue(t, elmo.NewStringLiteral("chipotle out a jar")))
+ 		 str.replaceFirst "chipotle in a jar in a box" "in" "out"`, elmo.ExpectValue(t, elmo.NewStringLiteral("chipotle out a jar in a box")))
+}
 
+func TestReplaceLast(t *testing.T) {
 	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
 		`str: (load "string")
-     str.replace (error "chipotle in a jar") "in" "out"`, elmo.ExpectErrorValueAt(t, 2))
-
-	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
-		`str: (load "string")
-     str.replace "chipotle in a jar" (error "in") "out"`, elmo.ExpectErrorValueAt(t, 2))
-
-	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
-		`str: (load "string")
-     str.replace "chipotle in a jar" "in" (error "out")`, elmo.ExpectErrorValueAt(t, 2))
-
-	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
-		`str: (load "string")
-      str.replace "chipotle in a jar jar" "jar" "big"`, elmo.ExpectValue(t, elmo.NewStringLiteral("chipotle in a big jar")))
-
-	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
-		`str: (load "string")
-     str.replace first "chipotle in a jar jar" "jar" "big"`, elmo.ExpectValue(t, elmo.NewStringLiteral("chipotle in a big jar")))
-
-	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
-		`str: (load "string")
-     str.replace first (error "chipotle in a jar jar") "jar" "big"`, elmo.ExpectErrorValueAt(t, 2))
-
-	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
-		`str: (load "string")
-     str.replace all "chipotle in a jar jar" "jar" "clueless"`, elmo.ExpectValue(t, elmo.NewStringLiteral("chipotle in a clueless clueless")))
-
-	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
-		`str: (load "string")
-     str.replace last "chipotle in a jar jar binks" "jar" "with"`, elmo.ExpectValue(t, elmo.NewStringLiteral("chipotle in a jar with binks")))
-
-	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
-		`str: (load "string")
-      str.replace last "chipotle in a jar jar" " jar" "!"`, elmo.ExpectValue(t, elmo.NewStringLiteral("chipotle in a jar!")))
-
-	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
-		`str: (load "string")
-     str.replace last "chipotle in a jar" "botle" "clueless"`, elmo.ExpectValue(t, elmo.NewStringLiteral("chipotle in a jar")))
-
-	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
-		`str: (load "string")
-      str.replace last "chipotle in a jar" "chipotle" "jalapeno"`, elmo.ExpectValue(t, elmo.NewStringLiteral("jalapeno in a jar")))
-
-	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
-		`str: (load "string")
-     str.replace soup "chipotle in a jar" "in" "out"`, elmo.ExpectErrorValueAt(t, 2))
-
+ 		 str.replaceLast "chipotle in a jar in a box" "in" "out"`, elmo.ExpectValue(t, elmo.NewStringLiteral("chipotle in a jar out a box")))
 }
 
 func TestFind(t *testing.T) {

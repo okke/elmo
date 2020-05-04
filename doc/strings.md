@@ -245,31 +245,33 @@ assert (eq $pepper "chipotle")
 ```
 
 
-### string.replace
+### string.replaceAll
 
-Replace values in string with something else.
-
-```elmo
-string: (load string)
-pepper: (string.replace "chipotle" "o" "a")
-assert (eq $pepper "chipatle")
-```
-
-
-By default it will only replace the first occurrence of the specified value.
-It's also possible to replace all values.
+Replace all values in string with something else.
 
 ```elmo
 string: (load string)
-pepper: (string.replace all "jalapeno" "a" "o")
-assert (eq $pepper "jolopeno")
+pepper: (string.replaceAll "chipotle soup" "o" "a")
+assert (eq $pepper "chipatle saup")
 ```
+
+### string.replaceFirst
+
+It's also possible to replace only the first value in a string
+
+```elmo
+string: (load string)
+pepper: (string.replaceFirst "jalapeno" "a" "o")
+assert (eq $pepper "jalopeno")
+```
+
+### string.replaceLast
 
 And it's possible to relace the last occurrence only.
 
 ```elmo
 string: (load string)
-pepper: (string.replace last "jalapeno" "a" "o")
+pepper: (string.replaceLast "jalapeno" "a" "o")
 assert (eq $pepper "jalopeno")
 ```
 

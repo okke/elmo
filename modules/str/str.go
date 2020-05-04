@@ -22,7 +22,9 @@ func initModule(context elmo.RunContext) elmo.Value {
 		trimRight(),
 		trimPrefix(),
 		trimSuffix(),
-		replace(),
+		replaceAll(),
+		replaceFirst(),
+		replaceLast(),
 		find(),
 		count(),
 		split(),
@@ -136,64 +138,63 @@ func allLastFirst(cmd string, value elmo.Value) (bool, bool, bool, elmo.ErrorVal
 	return false, false, false, nil
 }
 
-func replace() elmo.NamedValue {
-	return elmo.NewGoFunctionWithHelp("replace", `replace first|last|all <old> <new>`, func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+func getReplaceArgs(context elmo.RunContext, arguments []elmo.Argument) (string, string, string) {
+	return elmo.EvalArgument2String(context, arguments[0]),
+		elmo.EvalArgument2String(context, arguments[1]),
+		elmo.EvalArgument2String(context, arguments[2])
+}
 
-		_, err := elmo.CheckArguments(arguments, 3, 4, "replace", "(first|last|all)? <string> <old> <new>")
+func replaceAll() elmo.NamedValue {
+	return elmo.NewGoFunctionWithHelp("replaceAll", `replace all occurences of a given text within a string`, func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+
+		_, err := elmo.CheckArguments(arguments, 3, 3, "replaceAll", "<string> <old> <new>")
 		if err != nil {
 			return err
 		}
 
-		idx := 1
+		value, oldValue, newValue := getReplaceArgs(context, arguments)
 
-		value := elmo.EvalArgument(context, arguments[0])
-		if value.Type() == elmo.TypeError {
-			return value
-		}
+		return elmo.NewStringLiteral(strings.Replace(value, oldValue, newValue, -1))
 
-		all, last, first, err := allLastFirst("replace", value)
+	})
+}
 
+func replaceFirst() elmo.NamedValue {
+	return elmo.NewGoFunctionWithHelp("replaceFirst", `replace the first occurences of a given text within a string`, func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+
+		_, err := elmo.CheckArguments(arguments, 3, 3, "replaceFirst", "<string> <old> <new>")
 		if err != nil {
 			return err
 		}
 
-		if all || last || first {
-			value = elmo.EvalArgument(context, arguments[1])
-			if value.Type() == elmo.TypeError {
-				return value
-			}
-			idx = 2
+		value, oldValue, newValue := getReplaceArgs(context, arguments)
+
+		return elmo.NewStringLiteral(strings.Replace(value, oldValue, newValue, 1))
+
+	})
+}
+
+func replaceLast() elmo.NamedValue {
+	return elmo.NewGoFunctionWithHelp("replaceLast", `replace the last occurences of a given text within a string`, func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+
+		_, err := elmo.CheckArguments(arguments, 3, 3, "replaceLast", "<string> <old> <new>")
+		if err != nil {
+			return err
 		}
 
-		oldValue := elmo.EvalArgument(context, arguments[idx])
-		if oldValue.Type() == elmo.TypeError {
-			return oldValue
+		value, oldValue, newValue := getReplaceArgs(context, arguments)
+
+		lastIndex := strings.LastIndex(value, oldValue)
+		if lastIndex < 0 {
+			return elmo.NewStringLiteral(value)
 		}
 
-		newValue := elmo.EvalArgument(context, arguments[idx+1])
-		if newValue.Type() == elmo.TypeError {
-			return newValue
-		}
+		var buffer bytes.Buffer
+		buffer.WriteString(value[0:lastIndex])
+		buffer.WriteString(newValue)
+		buffer.WriteString(value[lastIndex+len(oldValue):])
 
-		if all {
-			return elmo.NewStringLiteral(strings.Replace(value.String(), oldValue.String(), newValue.String(), -1))
-		}
-
-		if last {
-			lastIndex := strings.LastIndex(value.String(), oldValue.String())
-			if lastIndex < 0 {
-				return value
-			}
-
-			var buffer bytes.Buffer
-			buffer.WriteString(value.String()[0:lastIndex])
-			buffer.WriteString(newValue.String())
-			buffer.WriteString(value.String()[lastIndex+len(oldValue.String()):])
-
-			return elmo.NewStringLiteral(buffer.String())
-		}
-
-		return elmo.NewStringLiteral(strings.Replace(value.String(), oldValue.String(), newValue.String(), 1))
+		return elmo.NewStringLiteral(buffer.String())
 
 	})
 }
