@@ -32,7 +32,11 @@ func initModule(context elmo.RunContext) elmo.Value {
 		endsWith(),
 		startsWith(),
 		upper(),
-		lower()})
+		lower(),
+		padLeft(),
+		padRight(),
+		padBoth(),
+	})
 }
 
 func at() elmo.NamedValue {
@@ -380,6 +384,117 @@ func lower() elmo.NamedValue {
 		}
 
 		return elmo.NewStringLiteral(strings.ToLower(elmo.EvalArgument2String(context, arguments[0])))
+
+	})
+}
+
+func applyPadRight(str string, l int, pad string) string {
+	if l <= 0 {
+		return ""
+	}
+	for {
+		str += pad
+		if len(str) > l {
+			return str[0:l]
+		}
+	}
+}
+
+func applyPadLeft(str string, l int, pad string) string {
+	if l <= 0 {
+		return ""
+	}
+	for {
+		str = pad + str
+		if len(str) > l {
+			return str[len(str)-l:]
+		}
+	}
+}
+
+func applyPadBoth(str string, l int, pad string) string {
+	if l <= 0 {
+		return ""
+	}
+	for {
+		str = pad + str + pad
+		if len(str) > l {
+			mid := len(str) / 2
+			start := mid - (l / 2)
+			return str[start : start+l]
+		}
+	}
+}
+
+func getPadArgs(context elmo.RunContext, arguments []elmo.Argument) (string, int, string, elmo.ErrorValue) {
+	value := elmo.EvalArgument2String(context, arguments[0])
+	length := elmo.EvalArgument(context, arguments[1])
+	var lengthAsInt int
+	if length.Type() == elmo.TypeInteger {
+		lengthAsInt = int(length.Internal().(int64))
+	} else {
+		return "", -1, "", elmo.NewErrorValue("padding expects and integer length")
+	}
+
+	padding := " "
+	if len(arguments) == 3 {
+		padding = elmo.EvalArgument2String(context, arguments[2])
+	}
+
+	return value, lengthAsInt, padding, nil
+
+}
+
+func padLeft() elmo.NamedValue {
+	return elmo.NewGoFunctionWithHelp("padLeft", `add padding to the beginning of a string`, func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+
+		_, err := elmo.CheckArguments(arguments, 2, 3, "padLeft", "<string> <length> <padding>?")
+		if err != nil {
+			return err
+		}
+
+		value, length, padding, err := getPadArgs(context, arguments)
+		if err != nil {
+			return err
+		}
+
+		return elmo.NewStringLiteral(applyPadLeft(value, length, padding))
+
+	})
+}
+
+func padRight() elmo.NamedValue {
+	return elmo.NewGoFunctionWithHelp("padRight", `add padding to the end of a string`, func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+
+		_, err := elmo.CheckArguments(arguments, 2, 3, "padRight", "<string> <length> <padding>?")
+		if err != nil {
+			return err
+		}
+
+		value, length, padding, err := getPadArgs(context, arguments)
+		if err != nil {
+			return err
+		}
+
+		return elmo.NewStringLiteral(applyPadRight(value, length, padding))
+
+	})
+}
+
+func padBoth() elmo.NamedValue {
+	return elmo.NewGoFunctionWithHelp("padBoth", `add padding to both the beginning and the end of a string`, func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+
+		_, err := elmo.CheckArguments(arguments, 2, 3, "padBoth", "<string> <length> <padding>?")
+		if err != nil {
+			return err
+		}
+
+		value, length, padding, err := getPadArgs(context, arguments)
+		if err != nil {
+			return err
+		}
+
+		return elmo.NewStringLiteral(applyPadBoth(value, length, padding))
 
 	})
 }

@@ -260,3 +260,89 @@ func TestLower(t *testing.T) {
 		`str: (load "string")
          str.lower "LOWER" |eq "lower" |assert`, elmo.ExpectValue(t, elmo.True))
 }
+
+func TestPadLeft(t *testing.T) {
+
+	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
+		`str: (load "string")
+		 str.padLeft "soup" "?"`, elmo.ExpectErrorValueAt(t, 2))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
+		`str: (load "string")
+		 str.padLeft "soup" 8 |len |eq 8 |assert`, elmo.ExpectValue(t, elmo.True))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
+		`str: (load "string")
+		str.padLeft "soup" 0 |len |eq 0 |assert`, elmo.ExpectValue(t, elmo.True))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
+		`str: (load "string")
+		str.padLeft "soup" 8 |eq "    soup" |assert`, elmo.ExpectValue(t, elmo.True))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
+		`str: (load "string")
+		 str.padLeft "soup" 8 "+" |eq "++++soup" |assert`, elmo.ExpectValue(t, elmo.True))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
+		`str: (load "string")
+		 str.padLeft "soup" 8 "+-" |eq "+-+-soup" |assert`, elmo.ExpectValue(t, elmo.True))
+}
+
+func TestPadRight(t *testing.T) {
+
+	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
+		`str: (load "string")
+		 str.padRight "soup" "?"`, elmo.ExpectErrorValueAt(t, 2))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
+		`str: (load "string")
+		 str.padRight "soup" 8 |len |eq 8 |assert`, elmo.ExpectValue(t, elmo.True))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
+		`str: (load "string")
+		str.padRight "soup" 0 |len |eq 0 |assert`, elmo.ExpectValue(t, elmo.True))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
+		`str: (load "string")
+		str.padRight "soup" 8 |eq "soup    " |assert`, elmo.ExpectValue(t, elmo.True))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
+		`str: (load "string")
+		 str.padRight "soup" 8 "+" |eq "soup++++" |assert`, elmo.ExpectValue(t, elmo.True))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
+		`str: (load "string")
+		 str.padRight "soup" 8 "+-" |eq "soup+-+-" |assert`, elmo.ExpectValue(t, elmo.True))
+}
+
+func TestPadBoth(t *testing.T) {
+
+	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
+		`str: (load "string")
+		 str.padBoth "soup" "?"`, elmo.ExpectErrorValueAt(t, 2))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
+		`str: (load "string")
+		 str.padBoth "soup" 8 |len |eq 8 |assert`, elmo.ExpectValue(t, elmo.True))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
+		`str: (load "string")
+		str.padBoth "soup" 0 |len |eq 0 |assert`, elmo.ExpectValue(t, elmo.True))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
+		`str: (load "string")
+		str.padBoth "soup" 8 |eq "  soup  " |assert`, elmo.ExpectValue(t, elmo.True))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
+		`str: (load "string")
+		 str.padBoth "soup" 8 "+" |eq "++soup++" |assert`, elmo.ExpectValue(t, elmo.True))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
+		`str: (load "string")
+		 str.padBoth "soup" 9 "+" |eq "++soup+++" |assert`, elmo.ExpectValue(t, elmo.True))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
+		`str: (load "string")
+		  str.padBoth "sou" 8 "+" |eq "+++sou++" |assert`, elmo.ExpectValue(t, elmo.True))
+
+}

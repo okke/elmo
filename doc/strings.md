@@ -379,3 +379,33 @@ Convert a string to lowercase characters
 string (load string)
 string.lower "LOWER" |eq "lower" |assert
 ```
+
+### string.padLeft
+
+To add padding to the beginning a string, use string.padLeft
+
+```elmo
+string (load string)
+string.padLeft "soup" 8 |eq "    soup" |assert
+string.padLeft "soup" 8 "+" |eq "++++soup" |assert
+```
+
+### string.padRight
+
+To add padding to the end a string, use string.padRight
+
+```elmo
+string (load string)
+string.padRight "soup" 8 |eq "soup    " |assert
+string.padRight "soup" 8 "+" |eq "soup++++" |assert
+```
+
+### string.padBoth
+
+To add padding to both the beginning and the end of a string, use string.padBoth. This will give a 'centre' effect.
+
+```elmo
+string (load string)
+string.padBoth "soup" 8 |eq "  soup  " |assert
+string.padBoth "soup" 8 "+" |eq "++soup++" |assert
+```
