@@ -301,3 +301,21 @@ func TestUnMutableSort(t *testing.T) {
 		 list.sort $l
 		 eq $l [3 2 1]`, elmo.ExpectValue(t, elmo.True))
 }
+
+func TestFlatten(t *testing.T) {
+	elmo.ParseTestAndRunBlockWithinContext(t, listContext(),
+		`list: (load "list")
+		 list.flatten [1 2 [1 [a b] 3] 4] 0 |eq [1 2 [1 [a b] 3] 4] |assert`, elmo.ExpectValue(t, elmo.True))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, listContext(),
+		`list: (load "list")
+		 list.flatten [1 2 [1 [a b] 3] 4] 1 |eq [1 2 1 [a b] 3 4] |assert`, elmo.ExpectValue(t, elmo.True))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, listContext(),
+		`list: (load "list")
+		 list.flatten [1 2 [1 [a b] 3] 4] 2 |eq [1 2 1 a b 3 4] |assert`, elmo.ExpectValue(t, elmo.True))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, listContext(),
+		`list: (load "list")
+		list.flatten [1 2 [1 [a b] 3] 4] |eq [1 2 1 a b 3 4] |assert`, elmo.ExpectValue(t, elmo.True))
+}

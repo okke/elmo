@@ -160,13 +160,13 @@ func (listValue *listValue) Length() Value {
 
 // NewListValue creates a new list of values
 //
-func NewListValue(values []Value) Value {
+func NewListValue(values []Value) ListValue {
 	return &listValue{baseValue: baseValue{info: typeInfoList}, values: values}
 }
 
 // NewListValueFromStrings converts a slice of strings into an elmo list
 //
-func NewListValueFromStrings(strings []string) Value {
+func NewListValueFromStrings(strings []string) ListValue {
 	values := make([]Value, len(strings), len(strings))
 	for i, s := range strings {
 		values[i] = NewStringLiteral(s)

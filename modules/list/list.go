@@ -25,7 +25,9 @@ func initModule(context elmo.RunContext) elmo.Value {
 		_map(),
 		where(),
 		_sort(),
-		mutableSort()})
+		mutableSort(),
+		flatten(),
+	})
 }
 
 func convertToList(value elmo.Value) ([]elmo.Value, elmo.ErrorValue) {
@@ -351,5 +353,55 @@ func _sort() elmo.NamedValue {
 		})
 
 		return elmo.NewListValue(copyOfInternal)
+	})
+}
+
+func doFlatten(values []elmo.Value, depth int64, into elmo.ListValue) {
+
+	for i, value := range values {
+		asList, couldCast := value.(elmo.Listable)
+		if couldCast {
+			if depth > 0 {
+				doFlatten(asList.List(), depth-1, into)
+			} else {
+				into.Append(values[i])
+			}
+		} else {
+			into.Append(values[i])
+		}
+	}
+}
+
+func flatten() elmo.NamedValue {
+	return elmo.NewGoFunctionWithHelp("flatten", `flattens a list containing other lists`, func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+
+		argLen, err := elmo.CheckArguments(arguments, 1, 2, "flatten", "<list> <depth>?")
+		if err != nil {
+			return err
+		}
+
+		// first argument of a list function can be an identifier with the name of the list
+		//
+		list := elmo.EvalArgumentOrSolveIdentifier(context, arguments[0])
+
+		internal, err := convertToList(list)
+		if err != nil {
+			return err
+		}
+
+		var depthAsInt int64 = math.MaxInt64
+		if argLen == 2 {
+			depth := elmo.EvalArgument(context, arguments[1])
+
+			if depth.Type() == elmo.TypeInteger {
+				depthAsInt = depth.Internal().(int64)
+			} else {
+				return elmo.NewErrorValue("flatten expects an integer depth")
+			}
+		}
+
+		result := elmo.NewListValue([]elmo.Value{})
+		doFlatten(internal, depthAsInt, result)
+		return result
 	})
 }

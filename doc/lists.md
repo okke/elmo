@@ -203,7 +203,7 @@ To filter a list and to select only the items which comply to a given 'where' bl
 
 ```elmo
 list: (load list)
-list.where [1 2 3 4 5 6] item { return (modulo $index 2 |eq 0) }
+list.where [1 2 3 4 5 6] item { return (modulo $item 2 |eq 0) }
 
 # and using an index indentifier
 
@@ -216,6 +216,7 @@ list.where [1 2 3 4 5 6] item index { return (modulo $index 2 |eq 0) }
 Lists can be sorted using either ``list.sort`` (sort the list and return a new list with sorted items) or ``list.sort!`` (sort and change the list)
 
 ```elmo
+list: (load list)
 l1: [c h i p o t l e]
 l2: (list.sort $l1)
 eq $l1 [c h i p o t l e] |assert
@@ -227,3 +228,18 @@ eq $l1 [c e h i l o p t] |assert
 eq $l3 [c e h i l o p t] |assert
 ```
 
+### list.flatten
+
+When lists contain other lists, the ``list.flatten`` function can be used to flatten everything (or until a given depth) into one list.
+
+```elmo
+list: (load list)
+list.flatten [1 2 [1 [a b] 3] 4] |eq [1 2 1 a b 3 4] |assert
+```
+
+same example but now with a specified depth:
+
+```elmo
+list: (load list)
+list.flatten [1 2 [1 [a b] 3] 4] 1 |eq [1 2 1 [a b] 3 4] |assert
+```
