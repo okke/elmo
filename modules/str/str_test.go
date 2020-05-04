@@ -46,63 +46,46 @@ func TestConcat(t *testing.T) {
 
 }
 
-func TestTrim(t *testing.T) {
+func TestTrimLeft(t *testing.T) {
 
 	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
 		`str: (load "string")
-     str.trim`, elmo.ExpectErrorValueAt(t, 2))
+     	 str.trimLeft`, elmo.ExpectErrorValueAt(t, 2))
 
 	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
 		`str: (load "string")
-     str.trim (error "chipotle")`, elmo.ExpectErrorValueAt(t, 2))
+  		 str.trimLeft " chipotle "`, elmo.ExpectValue(t, elmo.NewStringLiteral("chipotle ")))
 
 	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
 		`str: (load "string")
-     str.trim "chipotle" (error "chipotle")`, elmo.ExpectErrorValueAt(t, 2))
+  		 str.trimLeft "+chipotle+" "+"`, elmo.ExpectValue(t, elmo.NewStringLiteral("chipotle+")))
+}
+
+func TestTrimRight(t *testing.T) {
 
 	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
 		`str: (load "string")
-	 str.trim " chipotle "`, elmo.ExpectValue(t, elmo.NewStringLiteral("chipotle")))
+     	 str.trimRight`, elmo.ExpectErrorValueAt(t, 2))
 
 	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
 		`str: (load "string")
-     str.trim "\tchipotle\n"`, elmo.ExpectValue(t, elmo.NewStringLiteral("chipotle")))
+  		 str.trimRight " chipotle "`, elmo.ExpectValue(t, elmo.NewStringLiteral(" chipotle")))
 
 	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
 		`str: (load "string")
-     str.trim left " chipotle "`, elmo.ExpectValue(t, elmo.NewStringLiteral("chipotle ")))
+  		 str.trimRight "+chipotle+" "+"`, elmo.ExpectValue(t, elmo.NewStringLiteral("+chipotle")))
+}
 
+func TestTrimSuffix(t *testing.T) {
 	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
 		`str: (load "string")
-	   str.trim left "!chipotle!" "!"`, elmo.ExpectValue(t, elmo.NewStringLiteral("chipotle!")))
+         str.trimSuffix "chipotle_in_a_jar" "_in_a_jar"`, elmo.ExpectValue(t, elmo.NewStringLiteral("chipotle")))
+}
 
+func TestTrimPrefix(t *testing.T) {
 	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
 		`str: (load "string")
-     str.trim left (error "!chipotle!") "!"`, elmo.ExpectErrorValueAt(t, 2))
-
-	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
-		`str: (load "string")
-     str.trim right "!chipotle!" "!"`, elmo.ExpectValue(t, elmo.NewStringLiteral("!chipotle")))
-
-	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
-		`str: (load "string")
-     str.trim right " chipotle "`, elmo.ExpectValue(t, elmo.NewStringLiteral(" chipotle")))
-
-	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
-		`str: (load "string")
-     str.trim prefix "jar_with_chipotle" "jar_with_"`, elmo.ExpectValue(t, elmo.NewStringLiteral("chipotle")))
-
-	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
-		`str: (load "string")
-     str.trim suffix "chipotle_in_a_jar" "_in_a_jar"`, elmo.ExpectValue(t, elmo.NewStringLiteral("chipotle")))
-
-	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
-		`str: (load "string")
-     str.trim soup " chipotle "`, elmo.ExpectErrorValueAt(t, 2))
-
-	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
-		`str: (load "string")
-     str.trim "<chipotle>" "<>"`, elmo.ExpectValue(t, elmo.NewStringLiteral("chipotle")))
+         str.trimPrefix "jar_with_chipotle" "jar_with_"`, elmo.ExpectValue(t, elmo.NewStringLiteral("chipotle")))
 }
 
 func TestReplace(t *testing.T) {

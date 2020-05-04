@@ -17,7 +17,10 @@ func initModule(context elmo.RunContext) elmo.Value {
 	return elmo.NewMappingForModule(context, []elmo.NamedValue{
 		at(),
 		concat(),
-		trim(),
+		trimLeft(),
+		trimRight(),
+		trimPrefix(),
+		trimSuffix(),
 		replace(),
 		find(),
 		count(),
@@ -71,77 +74,42 @@ func concat() elmo.NamedValue {
 	})
 }
 
-func trim() elmo.NamedValue {
-	return elmo.NewGoFunctionWithHelp("trim", `trim left|right|prefix|suffix a string`, func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+func applyTrim(context elmo.RunContext, arguments []elmo.Argument, trimName string, trimFunc func(string, string) string) elmo.Value {
+	argLen, err := elmo.CheckArguments(arguments, 1, 2, trimName, "<string> <cutset>?")
+	if err != nil {
+		return err
+	}
 
-		argLen, err := elmo.CheckArguments(arguments, 1, 3, "trim", "(left|right|prefix|suffix)? <string> <cutset>?")
-		if err != nil {
-			return err
-		}
+	cutset := " \t\n\r"
 
-		cIdx := 1
+	if argLen == 2 {
+		cutset = elmo.EvalArgument2String(context, arguments[1])
+	}
 
-		left := false
-		right := false
-		suffix := false
-		prefix := false
+	return elmo.NewStringLiteral(trimFunc(elmo.EvalArgument2String(context, arguments[0]), cutset))
+}
 
-		value := elmo.EvalArgument(context, arguments[0])
-		if value.Type() == elmo.TypeError {
-			return value
-		}
+func trimLeft() elmo.NamedValue {
+	return elmo.NewGoFunctionWithHelp("trimLeft", `trim a string from the left side`, func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+		return applyTrim(context, arguments, "trimLeft", strings.TrimLeft)
+	})
+}
 
-		if value.Type() == elmo.TypeIdentifier {
-			switch value.String() {
-			case "left":
-				left = true
-			case "right":
-				right = true
-			case "suffix":
-				suffix = true
-			case "prefix":
-				prefix = true
-			default:
-				return elmo.NewErrorValue(fmt.Sprintf("trim left, right, prefix or suffix, not %v", value))
-			}
-		}
+func trimRight() elmo.NamedValue {
+	return elmo.NewGoFunctionWithHelp("trimRight", `trim a string from the right side`, func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+		return applyTrim(context, arguments, "trimRight", strings.TrimRight)
+	})
+}
 
-		if left || right || prefix || suffix {
-			value = elmo.EvalArgument(context, arguments[1])
-			if value.Type() == elmo.TypeError {
-				return value
-			}
-			cIdx = 2
-		}
+func trimPrefix() elmo.NamedValue {
+	return elmo.NewGoFunctionWithHelp("trimPrefix", `remove a prefix of a string`, func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+		return applyTrim(context, arguments, "trimPrefix", strings.TrimPrefix)
+	})
+}
 
-		cutset := " \t\n\r"
-
-		if (cIdx == 1 && argLen == 2) || (cIdx == 2 && argLen == 3) {
-			csValue := elmo.EvalArgument(context, arguments[cIdx])
-			if csValue.Type() == elmo.TypeError {
-				return csValue
-			}
-			cutset = csValue.String()
-		}
-
-		if left {
-			return elmo.NewStringLiteral(strings.TrimLeft(value.String(), cutset))
-		}
-
-		if right {
-			return elmo.NewStringLiteral(strings.TrimRight(value.String(), cutset))
-		}
-
-		if prefix {
-			return elmo.NewStringLiteral(strings.TrimPrefix(value.String(), cutset))
-		}
-
-		if suffix {
-			return elmo.NewStringLiteral(strings.TrimSuffix(value.String(), cutset))
-		}
-
-		return elmo.NewStringLiteral(strings.Trim(value.String(), cutset))
-
+func trimSuffix() elmo.NamedValue {
+	return elmo.NewGoFunctionWithHelp("trimSuffix", `remove a suffix of a string`, func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+		return applyTrim(context, arguments, "trimSuffix", strings.TrimSuffix)
 	})
 }
 
