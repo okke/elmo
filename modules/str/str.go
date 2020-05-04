@@ -2,7 +2,6 @@ package str
 
 import (
 	"bytes"
-	"fmt"
 	"math"
 	"strings"
 
@@ -25,7 +24,9 @@ func initModule(context elmo.RunContext) elmo.Value {
 		replaceAll(),
 		replaceFirst(),
 		replaceLast(),
-		find(),
+		findAll(),
+		findFirst(),
+		findLast(),
 		count(),
 		split(),
 		endsWith(),
@@ -122,22 +123,6 @@ func trimSuffix() elmo.NamedValue {
 	})
 }
 
-func allLastFirst(cmd string, value elmo.Value) (bool, bool, bool, elmo.ErrorValue) {
-	if value.Type() == elmo.TypeIdentifier {
-		switch value.String() {
-		case "all":
-			return true, false, false, nil
-		case "first":
-			return false, false, true, nil
-		case "last":
-			return false, true, false, nil
-		default:
-			return false, false, false, elmo.NewErrorValue(fmt.Sprintf("%s first, last or all, not %v", cmd, value))
-		}
-	}
-	return false, false, false, nil
-}
-
 func getReplaceArgs(context elmo.RunContext, arguments []elmo.Argument) (string, string, string) {
 	return elmo.EvalArgument2String(context, arguments[0]),
 		elmo.EvalArgument2String(context, arguments[1]),
@@ -199,61 +184,62 @@ func replaceLast() elmo.NamedValue {
 	})
 }
 
-func find() elmo.NamedValue {
-	return elmo.NewGoFunctionWithHelp("find", `lookup first|last|all occurences`, func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+func getFindArgs(context elmo.RunContext, arguments []elmo.Argument) (string, string) {
+	return elmo.EvalArgument2String(context, arguments[0]),
+		elmo.EvalArgument2String(context, arguments[1])
+}
 
-		_, err := elmo.CheckArguments(arguments, 2, 3, "find", "(first|last|all)? <string> <value>")
+func findFirst() elmo.NamedValue {
+	return elmo.NewGoFunctionWithHelp("findFirst", `find the index of the first occurences of a given text within a string`, func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+
+		_, err := elmo.CheckArguments(arguments, 2, 2, "findFirst", "<string> <value>")
 		if err != nil {
 			return err
 		}
 
-		value := elmo.EvalArgument(context, arguments[0])
-		if value.Type() == elmo.TypeError {
-			return value
-		}
+		value, what := getFindArgs(context, arguments)
 
-		all, last, first, err := allLastFirst("find", value)
+		return elmo.NewIntegerLiteral(int64(strings.Index(value, what)))
 
+	})
+}
+
+func findLast() elmo.NamedValue {
+	return elmo.NewGoFunctionWithHelp("findLast", `find the index of the last occurences of a given text within a string`, func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+
+		_, err := elmo.CheckArguments(arguments, 2, 2, "findLast", "<string> <value>")
 		if err != nil {
 			return err
 		}
 
-		idx := 1
-		if all || last || first {
-			value = elmo.EvalArgument(context, arguments[1])
-			if value.Type() == elmo.TypeError {
-				return value
-			}
-			idx = 2
+		value, what := getFindArgs(context, arguments)
+
+		return elmo.NewIntegerLiteral(int64(strings.LastIndex(value, what)))
+
+	})
+}
+
+func findAll() elmo.NamedValue {
+	return elmo.NewGoFunctionWithHelp("findAll", `find all indexes of the last occurences of a given text within a string`, func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+
+		_, err := elmo.CheckArguments(arguments, 2, 2, "findAll", "<string> <value>")
+		if err != nil {
+			return err
 		}
 
-		whatValue := elmo.EvalArgument(context, arguments[idx])
-		if whatValue.Type() == elmo.TypeError {
-			return whatValue
+		value, what := getFindArgs(context, arguments)
+
+		whatLen := len(what)
+		result := []elmo.Value{}
+		foundAt := strings.Index(value, what)
+		at := 0
+		for foundAt >= 0 {
+			result = append(result, elmo.NewIntegerLiteral(int64(at+foundAt)))
+			at = at + foundAt + whatLen
+			value = value[foundAt+whatLen:]
+			foundAt = strings.Index(value, what)
 		}
-
-		if last {
-			return elmo.NewIntegerLiteral(int64(strings.LastIndex(value.String(), whatValue.String())))
-		}
-
-		if all {
-			whatStr := whatValue.String()
-			whatLen := len(whatStr)
-			result := []elmo.Value{}
-			findIn := value.String()
-			foundAt := strings.Index(findIn, whatValue.String())
-			at := 0
-			for foundAt >= 0 {
-				result = append(result, elmo.NewIntegerLiteral(int64(at+foundAt)))
-				at = at + foundAt + whatLen
-				findIn = findIn[foundAt+whatLen:]
-				foundAt = strings.Index(findIn, whatStr)
-			}
-			return elmo.NewListValue(result)
-
-		}
-
-		return elmo.NewIntegerLiteral(int64(strings.Index(value.String(), whatValue.String())))
+		return elmo.NewListValue(result)
 	})
 }
 

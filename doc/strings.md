@@ -275,30 +275,33 @@ pepper: (string.replaceLast "jalapeno" "a" "o")
 assert (eq $pepper "jalopeno")
 ```
 
-### string.find
+### string.findFirst
 
-Scans a string to search for a specified value. By default it returns the
-index of the first occurrence.
+Scans a string to search for a specified value. It returns the index of the first occurrence.
 
 ```elmo
 string: (load string)
-index: (string.find "chipotle in a jar" "in")
+index: (string.findFirst "chipotle in a jar" "in")
 assert (eq $index 9)
 ```
 
-It's possible to scan for the last occurrence of a value
+### string.findLast
+
+It's also possible to scan for the last occurrence of a value
 
 ```elmo
 string: (load string)
-index: (string.find last "chipotle in a jar in a jar" "in")
+index: (string.findLast "chipotle in a jar in a jar" "in")
 assert (eq $index 18)
 ```
 
-It's also possible  to scan for all occurrences. In that case, a list of indexes in returned.
+### string.findAll
+
+And it's also possible to scan for all occurrences. In that case, a list of indexes in returned.
 
 ```elmo
 string: (load string)
-all: (string.find all "chipotle in a jar in a jar" "in")
+all: (string.findAll "chipotle in a jar in a jar" "in")
 assert (eq $all [9 18])
 ```
 
