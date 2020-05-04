@@ -46,6 +46,18 @@ func TestConcat(t *testing.T) {
 
 }
 
+func TestTrim(t *testing.T) {
+
+	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
+		`str: (load "string")
+		 str.trim " chipotle "`, elmo.ExpectValue(t, elmo.NewStringLiteral("chipotle")))
+
+	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),
+		`str: (load "string")
+		 str.trim "++chipotle--" "+-"`, elmo.ExpectValue(t, elmo.NewStringLiteral("chipotle")))
+
+}
+
 func TestTrimLeft(t *testing.T) {
 
 	elmo.ParseTestAndRunBlockWithinContext(t, strContext(),

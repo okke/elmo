@@ -17,6 +17,7 @@ func initModule(context elmo.RunContext) elmo.Value {
 	return elmo.NewMappingForModule(context, []elmo.NamedValue{
 		at(),
 		concat(),
+		trim(),
 		trimLeft(),
 		trimRight(),
 		trimPrefix(),
@@ -87,6 +88,12 @@ func applyTrim(context elmo.RunContext, arguments []elmo.Argument, trimName stri
 	}
 
 	return elmo.NewStringLiteral(trimFunc(elmo.EvalArgument2String(context, arguments[0]), cutset))
+}
+
+func trim() elmo.NamedValue {
+	return elmo.NewGoFunctionWithHelp("trim", `trim a string from both sides`, func(context elmo.RunContext, arguments []elmo.Argument) elmo.Value {
+		return applyTrim(context, arguments, "trim", strings.Trim)
+	})
 }
 
 func trimLeft() elmo.NamedValue {
