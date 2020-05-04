@@ -51,12 +51,18 @@ type DictionaryValue interface {
 	Remove(symbol Value) (Value, ErrorValue)
 }
 
+// Listable type can convert a value to a list
+//
+type Listable interface {
+	List() []Value
+}
+
 // ListValue represents a value that can be used as a list of values
 //
 type ListValue interface {
 	Value
+	Listable
 	Append(Value)
-	List() []Value
 }
 
 // MathValue represents a value that knows how to apply basic arithmetics

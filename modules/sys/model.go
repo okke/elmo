@@ -7,7 +7,6 @@ import (
 	"os/exec"
 
 	elmo "github.com/okke/elmo/core"
-	"github.com/okke/elmo/modules/list"
 )
 
 var typeInfoCommand = elmo.NewTypeInfo("command")
@@ -26,7 +25,7 @@ type running struct {
 // Command represents all data to execute an os command
 //
 type Command interface {
-	list.Listable
+	elmo.Listable
 	Execute() elmo.Value
 	Pipe() (Running, error)
 }

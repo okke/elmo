@@ -34,7 +34,7 @@ func convertToList(value elmo.Value) ([]elmo.Value, elmo.ErrorValue) {
 		return value.Internal().([]elmo.Value), nil
 	}
 
-	convertable, casted := value.Internal().(Listable)
+	convertable, casted := value.Internal().(elmo.Listable)
 
 	if !casted {
 		return nil, elmo.NewErrorValue(fmt.Sprintf("can not convert %v to list", value))
