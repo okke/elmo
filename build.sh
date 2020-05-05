@@ -8,4 +8,4 @@ cd ..
 go test ./...
 
 echo build binary
-go build -ldflags "-X github.com/okke/elmo/core.Build=`git rev-parse HEAD`" -o build/elmo tools/elmo/main.go
+go build -ldflags "-X github.com/okke/elmo/core.CommitHash=`git rev-parse HEAD` -X github.com/okke/elmo/core.BranchName=`git rev-parse --abbrev-ref HEAD`" -o build/elmo tools/elmo/main.go

@@ -54,8 +54,6 @@ func parseArguments(parse []string, setter runnerArgsSetter) {
 
 	// elmo <elmo-flag>* ( <elmo-file>? <user-flag>* <user-arg>* )
 
-	fmt.Println("parse args:", parse)
-
 	var args cliArgs = parse
 
 	rest := parseFlags(args, setter.SetElmoFlag)

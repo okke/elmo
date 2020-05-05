@@ -83,6 +83,7 @@ func NewGlobalContext() RunContext {
 	context.SetNamed(tempFile())
 	context.SetNamed(test())
 	context.SetNamed(globalSettings())
+	context.SetNamed(elmoVersion())
 
 	return context
 }
