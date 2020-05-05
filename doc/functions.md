@@ -138,3 +138,23 @@ create: (func x { return $x &square})
 result: create 5 |apply
 assert (eq $result 25)
 ```
+
+### default argument values
+
+Elmo supports default values for function arguments. To declare an argument with a default value, use an argument name which ends with a ``?``. Followed by the default value.
+
+```
+greet: (func name greeting?"Hello" { 
+  echo "\{$greeting} \{$name}"
+})
+
+puts (greet "Joe")            # use default greeting
+puts (greet "Joe" "Howdy")    # specify our own greeting
+```
+
+Note, Elmo strips of the ``?``. Also note, the argument name and the default value can be separated by spacing. So the same function can also look like this:
+
+```elmo
+greet: (func name greeting? "Hello" { echo "\{$greeting} \{$name}"})
+```
+
