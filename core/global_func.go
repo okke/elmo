@@ -1,6 +1,48 @@
 package elmo
 
-func createGoFunc(argNames []string, evaluator func(evalContext RunContext) Value) func(innerContext RunContext, innerArguments []Argument) Value {
+// func arguments can have default values. This is done by giving the
+// argument a name that ends with an '?' and by using the next argument
+// as default value. So it's possible to create a function like:
+//
+// greet: (func name greeting?"Hello" { echo "\{$greeting} \{$name}"})
+//
+// in this case ["name", "greeting"] and {"greeting":"Hello"} are returned
+//
+func extractArgNamesAndDefaultValues(argNameValues []Value) ([]string, map[string]Value) {
+	useArgNames := make([]string, 0, len(argNameValues))
+	defaultValues := make(map[string]Value, 0)
+
+	useNextAsDefault := false
+	name := ""
+
+	for _, nameValue := range argNameValues {
+		if !useNextAsDefault {
+			name = nameValue.String()
+			if name[len(name)-1] == '?' {
+				useNextAsDefault = true
+				name = name[:len(name)-1]
+			}
+
+			useArgNames = append(useArgNames, name)
+		} else {
+			// argument is default value for previous arg
+			defaultValues[name] = nameValue
+			useNextAsDefault = false
+		}
+	}
+
+	if name != "" && useNextAsDefault {
+		useArgNames = append(useArgNames, name)
+	}
+
+	return useArgNames, defaultValues
+}
+
+func createGoFunc(argNameValues []Value, evaluator func(evalContext RunContext) Value) (func(innerContext RunContext, innerArguments []Argument) Value, []string) {
+
+	useArgNames, defaultValues := extractArgNamesAndDefaultValues(argNameValues)
+	injectDefaultValues := len(defaultValues) > 0
+
 	return func(innerContext RunContext, innerArguments []Argument) Value {
 
 		cloneFrom := innerContext
@@ -13,25 +55,31 @@ func createGoFunc(argNames []string, evaluator func(evalContext RunContext) Valu
 			subContext.Set("this", innerContext.This())
 		}
 
-		maxArgs := len(argNames)
+		if injectDefaultValues {
+			for k, v := range defaultValues {
+				subContext.Set(k, v)
+			}
+		}
+
+		maxArgs := len(useArgNames)
 		for i, v := range innerArguments {
 			if i < maxArgs {
-				subContext.Set(argNames[i], EvalArgument(innerContext, v))
+				subContext.Set(useArgNames[i], EvalArgument(innerContext, v))
 			}
 		}
 
 		return evaluator(subContext)
 
-	}
+	}, useArgNames
 }
 
-func splitArgumentsForFunc(context RunContext, argStart int, arguments []Argument) ([]string, Value) {
+func splitArgumentsForFunc(context RunContext, argStart int, arguments []Argument) ([]Value, Value) {
 	argNamesAsArgument := arguments[argStart : len(arguments)-1]
 	code := EvalArgument(context, arguments[len(arguments)-1])
-	argNames := make([]string, len(argNamesAsArgument))
+	argNames := make([]Value, len(argNamesAsArgument))
 
 	for i, v := range argNamesAsArgument {
-		argNames[i] = EvalArgument2String(context, v)
+		argNames[i] = EvalArgument(context, v)
 	}
 	return argNames, code
 }
@@ -92,7 +140,8 @@ func _func() NamedValue {
 				return block.Run(evalContext, NoArguments)
 			}
 
-			return NewGoFunctionWithBlock("anonymous", help, createGoFunc(argNames, evaluator), argNames, code.(Block))
+			f, useArgNames := createGoFunc(argNames, evaluator)
+			return NewGoFunctionWithBlock("anonymous", help, f, useArgNames, code.(Block))
 
 		})
 }
@@ -144,7 +193,8 @@ func template() NamedValue {
 				return str.ResolveBlocks(evalContext)
 			}
 
-			return NewGoFunctionWithHelp("template", help, createGoFunc(argNames, evaluator))
+			f, _ := createGoFunc(argNames, evaluator)
+			return NewGoFunctionWithHelp("template", help, f)
 
 		})
 }

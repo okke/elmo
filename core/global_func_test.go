@@ -181,3 +181,15 @@ func TestUserDefinedTemplate(t *testing.T) {
 		 help t
 		`, ExpectValue(t, NewStringLiteral("double pepper")))
 }
+
+func TestFuncWithOptionalArguments(t *testing.T) {
+	ParseTestAndRunBlock(t,
+		`f: (func i?5 {
+	 		return (multiply $i $i)
+	 	 })
+		 (multiply (f 2) (f))`, ExpectValue(t, NewIntegerLiteral(100)))
+
+	ParseTestAndRunBlock(t,
+		`greet: (func name greeting?"Hello" { echo "\{$greeting}:\{$name}"})
+		(greet "chipotle")`, ExpectValue(t, NewStringLiteral("Hello:chipotle")))
+}
