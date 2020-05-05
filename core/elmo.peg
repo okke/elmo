@@ -24,6 +24,8 @@ FunctionCall <- (LPAR Line RPAR) / ((DOLLAR/AMPERSAND) Argument (DOT Argument)*)
 
 Block <- LCURLY (NewLine)* (Line)* RCURLY
 
+BlockWithoutSpacing <- LCURLY (NewLine)* (Line)* '}'
+
 List <- LBRACKET (NewLine)* (Argument/NewLine)? ((COMMA (NewLine)?)? Argument/NewLine)* RBRACKET
 
 
@@ -62,14 +64,14 @@ IdEnd <- [?!]
 StringLiteral <- Quote StringChar* Quote Spacing
 Quote <- ["]
 StringChar <- Escape / ![\"\n\\] .
-Escape <- '\\' (Block / .)
+Escape <- '\\' (BlockWithoutSpacing / .)
 
 # Backticked string: `...` or `...``...` or `...`{}...`
 #
 LongStringLiteral <- BackTick LongStringChar* BackTick Spacing
 BackTick <- [`]
 LongStringChar <- LongEscape / (!'`'.)
-LongEscape <- '`' (Block / '`')
+LongEscape <- '`' (BlockWithoutSpacing / '`')
 
 #
 # NUMBERS

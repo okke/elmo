@@ -190,6 +190,6 @@ func TestFuncWithOptionalArguments(t *testing.T) {
 		 (multiply (f 2) (f))`, ExpectValue(t, NewIntegerLiteral(100)))
 
 	ParseTestAndRunBlock(t,
-		`greet: (func name greeting?"Hello" { echo "\{$greeting}:\{$name}"})
-		(greet "chipotle")`, ExpectValue(t, NewStringLiteral("Hello:chipotle")))
+		`greet: (func name greeting?"Hello" { echo "\{$greeting} \{$name}"})
+		(greet "chipotle")`, ExpectValue(t, NewStringLiteral("Hello chipotle")))
 }

@@ -155,7 +155,7 @@ func Ast2StringLiteral(node *node32, meta ScriptMetaData, driver *ast2StringDriv
 				cursor := grandChildren[0].up
 				if cursor == nil {
 					sb.WriteRune(driver.escapeFunc(rune(nodeText(child, content)[1])))
-				} else if cursor.pegRule == ruleBlock {
+				} else if cursor.pegRule == ruleBlockWithoutSpacing {
 					block := Ast2Block(cursor, meta)
 					if blocks == nil {
 						blocks = make([]*blockAtPositionInString, 0, 0)
