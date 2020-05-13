@@ -4,7 +4,7 @@ import "fmt"
 
 type runContext struct {
 	properties map[string]Value
-	this       Value
+	this       DictionaryValue
 	scriptName Value
 	modules    map[string]Module
 	parent     RunContext
@@ -19,8 +19,8 @@ type RunContext interface {
 	Remove(key string)
 	Mixin(value Value) Value
 	SetNamed(value NamedValue)
-	SetThis(this Value)
-	This() Value
+	SetThis(this DictionaryValue)
+	This() DictionaryValue
 	SetScriptName(this Value)
 	ScriptName() Value
 	Get(key string) (Value, bool)
@@ -59,11 +59,11 @@ func (runContext *runContext) SetNamed(value NamedValue) {
 	runContext.Set(value.Name(), value)
 }
 
-func (runContext *runContext) This() Value {
+func (runContext *runContext) This() DictionaryValue {
 	return runContext.this
 }
 
-func (runContext *runContext) SetThis(this Value) {
+func (runContext *runContext) SetThis(this DictionaryValue) {
 	runContext.this = this
 }
 
@@ -103,9 +103,7 @@ func (runContext *runContext) Module(name string) (Module, bool) {
 
 func (runContext *runContext) Get(key string) (Value, bool) {
 
-	value, found := runContext.properties[key]
-
-	if found {
+	if value, found := runContext.properties[key]; found {
 		return value, true
 	}
 
@@ -167,5 +165,5 @@ func (rc *runContext) Join(with RunContext) RunContext {
 // NewRunContext constructs a new run context
 //
 func NewRunContext(parent RunContext) RunContext {
-	return &runContext{parent: parent, properties: make(map[string]Value), this: Nothing, scriptName: nil, modules: make(map[string]Module)}
+	return &runContext{parent: parent, properties: make(map[string]Value), this: nil, scriptName: nil, modules: make(map[string]Module)}
 }

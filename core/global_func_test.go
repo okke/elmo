@@ -193,3 +193,14 @@ func TestFuncWithOptionalArguments(t *testing.T) {
 		`greet: (func name greeting?"Hello" { echo "\{$greeting} \{$name}"})
 		(greet "chipotle")`, ExpectValue(t, NewStringLiteral("Hello chipotle")))
 }
+
+func TestFuncCallUsesCorrectScope(t *testing.T) {
+	ParseTestAndRunBlock(t,
+		`d: { f1: (func {return 1}); f2: (func f {return $f}) }
+		 f1: 8
+		 (d.f2 $f1)`, ExpectValue(t, NewIntegerLiteral(8)))
+
+	ParseTestAndRunBlock(t,
+		`d: { f1: (func {return 1}); f2: (func f {return $f}) }
+		 (d.f2 $f1)`, ExpectErrorValueAt(t, 2))
+}

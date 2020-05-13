@@ -154,13 +154,9 @@ func (call *call) Run(context RunContext, additionalArguments []Argument) Value 
 
 		if inDict != nil {
 			this := context.This()
-			context.SetThis(inDict.(Value))
+			context.SetThis(inDict)
 			defer func() {
-				if this == nil {
-					context.SetThis(nil)
-				} else {
-					context.SetThis(this.(Value))
-				}
+				context.SetThis(this)
 			}()
 		}
 

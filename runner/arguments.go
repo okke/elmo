@@ -1,7 +1,6 @@
 package runner
 
 import (
-	"fmt"
 	"strings"
 )
 
@@ -65,7 +64,6 @@ func parseArguments(parse []string, setter runnerArgsSetter) {
 	elmoFile, userPart := rest.next()
 
 	if elmoFile != "" {
-		fmt.Println("set elmofile:", elmoFile)
 		setter.SetElmoFile(elmoFile)
 	}
 	if len(userPart) == 0 {
