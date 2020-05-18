@@ -1,11 +1,18 @@
 package elmo
 
-import "strings"
+import (
+	"strings"
+)
 
 type stringLiteral struct {
 	baseValue
 	value  []rune
 	blocks []*blockAtPositionInString
+
+	// strings can contain dynamic data (eka templates)
+	// so we need to know the right evaluation context
+	//
+	capturedContext RunContext
 }
 
 type blockAtPositionInString struct {
@@ -111,7 +118,11 @@ func (stringLiteral *stringLiteral) resolveBlocksToString(context RunContext, wi
 			sb.WriteString(string(value[at:blockPosition.at]))
 		}
 
-		sb.WriteString(withBlock(blockPosition.block))
+		if stringLiteral.capturedContext != nil {
+			sb.WriteString(withBlock(blockPosition.block.CopyWithinContext(stringLiteral.capturedContext)))
+		} else {
+			sb.WriteString(withBlock(blockPosition.block))
+		}
 
 		at = blockPosition.at
 	}
@@ -140,6 +151,14 @@ func (stringLiteral *stringLiteral) ResolveBlocks(context RunContext) Value {
 
 func (stringLiteral *stringLiteral) Length() Value {
 	return NewIntegerLiteral(int64(len(stringLiteral.value)))
+}
+
+func (from *stringLiteral) CopyWithinContext(context RunContext) StringValue {
+	return &stringLiteral{
+		baseValue:       baseValue{info: typeInfoString},
+		value:           from.value,
+		blocks:          from.blocks,
+		capturedContext: context}
 }
 
 // NewStringLiteral creates a new string literal value

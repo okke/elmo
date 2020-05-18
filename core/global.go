@@ -502,7 +502,12 @@ func ampersand() NamedValue {
 			// so resulting value can be used as template
 			//
 			if arguments[0].Value().Type() == TypeString {
-				return arguments[0].Value()
+
+				// the only issue is the current context should be captured
+				// so blocks inside the string are evaluted in the right context
+				//
+				str := arguments[0].Value().(StringValue)
+				return str.CopyWithinContext(context)
 			}
 
 			// Otherwise evaluate to identifier which resolved and returned

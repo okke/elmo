@@ -204,3 +204,7 @@ func TestFuncCallUsesCorrectScope(t *testing.T) {
 		`d: { f1: (func {return 1}); f2: (func f {return $f}) }
 		 (d.f2 $f1)`, ExpectErrorValueAt(t, 2))
 }
+
+func TestLoadedTemplatesUsesCorrectContext(t *testing.T) {
+	TestMoFile(t, "loadtemplates", func(context RunContext) {})
+}

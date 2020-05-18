@@ -30,7 +30,9 @@ type IdentifierValue interface {
 // StringValue represents a value of a string with Dynamic blocks of content
 //
 type StringValue interface {
+	Value
 	ResolveBlocks(RunContext) Value
+	CopyWithinContext(context RunContext) StringValue
 }
 
 // IncrementableValue represents a value that can be incremented
