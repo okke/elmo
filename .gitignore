@@ -2,5 +2,6 @@
 vendor/
 build/
 .idea/
+core/elmo.peg.go
 
 
