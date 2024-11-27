@@ -30,7 +30,6 @@ type runner struct {
 }
 
 // Runner represents the commandline usage of elmo
-//
 type Runner interface {
 	Main()
 	Repl()
@@ -40,7 +39,6 @@ type Runner interface {
 }
 
 // NewRunner constructs a new CommandLine
-//
 func NewRunner(context elmo.RunContext) Runner {
 	return &runner{context: context,
 		history:               make([]string, 0, 0),
@@ -66,7 +64,6 @@ func (runner *runner) Stop() {
 }
 
 // NewMainContext constructs a context with all elmo's default modules
-//
 func NewMainContext() elmo.RunContext {
 	context := elmo.NewGlobalContext()
 
@@ -162,7 +159,8 @@ func (runner *runner) input(displayPrompt string, morePrompt string) string {
 			prompt.OptionPrefixTextColor(prompt.Yellow),
 			prompt.OptionPreviewSuggestionTextColor(prompt.Blue),
 			prompt.OptionSelectedSuggestionBGColor(prompt.LightGray),
-			prompt.OptionSuggestionBGColor(prompt.DarkGray))
+			prompt.OptionSuggestionBGColor(prompt.DarkGray),
+			prompt.OptionPrefixBackgroundColor(prompt.DarkGray))
 
 		if !strings.HasSuffix(strings.TrimRight(in, " \t"), "\\") {
 			needText = false
@@ -260,7 +258,6 @@ func help() {
 }
 
 // Main starts the elmo runtime. Either in repl mode or by interpreting an elmo source file
-//
 func (runner *runner) Main() {
 
 	parseArguments(os.Args[1:], runner.arguments)

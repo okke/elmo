@@ -20,7 +20,6 @@ type loader struct {
 }
 
 // Loader is responsible for loading external elmo sources
-//
 type Loader interface {
 	Load(name string) Value
 }
@@ -197,7 +196,6 @@ func (loader *loader) Load(name string) Value {
 }
 
 // NewLoader constructs a new source code loader
-//
 func NewLoader(context RunContext, folders []string) Loader {
 	return &loader{context: context, folders: folders}
 }
