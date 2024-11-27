@@ -43,8 +43,23 @@ func (dictValue *dictValue) Internal() interface{} {
 	return dictValue.values
 }
 
+func (dictValue *dictValue) nrOfElements() int {
+	count := len(dictValue.values)
+	if dictValue.parent != nil {
+		count += dictValue.parent.nrOfElements()
+	}
+	return count
+}
+
 func (dictValue *dictValue) Keys() []string {
-	keyNames := make([]string, len(dictValue.values))
+	keyNames := make([]string, dictValue.nrOfElements())
+
+	// first add parent keys
+	//
+	if dictValue.parent != nil {
+		parentKeys := dictValue.parent.Keys()
+		keyNames = append(keyNames, parentKeys...)
+	}
 
 	i := 0
 	for k := range dictValue.values {
@@ -209,7 +224,6 @@ func (dictValue *dictValue) ToBinary() BinaryValue {
 
 // NewDictionaryValue creates a new map of values
 // TODO: 31okt2016 introduce interface for map parents
-//
 func NewDictionaryValue(parent interface{}, values map[string]Value) DictionaryValue {
 	if parent == nil {
 		return &dictValue{baseValue: baseValue{info: typeInfoDictionary}, parent: nil, values: values}
@@ -218,7 +232,6 @@ func NewDictionaryValue(parent interface{}, values map[string]Value) DictionaryV
 }
 
 // NewDictionaryWithBlock constructs a new dictionary by evaluating given block
-//
 func NewDictionaryWithBlock(context RunContext, block Block) DictionaryValue {
 
 	// use NewRunContext so block will be evaluated within same scope
@@ -235,7 +248,6 @@ func NewDictionaryWithBlock(context RunContext, block Block) DictionaryValue {
 //
 // note, NewDictionaryFromList can return an ErrorValue as well instead of a DictionaryValue
 // when the list has off values
-//
 func NewDictionaryFromList(parent interface{}, values []Value) Value {
 
 	if (len(values) % 2) != 0 {
@@ -296,8 +308,6 @@ func setStructFieldValue(reflectValue reflect.Value, value Value) Value {
 }
 
 // NewDictionaryFromStruct construct a dictionary based on the given pointer to a struct
-//
-//
 func NewDictionaryFromStruct(parent interface{}, data interface{}) DictionaryValue {
 	functions := make(map[string]Value, 0)
 
