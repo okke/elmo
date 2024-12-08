@@ -49,7 +49,7 @@ NewLine <- ([\n\r] Spacing)+
 # IDENTIFIERS
 #
 
-Identifier <- IdNondigit IdChar* (IdEnd? Spacing / IdEnd Spacing?) / IdEnd Spacing
+Identifier <- (IdNondigit IdChar* / '**' / '*') (IdEnd? Spacing / IdEnd Spacing?) / IdEnd Spacing
 
 IdNondigit <- [a-z] / [A-Z] / '_'
 

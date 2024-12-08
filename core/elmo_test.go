@@ -29,6 +29,14 @@ func expectTwoLines(t *testing.T) func(*node32) {
 	}
 }
 
+func IdentifierFollowedByNothing(t *testing.T) func([]*node32) {
+	return func(children []*node32) {
+		if !ruleSlicesAreEqual(pegRules(children), []pegRule{ruleArgument}) {
+			t.Errorf("expected <identifier>")
+		}
+	}
+}
+
 func IdentifierFollowedByShortcutAndArgument(t *testing.T, cut pegRule, ruleType pegRule) func([]*node32) {
 	return func(children []*node32) {
 		if !ruleSlicesAreEqual(pegRules(children), []pegRule{ruleArgument, cut, ruleArgument}) {
@@ -220,4 +228,11 @@ func TestParseCommandWithPipedOutput(t *testing.T) {
 	ParseAndTest(t, "chipotle | sauce | jar", expectOneLineContaining(t, IdentifierFollowedbyPipe(t)))
 	ParseAndTest(t, "chipotle | sauce 33", expectOneLineContaining(t, IdentifierFollowedbyPipe(t)))
 	ParseAndTest(t, "chipotle | sauce 33 34 | jar 28", expectOneLineContaining(t, IdentifierFollowedbyPipe(t)))
+}
+
+func TestParseWildCardIdentifiers(t *testing.T) {
+	ParseAndTest(t, "chipotle.*", expectOneLineContaining(t, IdentifierFollowedByNothing(t)))
+	ParseAndTest(t, "chipotle.*.jalapeno", expectOneLineContaining(t, IdentifierFollowedByNothing(t)))
+	ParseAndTest(t, "chipotle.**", expectOneLineContaining(t, IdentifierFollowedByNothing(t)))
+	ParseAndTest(t, "chipotle.**.jalapeno", expectOneLineContaining(t, IdentifierFollowedByNothing(t)))
 }
