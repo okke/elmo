@@ -9,7 +9,6 @@ import (
 // BinaryData is a struct used to serialize values to binary data
 // Note, property names are as short as possible and public
 // so the gob package can easily serialize it
-//
 type BinaryData struct {
 	// Type Id for core types or -1
 	//
@@ -59,11 +58,11 @@ func (binaryValue *binaryValue) ToRegular() Value {
 
 	switch bdata.I {
 	case typeInfoIdentifier.ID():
-		actualData := []string{}
+		actualData := []*identifierPart{}
 		if err := decoder.Decode(&actualData); err != nil {
 			return NewErrorValue(err.Error())
 		}
-		return NewNameSpacedIdentifier(actualData)
+		return NewNameSpacedIdentifierFromParts(actualData)
 	case typeInfoString.ID():
 		actualData := []rune{}
 		if err := decoder.Decode(&actualData); err != nil {
@@ -105,7 +104,6 @@ func (binaryValue *binaryValue) Length() Value {
 }
 
 // NewBinaryValue creates a new Binary
-//
 func NewBinaryValue(data []byte) Value {
 	return &binaryValue{baseValue: baseValue{info: typeInfoBinary}, data: data}
 }
@@ -113,7 +111,6 @@ func NewBinaryValue(data []byte) Value {
 // NewBinaryValueFromInternal constructs a binary value from regular data
 // id: TypeId (only for core types)
 // typeName: Name of non core typeName
-//
 func NewBinaryValueFromInternal(id int64, typeName string, value interface{}) BinaryValue {
 	var namesBuffer bytes.Buffer
 	gob.NewEncoder(&namesBuffer).Encode(value)

@@ -15,7 +15,6 @@ type call struct {
 }
 
 // Call is a function call
-//
 type Call interface {
 	Value
 	Runnable
@@ -89,7 +88,7 @@ func createArgumentsForMissingFunc(context RunContext, call *call, arguments []A
 	// and pass the original function name as first argument
 	//
 	return []Argument{
-		NewArgument(call.meta, call.astNode.node, NewIdentifier(call.firstArgument.Value().(*identifier).value[len(call.firstArgument.Value().(*identifier).value)-1])),
+		NewArgument(call.meta, call.astNode.node, NewIdentifier(call.firstArgument.Value().(*identifier).value[len(call.firstArgument.Value().(*identifier).value)-1].String())),
 		NewArgument(call.meta, call.astNode.node, NewListValue(values))}
 }
 
@@ -200,14 +199,12 @@ func (call *call) Enrich(dict DictionaryValue) {
 }
 
 // NewCall contstructs a new function call
-//
 func NewCall(meta ScriptMetaData, node *node32, firstArg Argument, arguments []Argument, pipeTo Runnable) Call {
 	return &call{astNode: astNode{meta: meta, node: node}, baseValue: baseValue{info: typeInfoCall},
 		firstArgument: firstArg, arguments: arguments, pipe: pipeTo}
 }
 
 // NewCallWithFunction constructs a call that does not need to be resolved
-//
 func NewCallWithFunction(meta ScriptMetaData, node *node32, function GoFunction, arguments []Argument, pipeTo Runnable) Call {
 	return &call{astNode: astNode{meta: meta, node: node}, baseValue: baseValue{info: typeInfoCall},
 		function: function, arguments: arguments, pipe: pipeTo}
