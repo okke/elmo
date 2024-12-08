@@ -15,6 +15,19 @@ const (
 	ID_DOUBLE_WILDCARD
 )
 
+func determineIdentifierType(id string) identifierType {
+	if len(id) > 0 && id[0] == '*' {
+		if len(id) == 1 {
+			return ID_SINGLE_WILDCARD
+		}
+		if len(id) == 2 && id[1] == '*' {
+			return ID_DOUBLE_WILDCARD
+		}
+		panic(fmt.Sprintf("invalid identifier %q", id))
+	}
+	return ID_SYMBOL
+}
+
 type identifierPart struct {
 	IDType identifierType
 	Value  string
@@ -99,7 +112,7 @@ func (identifier *identifier) Length() Value {
 func NewIdentifier(value string) Value {
 	return &identifier{baseValue: baseValue{info: typeInfoIdentifier}, value: []*identifierPart{
 		&identifierPart{
-			IDType: ID_SYMBOL,
+			IDType: determineIdentifierType(value),
 			Value:  value,
 		},
 	}}
@@ -109,7 +122,7 @@ func NewIdentifier(value string) Value {
 func NewNameSpacedIdentifier(value []string) Value {
 	return &identifier{baseValue: baseValue{info: typeInfoIdentifier}, value: slice.Map(value, func(s string) *identifierPart {
 		return &identifierPart{
-			IDType: ID_SYMBOL,
+			IDType: determineIdentifierType(s),
 			Value:  s,
 		}
 	})}
